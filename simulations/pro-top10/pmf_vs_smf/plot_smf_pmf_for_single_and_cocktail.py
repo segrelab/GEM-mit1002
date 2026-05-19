@@ -87,7 +87,17 @@ na_fluxes_df = na_fluxes_df.loc[:, (na_fluxes_df != 0).any(axis=0)]
 # If the extracellular sodium is a product and the flux is negative, the sodium is moving into the cell, so keep it negative
 # We can simplify all of this to if extracellular sodium is a reactant, multiply the flux by -1, if it's a product, keep it the same
 for rxn_id in na_fluxes_df.columns:
+    # Get the reaction object
     rxn = model.reactions.get_by_id(rxn_id)
+    # Get the coefficient of the extracellular sodium in the reaction
+    s_coeff = rxn.metabolites[na_e_met]
+    # Multiply the flux by the coefficient to get the correct rate of sodium movement
+    # Only necessary if the coefficient is not -1 or 1
+    if abs(rxn.metabolites[na_e_met]) != 1:
+        na_fluxes_df[rxn_id] = na_fluxes_df[rxn_id].apply(
+            lambda flux: flux * abs(s_coeff)
+        )
+    # If the extracellular sodium is a reactant, multiply the flux by -1 to get the correct direction
     if na_e_met in rxn.reactants:
         na_fluxes_df[rxn_id] = na_fluxes_df[rxn_id].apply(lambda flux: -flux)
 
