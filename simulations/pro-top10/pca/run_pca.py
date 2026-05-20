@@ -65,3 +65,10 @@ loadings_df = pd.DataFrame(
     columns=[f"PC{i+1}" for i in range(pca.n_components_)],
 )
 loadings_df.to_csv(OUT_PATH / "pca_loadings.csv")
+
+# Save explained variance ratios
+explained_var_df = pd.DataFrame(
+    {"explained_variance_ratio": explained_var},
+    index=[f"PC{i+1}" for i in range(len(explained_var))],
+)
+explained_var_df.to_csv(OUT_PATH / "explained_variance.csv")
