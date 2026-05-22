@@ -17,6 +17,18 @@ RESULTS_DIR = os.path.join(PROJECT_ROOT, "scripts", "results")
 with open(os.path.join(TESTFILE_DIR, "media", "media_definitions.pkl"), "rb") as f:
     media_definitions = pickle.load(f)
 
+# Define a dictionary of human-friendly versions of the media names
+# The key is the name in the media_definitions dictionary
+# The value is the human-friendly name to use the table
+media_names = {
+    "l1": "L1",
+    "mbm": "Minimal Basal Medium (Moran Lab)",
+    "promm_no_c": "ProMM",
+    "marine_broth_wo_yeast_and_peptone": "Marine Broth",
+    "marine_broth_wo_yeast_and_peptone_no_n": "Marine Broth (No Nitrogen)",
+    "swm": "Seawater Medium",
+}
+
 
 def generate_growth_phenotype_report(model: cobra.Model):
     # Load the TSV of the growth phenotypes
@@ -29,6 +41,7 @@ def generate_growth_phenotype_report(model: cobra.Model):
     # Loop through the growth phenotpes, and add the carbon source to the
     # minimal media, run FBA and check if the model grows
     ex_rxn_present = []
+    fba_growth_rate = []
     pred_growth = []
     for index, row in growth_phenotypes.iterrows():
         minimal_media = media_definitions[row["minimal_media"]].copy()
@@ -49,7 +62,9 @@ def generate_growth_phenotype_report(model: cobra.Model):
         model.medium = media.clean_media(model, minimal_media)
         # Run the model
         sol = model.optimize()
-        # Check if the model grows
+        # Save the growth rate
+        fba_growth_rate.append(sol.objective_value)
+        # Save the
         if sol.objective_value > 1e-3:
             # If it does, add 'Y' to the list
             pred_growth.append("Yes")
@@ -60,6 +75,7 @@ def generate_growth_phenotype_report(model: cobra.Model):
     # Add the lists as new columns in the dataframe
     growth_phenotypes["all_ex_rxn_present"] = ex_rxn_present
     growth_phenotypes["pred_growth"] = pred_growth
+    growth_phenotypes["fba_growth_rate"] = fba_growth_rate
 
     # Save the dataframe as a TSV
     growth_phenotypes.to_csv(
@@ -183,7 +199,7 @@ if __name__ == "__main__":
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
     # Load the model
-    model = cobra.io.read_sbml_model("model.xml")
+    model = cobra.io.read_sbml_model(os.path.join(PROJECT_ROOT, "model.xml"))
 
     # Generate the reports
     generate_growth_phenotype_report(model)
