@@ -29,27 +29,27 @@ promm_no_c	Kynurenine	cpd00275		No	There are two kynurenine metabolites in the d
 promm_no_c	Thymidine	cpd00184		No	
 promm_no_c	4-hydroxybenzoic acid	cpd00136		No	
 marine_broth_wo_yeast_and_peptone	Alanine	cpd00035		Yes	
-marine_broth_wo_yeast_and_peptone	Alanine+Pyruvate	cpd00035,cpd00020		Yes	
+marine_broth_wo_yeast_and_peptone	Alanine, Pyruvate	cpd00035,cpd00020		Yes	
 marine_broth_wo_yeast_and_peptone	Arginine	cpd00051		Yes	
-marine_broth_wo_yeast_and_peptone	Arginine+Pyruvate	cpd00051,cpd00020		Yes	
+marine_broth_wo_yeast_and_peptone	Arginine, Pyruvate	cpd00051,cpd00020		Yes	
 marine_broth_wo_yeast_and_peptone	Cystine	cpd00381		No	
-marine_broth_wo_yeast_and_peptone	Cystine+Pyruvate	cpd00381,cpd00020		No	
+marine_broth_wo_yeast_and_peptone	Cystine, Pyruvate	cpd00381,cpd00020		No	
 marine_broth_wo_yeast_and_peptone	Glutamine	cpd00053		Yes	
-marine_broth_wo_yeast_and_peptone	Glutamine+Pyruvate	cpd00053,cpd00020		Yes	
+marine_broth_wo_yeast_and_peptone	Glutamine, Pyruvate	cpd00053,cpd00020		Yes	
 marine_broth_wo_yeast_and_peptone	Lysine	cpd00039		Yes	
-marine_broth_wo_yeast_and_peptone	Lysine+Pyruvate	cpd00039,cpd00020		Yes	
+marine_broth_wo_yeast_and_peptone	Lysine, Pyruvate	cpd00039,cpd00020		Yes	
 marine_broth_wo_yeast_and_peptone	Methionine	cpd00060		No	
-marine_broth_wo_yeast_and_peptone	Methionine+Pyruvate	cpd00060,cpd00020		Yes	
+marine_broth_wo_yeast_and_peptone	Methionine, Pyruvate	cpd00060,cpd00020		Yes	
 marine_broth_wo_yeast_and_peptone	Proline	cpd00129		No	
-marine_broth_wo_yeast_and_peptone	Proline+Pyruvate	cpd00129,cpd00020		Yes	
-marine_broth_wo_yeast_and_peptone_no_n	Ammonium+Glucose	cpd00013,cpd00027		Yes	
-marine_broth_wo_yeast_and_peptone_no_n	Nitrate+Glucose	cpd00209,cpd00027		Yes	
-marine_broth_wo_yeast_and_peptone_no_n	Urea+Glucose	cpd00073,cpd00027		Yes	
-marine_broth_wo_yeast_and_peptone_no_n	Ammonium+Pyruvate	cpd00013,cpd00020		Yes	
-marine_broth_wo_yeast_and_peptone_no_n	Nitrate+Pyruvate	cpd00209,cpd00020		Yes	
+marine_broth_wo_yeast_and_peptone	Proline, Pyruvate	cpd00129,cpd00020		Yes	
+marine_broth_wo_yeast_and_peptone_no_n	Ammonium, Glucose	cpd00013,cpd00027		Yes	
+marine_broth_wo_yeast_and_peptone_no_n	Nitrate, Glucose	cpd00209,cpd00027		Yes	
+marine_broth_wo_yeast_and_peptone_no_n	Urea, Glucose	cpd00073,cpd00027		Yes	
+marine_broth_wo_yeast_and_peptone_no_n	Ammonium, Pyruvate	cpd00013,cpd00020		Yes	
+marine_broth_wo_yeast_and_peptone_no_n	Nitrate, Pyruvate	cpd00209,cpd00020		Yes	
 marine_broth_wo_yeast_and_peptone_no_n	Urea+Pyruvate	cpd00073,cpd00020		No	
-marine_broth_wo_yeast_and_peptone_no_n	Ammonium+Succinate	cpd00013,cpd00036		No	
-marine_broth_wo_yeast_and_peptone_no_n	Nitrate+Succinate	cpd00209,cpd00036		No	
-marine_broth_wo_yeast_and_peptone_no_n	Urea+Succinate	cpd00073,cpd00036		No	
+marine_broth_wo_yeast_and_peptone_no_n	Ammonium, Succinate	cpd00013,cpd00036		No	
+marine_broth_wo_yeast_and_peptone_no_n	Nitrate, Succinate	cpd00209,cpd00036		No	
+marine_broth_wo_yeast_and_peptone_no_n	Urea, Succinate	cpd00073,cpd00036		No	
 swm	Phenol	cpd00127		Yes	From Koch 2020
 swm	alpha-Mannan	cpd11685		Yes	From Koch 2020
