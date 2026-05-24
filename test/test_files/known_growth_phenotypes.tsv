@@ -1,55 +1,55 @@
-minimal_media	c_source	met_id	bigg_id	growth	notes
-mbm	Glucose 	cpd00027	glc__D	Yes	
-l1	Glucose 	cpd00027	glc__D	Yes	
-mbm	Acetate	cpd00029	ac	Yes	
-l1	Acetate	cpd00029	ac	Yes	
-mbm	Glycolate	cpd00139	glyclt	No	
-mbm	Homarine	cpd00737		Unsure	Not sure about metabolite ID. Called gynesine in ModelSEED.
-mbm	3-hydroxybutyrate	cpd00797		Yes	
-mbm	Choline	cpd00098	chol	No	
-mbm	Ectoine	cpd03727	ectoine	No	
-mbm	Alanine	cpd00035	ala__L	Unsure	Maybe. Only grows on first transfer from rich media but not subsequent; maybe using storage. Used the ModelSEED ID for L-alanine.
-l1	Alanine	cpd00035	ala__L	Yes	
-mbm	Proline	cpd00129	pro__L	Unsure	"Maybe. Took over a week for noticeable, but weak, growth; usually takes less than 12 h on glucose. Used the ModelSEED ID for L-proline."
-l1	Proline	cpd00129	pro__L	Yes	
-mbm	Sucrose	cpd00076	sucr	No	
-mbm	Fructose	cpd00082	fru	No	
-l1	Glycerol-3-phosphate	cpd00080	glyc3p	Yes	
-l1	DHPS (dihydroxypropanesulfonate)	cpd23538		Yes	
-l1	Tyrosine	cpd00069	tyr__L	Yes	Assumed we wanted L-tyrosine.
-l1	Glutamate	cpd00023	glu__L	Yes	Assumed we wanted L-glutamate.
-l1	Valine	cpd00156	val__L	Yes	Assumed we wanted L-valine.
-promm_no_c	Leucine	cpd00107		Yes	
-promm_no_c	4-methyl-2-oxopentanoic acid	cpd00200		No	
-promm_no_c	Isoleucine	cpd00322		Yes	
-promm_no_c	3-methyl-2-oxopentanoic acid	cpd00508		No	
-promm_no_c	Valine	cpd00156		Yes	
-promm_no_c	3-methyl-2-oxobutanoic acid	cpd00123		Yes	
-promm_no_c	Kynurenine	cpd00275		No	There are two kynurenine metabolites in the db ModelSEED
-promm_no_c	Thymidine	cpd00184		No	
-promm_no_c	4-hydroxybenzoic acid	cpd00136		No	
-marine_broth_wo_yeast_and_peptone	Alanine	cpd00035		Yes	
-marine_broth_wo_yeast_and_peptone	Alanine, Pyruvate	cpd00035,cpd00020		Yes	
-marine_broth_wo_yeast_and_peptone	Arginine	cpd00051		Yes	
-marine_broth_wo_yeast_and_peptone	Arginine, Pyruvate	cpd00051,cpd00020		Yes	
-marine_broth_wo_yeast_and_peptone	Cystine	cpd00381		No	
-marine_broth_wo_yeast_and_peptone	Cystine, Pyruvate	cpd00381,cpd00020		No	
-marine_broth_wo_yeast_and_peptone	Glutamine	cpd00053		Yes	
-marine_broth_wo_yeast_and_peptone	Glutamine, Pyruvate	cpd00053,cpd00020		Yes	
-marine_broth_wo_yeast_and_peptone	Lysine	cpd00039		Yes	
-marine_broth_wo_yeast_and_peptone	Lysine, Pyruvate	cpd00039,cpd00020		Yes	
-marine_broth_wo_yeast_and_peptone	Methionine	cpd00060		No	
-marine_broth_wo_yeast_and_peptone	Methionine, Pyruvate	cpd00060,cpd00020		Yes	
-marine_broth_wo_yeast_and_peptone	Proline	cpd00129		No	
-marine_broth_wo_yeast_and_peptone	Proline, Pyruvate	cpd00129,cpd00020		Yes	
-marine_broth_wo_yeast_and_peptone_no_n	Ammonium, Glucose	cpd00013,cpd00027		Yes	
-marine_broth_wo_yeast_and_peptone_no_n	Nitrate, Glucose	cpd00209,cpd00027		Yes	
-marine_broth_wo_yeast_and_peptone_no_n	Urea, Glucose	cpd00073,cpd00027		Yes	
-marine_broth_wo_yeast_and_peptone_no_n	Ammonium, Pyruvate	cpd00013,cpd00020		Yes	
-marine_broth_wo_yeast_and_peptone_no_n	Nitrate, Pyruvate	cpd00209,cpd00020		Yes	
-marine_broth_wo_yeast_and_peptone_no_n	Urea+Pyruvate	cpd00073,cpd00020		No	
-marine_broth_wo_yeast_and_peptone_no_n	Ammonium, Succinate	cpd00013,cpd00036		No	
-marine_broth_wo_yeast_and_peptone_no_n	Nitrate, Succinate	cpd00209,cpd00036		No	
-marine_broth_wo_yeast_and_peptone_no_n	Urea, Succinate	cpd00073,cpd00036		No	
-swm	Phenol	cpd00127		Yes	From Koch 2020
-swm	alpha-Mannan	cpd11685		Yes	From Koch 2020
+minimal_media	c_source	met_id	bigg_id	growth	reference	notes
+mbm	Glucose 	cpd00027	glc__D	Yes		
+l1	Glucose 	cpd00027	glc__D	Yes		
+mbm	Acetate	cpd00029	ac	Yes		
+l1	Acetate	cpd00029	ac	Yes		
+mbm	Glycolate	cpd00139	glyclt	No		
+mbm	Homarine	cpd00737		Unsure		Not sure about metabolite ID. Called gynesine in ModelSEED.
+mbm	3-hydroxybutyrate	cpd00797		Yes		
+mbm	Choline	cpd00098	chol	No		
+mbm	Ectoine	cpd03727	ectoine	No		
+mbm	Alanine	cpd00035	ala__L	Unsure		Maybe. Only grows on first transfer from rich media but not subsequent; maybe using storage. Used the ModelSEED ID for L-alanine.
+l1	Alanine	cpd00035	ala__L	Yes		
+mbm	Proline	cpd00129	pro__L	Unsure		"Maybe. Took over a week for noticeable, but weak, growth; usually takes less than 12 h on glucose. Used the ModelSEED ID for L-proline."
+l1	Proline	cpd00129	pro__L	Yes		
+mbm	Sucrose	cpd00076	sucr	No		
+mbm	Fructose	cpd00082	fru	No		
+l1	Glycerol-3-phosphate	cpd00080	glyc3p	Yes		
+l1	DHPS (dihydroxypropanesulfonate)	cpd23538		Yes		
+l1	Tyrosine	cpd00069	tyr__L	Yes		Assumed we wanted L-tyrosine.
+l1	Glutamate	cpd00023	glu__L	Yes		Assumed we wanted L-glutamate.
+l1	Valine	cpd00156	val__L	Yes		Assumed we wanted L-valine.
+promm_no_c	Leucine	cpd00107		Yes		
+promm_no_c	4-methyl-2-oxopentanoic acid	cpd00200		No		
+promm_no_c	Isoleucine	cpd00322		Yes		
+promm_no_c	3-methyl-2-oxopentanoic acid	cpd00508		No		
+promm_no_c	Valine	cpd00156		Yes		
+promm_no_c	3-methyl-2-oxobutanoic acid	cpd00123		Yes		
+promm_no_c	Kynurenine	cpd00275		No		There are two kynurenine metabolites in the db ModelSEED
+promm_no_c	Thymidine	cpd00184		No		
+promm_no_c	4-hydroxybenzoic acid	cpd00136		No		
+marine_broth_wo_yeast_and_peptone	Alanine	cpd00035		Yes		
+marine_broth_wo_yeast_and_peptone	Alanine, Pyruvate	cpd00035,cpd00020		Yes		
+marine_broth_wo_yeast_and_peptone	Arginine	cpd00051		Yes		
+marine_broth_wo_yeast_and_peptone	Arginine, Pyruvate	cpd00051,cpd00020		Yes		
+marine_broth_wo_yeast_and_peptone	Cystine	cpd00381		No		
+marine_broth_wo_yeast_and_peptone	Cystine, Pyruvate	cpd00381,cpd00020		No		
+marine_broth_wo_yeast_and_peptone	Glutamine	cpd00053		Yes		
+marine_broth_wo_yeast_and_peptone	Glutamine, Pyruvate	cpd00053,cpd00020		Yes		
+marine_broth_wo_yeast_and_peptone	Lysine	cpd00039		Yes		
+marine_broth_wo_yeast_and_peptone	Lysine, Pyruvate	cpd00039,cpd00020		Yes		
+marine_broth_wo_yeast_and_peptone	Methionine	cpd00060		No		
+marine_broth_wo_yeast_and_peptone	Methionine, Pyruvate	cpd00060,cpd00020		Yes		
+marine_broth_wo_yeast_and_peptone	Proline	cpd00129		No		
+marine_broth_wo_yeast_and_peptone	Proline, Pyruvate	cpd00129,cpd00020		Yes		
+marine_broth_wo_yeast_and_peptone_no_n	Ammonium, Glucose	cpd00013,cpd00027		Yes		
+marine_broth_wo_yeast_and_peptone_no_n	Nitrate, Glucose	cpd00209,cpd00027		Yes		
+marine_broth_wo_yeast_and_peptone_no_n	Urea, Glucose	cpd00073,cpd00027		Yes		
+marine_broth_wo_yeast_and_peptone_no_n	Ammonium, Pyruvate	cpd00013,cpd00020		Yes		
+marine_broth_wo_yeast_and_peptone_no_n	Nitrate, Pyruvate	cpd00209,cpd00020		Yes		
+marine_broth_wo_yeast_and_peptone_no_n	Urea+Pyruvate	cpd00073,cpd00020		No		
+marine_broth_wo_yeast_and_peptone_no_n	Ammonium, Succinate	cpd00013,cpd00036		No		
+marine_broth_wo_yeast_and_peptone_no_n	Nitrate, Succinate	cpd00209,cpd00036		No		
+marine_broth_wo_yeast_and_peptone_no_n	Urea, Succinate	cpd00073,cpd00036		No		
+swm	Phenol	cpd00127		Yes	(Koch, 2020)	
+swm	alpha-Mannan	cpd11685		Yes	(Koch, 2020)	
