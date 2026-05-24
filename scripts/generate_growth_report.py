@@ -229,8 +229,9 @@ def beautify_table(exp_pred_table: pd.DataFrame):
     )
     # Save
     exp_pred_table.to_csv(
-        os.path.join(RESULTS_DIR, "known_growth_phenotypes_w_pred.csv"),
+        os.path.join(RESULTS_DIR, "known_growth_phenotypes_w_pred.tsv"),
         index=False,
+        sep="\t",
     )
 
 
