@@ -213,6 +213,7 @@ def beautify_table(exp_pred_table: pd.DataFrame):
             "Medium N Source(s)",
             "c_source",
             "growth",
+            "reference",
             "fba_growth_rate",
         ]
     ]
@@ -224,6 +225,7 @@ def beautify_table(exp_pred_table: pd.DataFrame):
             "minimal_media": "Minimal Media",
             "c_source": "Added Metabolite(s)",
             "growth": "Experimental Growth",
+            "reference": "Reference",
             "fba_growth_rate": "FBA Predicted Growth Rate",
         }
     )
