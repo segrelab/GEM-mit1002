@@ -53,8 +53,8 @@ marine_broth_wo_yeast_and_peptone_no_n	Nitrate, Succinate	cpd00209,cpd00036			No
 marine_broth_wo_yeast_and_peptone_no_n	Urea, Succinate	cpd00073,cpd00036			No	(Kratzl, 2026)	
 swm	Phenol	cpd00127	Yes		Yes	(Koch, 2020)	
 swm	alpha-Mannan	cpd11685	Yes		Yes	(Koch, 2020)	
-l1	Galactose	cpd00108			Yes		grows within 1 day, not actually sure about the minimal medium- waiting to hear back from Mary Ann
-l1	Mannuronic Acid	cpd01384			Yes		"grows within 1 day, technically this ID is for ""D-Mannuronate"", not actually sure about the minimal medium- waiting to hear back from Mary Ann"
-l1	Glucuronic Acid	cpd00164			No		"technically this ID is for ""Glucuronate"", not actually sure about the minimal medium- waiting to hear back from Mary Ann"
-l1	Galacturonic Acid	cpd00280			Yes		"grows within 2 days, technically this ID is for ""D-Galacturonate"", not actually sure about the minimal medium- waiting to hear back from Mary Ann"
-l1	Alginate	cpd11949			No		not actually sure about the minimal medium- waiting to hear back from Mary Ann
+mbm	Galactose	cpd00108			Yes		grows within 1 day
+mbm	Mannuronic Acid	cpd01384			Yes		"grows within 1 day, technically this ID is for ""D-Mannuronate"","
+mbm	Glucuronic Acid	cpd00164			No		"technically this ID is for ""Glucuronate"""
+mbm	Galacturonic Acid	cpd00280			Yes		"grows within 2 days, technically this ID is for ""D-Galacturonate"""
+mbm	Alginate	cpd11949			No		
