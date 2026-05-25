@@ -1,0 +1,29 @@
+substrate_a,substrate_b,growth_rate
+glutamic acid,valine,0.6187538546504707
+glutamic acid,isoleucine,0.6435970904492821
+glutamic acid,alanine,0.6474925140412379
+glutamic acid,leucine,0.6071889054474826
+glutamic acid,aspartate,0.6655790250656738
+glutamic acid,proline,0.7062723780642467
+glutamic acid,glycine,0.6541905839481251
+valine,isoleucine,0.5501591784132206
+valine,alanine,0.5580075323288283
+valine,leucine,0.5155665757004279
+valine,aspartate,0.610638220376775
+valine,proline,0.6146727237825816
+valine,glycine,0.5987445583626012
+isoleucine,alanine,0.5826430446783063
+isoleucine,leucine,0.5416760011363282
+isoleucine,aspartate,0.6328605035383935
+isoleucine,proline,0.6395351741970546
+isoleucine,glycine,0.6402429237535403
+alanine,leucine,0.5446669627487812
+alanine,aspartate,0.6354856062524067
+alanine,proline,0.6469489498517776
+alanine,glycine,0.6476018522770444
+leucine,aspartate,0.5950878842799753
+leucine,proline,0.6071889054474827
+leucine,glycine,0.6094797302840659
+aspartate,proline,0.6975212964955042
+aspartate,glycine,0.6078353742529772
+proline,glycine,0.6690479889898757
