@@ -212,6 +212,7 @@ def beautify_table(exp_pred_table: pd.DataFrame):
             "minimal_media",
             "Medium N Source(s)",
             "c_source",
+            "pro_exomet",
             "growth",
             "reference",
             "fba_growth_rate",
@@ -224,6 +225,7 @@ def beautify_table(exp_pred_table: pd.DataFrame):
         columns={
             "minimal_media": "Minimal Media",
             "c_source": "Added Metabolite(s)",
+            "pro_exomet": "Prochlorococcus Exometabolite",
             "growth": "Experimental Growth",
             "reference": "Reference",
             "fba_growth_rate": "FBA Predicted Growth Rate",
