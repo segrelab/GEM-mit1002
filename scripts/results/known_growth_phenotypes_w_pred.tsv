@@ -1,55 +1,60 @@
-minimal_media	c_source	met_id	bigg_id	growth	notes	all_ex_rxn_present	pred_growth
-mbm	Glucose 	['cpd00027']	glc__D	Yes		Yes	Yes
-l1	Glucose 	['cpd00027']	glc__D	Yes		Yes	Yes
-mbm	Acetate	['cpd00029']	ac	Yes		Yes	Yes
-l1	Acetate	['cpd00029']	ac	Yes		Yes	Yes
-mbm	Glycolate	['cpd00139']	glyclt	No		No	No
-mbm	Homarine	['cpd00737']		Unsure	Not sure about metabolite ID. Called gynesine in ModelSEED.	No	No
-mbm	3-hydroxybutyrate	['cpd00797']		Yes		Yes	Yes
-mbm	Choline	['cpd00098']	chol	No		Yes	No
-mbm	Ectoine	['cpd03727']	ectoine	No		No	No
-mbm	Alanine	['cpd00035']	ala__L	Unsure	Maybe. Only grows on first transfer from rich media but not subsequent; maybe using storage. Used the ModelSEED ID for L-alanine.	Yes	Yes
-l1	Alanine	['cpd00035']	ala__L	Yes		Yes	Yes
-mbm	Proline	['cpd00129']	pro__L	Unsure	Maybe. Took over a week for noticeable, but weak, growth; usually takes less than 12 h on glucose. Used the ModelSEED ID for L-proline.	Yes	Yes
-l1	Proline	['cpd00129']	pro__L	Yes		Yes	Yes
-mbm	Sucrose	['cpd00076']	sucr	No		No	No
-mbm	Fructose	['cpd00082']	fru	No		No	No
-l1	Glycerol-3-phosphate	['cpd00080']	glyc3p	Yes		Yes	Yes
-l1	DHPS (dihydroxypropanesulfonate)	['cpd23538']		Yes		Yes	Yes
-l1	Tyrosine	['cpd00069']	tyr__L	Yes	Assumed we wanted L-tyrosine.	Yes	Yes
-l1	Glutamate	['cpd00023']	glu__L	Yes	Assumed we wanted L-glutamate.	Yes	Yes
-l1	Valine	['cpd00156']	val__L	Yes	Assumed we wanted L-valine.	Yes	Yes
-promm_no_c	Leucine	['cpd00107']		Yes		Yes	Yes
-promm_no_c	4-methyl-2-oxopentanoic acid	['cpd00200']		No		No	No
-promm_no_c	Isoleucine	['cpd00322']		Yes		Yes	Yes
-promm_no_c	3-methyl-2-oxopentanoic acid	['cpd00508']		No		No	No
-promm_no_c	Valine	['cpd00156']		Yes		Yes	Yes
-promm_no_c	3-methyl-2-oxobutanoic acid	['cpd00123']		Yes		Yes	Yes
-promm_no_c	Kynurenine	['cpd00275']		No	There are two kynurenine metabolites in the db ModelSEED	No	No
-promm_no_c	Thymidine	['cpd00184']		No		Yes	No
-promm_no_c	4-hydroxybenzoic acid	['cpd00136']		No		No	No
-marine_broth_wo_yeast_and_peptone	Alanine	['cpd00035']		Yes		Yes	Yes
-marine_broth_wo_yeast_and_peptone	Alanine+Pyruvate	['cpd00035', 'cpd00020']		Yes		Yes	Yes
-marine_broth_wo_yeast_and_peptone	Arginine	['cpd00051']		Yes		Yes	Yes
-marine_broth_wo_yeast_and_peptone	Arginine+Pyruvate	['cpd00051', 'cpd00020']		Yes		Yes	Yes
-marine_broth_wo_yeast_and_peptone	Cystine	['cpd00381']		No		No	No
-marine_broth_wo_yeast_and_peptone	Cystine+Pyruvate	['cpd00381', 'cpd00020']		No		No	No
-marine_broth_wo_yeast_and_peptone	Glutamine	['cpd00053']		Yes		No	No
-marine_broth_wo_yeast_and_peptone	Glutamine+Pyruvate	['cpd00053', 'cpd00020']		Yes		No	No
-marine_broth_wo_yeast_and_peptone	Lysine	['cpd00039']		Yes		Yes	No
-marine_broth_wo_yeast_and_peptone	Lysine+Pyruvate	['cpd00039', 'cpd00020']		Yes		Yes	Yes
-marine_broth_wo_yeast_and_peptone	Methionine	['cpd00060']		No		No	No
-marine_broth_wo_yeast_and_peptone	Methionine+Pyruvate	['cpd00060', 'cpd00020']		Yes		No	No
-marine_broth_wo_yeast_and_peptone	Proline	['cpd00129']		No		Yes	Yes
-marine_broth_wo_yeast_and_peptone	Proline+Pyruvate	['cpd00129', 'cpd00020']		Yes		Yes	Yes
-marine_broth_wo_yeast_and_peptone_no_n	Ammonium+Glucose	['cpd00013', 'cpd00027']		Yes		Yes	Yes
-marine_broth_wo_yeast_and_peptone_no_n	Nitrate+Glucose	['cpd00209', 'cpd00027']		Yes		Yes	Yes
-marine_broth_wo_yeast_and_peptone_no_n	Urea+Glucose	['cpd00073', 'cpd00027']		Yes		No	No
-marine_broth_wo_yeast_and_peptone_no_n	Ammonium+Pyruvate	['cpd00013', 'cpd00020']		Yes		Yes	Yes
-marine_broth_wo_yeast_and_peptone_no_n	Nitrate+Pyruvate	['cpd00209', 'cpd00020']		Yes		Yes	Yes
-marine_broth_wo_yeast_and_peptone_no_n	Urea+Pyruvate	['cpd00073', 'cpd00020']		No		No	No
-marine_broth_wo_yeast_and_peptone_no_n	Ammonium+Succinate	['cpd00013', 'cpd00036']		No		Yes	Yes
-marine_broth_wo_yeast_and_peptone_no_n	Nitrate+Succinate	['cpd00209', 'cpd00036']		No		Yes	Yes
-marine_broth_wo_yeast_and_peptone_no_n	Urea+Succinate	['cpd00073', 'cpd00036']		No		No	No
-swm	Phenol	['cpd00127']		Yes	From Koch 2020	Yes	Yes
-swm	alpha-Mannan	['cpd11685']		Yes	From Koch 2020	No	No
+Minimal Media	Medium N Source(s)	Added Metabolite(s)	Prochlorococcus Exometabolite	Experimental Growth	Reference	FBA Predicted Growth Rate
+L1	Nitrate	Acetate		Yes		0.3700032261147617
+L1	Nitrate	Alanine		Yes		6.592127693786372
+L1	Nitrate	DHPS (dihydroxypropanesulfonate)		Yes		9.409586800491514
+L1	Nitrate	Glucose 		Yes		18.822013262417233
+L1	Nitrate	Glutamate		Yes		9.392862355399904
+L1	Nitrate	Glycerol-3-phosphate		Yes		25.112540186541455
+L1	Nitrate	Proline		Yes		7.184107545262706
+L1	Nitrate	Tyrosine		Yes		0.32719501008099283
+L1	Nitrate	Valine		Yes		1.5162263113120842
+Marine Broth	NH3, Nitrate	Alanine		Yes	(Kratzl, 2026)	6.592127693785203
+Marine Broth	NH3, Nitrate	Alanine, Pyruvate		Yes	(Kratzl, 2026)	9.45581594939957
+Marine Broth	NH3, Nitrate	Arginine		Yes	(Kratzl, 2026)	3.577733631954485
+Marine Broth	NH3, Nitrate	Arginine, Pyruvate		Yes	(Kratzl, 2026)	9.297973086369819
+Marine Broth	NH3, Nitrate	Cystine		No	(Kratzl, 2026)	0.0
+Marine Broth	NH3, Nitrate	Cystine, Pyruvate		No	(Kratzl, 2026)	0.0
+Marine Broth	NH3, Nitrate	Glutamine		Yes	(Kratzl, 2026)	0.0
+Marine Broth	NH3, Nitrate	Glutamine, Pyruvate		Yes	(Kratzl, 2026)	0.0
+Marine Broth	NH3, Nitrate	Lysine		Yes	(Kratzl, 2026)	0.0
+Marine Broth	NH3, Nitrate	Lysine, Pyruvate		Yes	(Kratzl, 2026)	8.795859716996082
+Marine Broth	NH3, Nitrate	Methionine		No	(Kratzl, 2026)	0.0
+Marine Broth	NH3, Nitrate	Methionine, Pyruvate		Yes	(Kratzl, 2026)	0.0
+Marine Broth	NH3, Nitrate	Proline		No	(Kratzl, 2026)	7.1841075452627745
+Marine Broth	NH3, Nitrate	Proline, Pyruvate		Yes	(Kratzl, 2026)	9.523219996222394
+Marine Broth (No Nitrogen)		Ammonium, Glucose		Yes	(Kratzl, 2026)	13.139978822079081
+Marine Broth (No Nitrogen)		Ammonium, Pyruvate		Yes	(Kratzl, 2026)	7.0785768830931985
+Marine Broth (No Nitrogen)		Ammonium, Succinate		No	(Kratzl, 2026)	0.8945969228185091
+Marine Broth (No Nitrogen)		Nitrate, Glucose		Yes	(Kratzl, 2026)	18.822013262419055
+Marine Broth (No Nitrogen)		Nitrate, Pyruvate		Yes	(Kratzl, 2026)	8.662236442500234
+Marine Broth (No Nitrogen)		Nitrate, Succinate		No	(Kratzl, 2026)	7.002814114179707
+Marine Broth (No Nitrogen)		Urea+Pyruvate		No	(Kratzl, 2026)	0.0
+Marine Broth (No Nitrogen)		Urea, Glucose		Yes	(Kratzl, 2026)	0.0
+Marine Broth (No Nitrogen)		Urea, Succinate		No	(Kratzl, 2026)	0.0
+Minimal Basal Medium (Moran Lab)	NH3	3-hydroxybutyrate		Yes		3.3577740976358403
+Minimal Basal Medium (Moran Lab)	NH3	Acetate		Yes		0.38534169397881946
+Minimal Basal Medium (Moran Lab)	NH3	Alanine		Unsure		4.902267488930263
+Minimal Basal Medium (Moran Lab)	NH3	Alginate		No		0.0
+Minimal Basal Medium (Moran Lab)	NH3	Choline		No		1.1206276071555686e-14
+Minimal Basal Medium (Moran Lab)	NH3	Ectoine		No		0.0
+Minimal Basal Medium (Moran Lab)	NH3	Fructose		No		0.0
+Minimal Basal Medium (Moran Lab)	NH3	Galactose		Yes		12.055280545962567
+Minimal Basal Medium (Moran Lab)	NH3	Galacturonic Acid		Yes		0.0
+Minimal Basal Medium (Moran Lab)	NH3	Glucose 		Yes		13.139978821974477
+Minimal Basal Medium (Moran Lab)	NH3	Glucuronic Acid		No		0.0
+Minimal Basal Medium (Moran Lab)	NH3	Glycolate		No		0.0
+Minimal Basal Medium (Moran Lab)	NH3	Homarine		Unsure		0.0
+Minimal Basal Medium (Moran Lab)	NH3	Mannuronic Acid		Yes		0.0
+Minimal Basal Medium (Moran Lab)	NH3	Proline		Unsure		0.8272622360263236
+Minimal Basal Medium (Moran Lab)	NH3	Sucrose		No		0.0
+ProMM	NH3	3-methyl-2-oxobutanoic acid	Yes	Yes	(Halloran, 2026)	0.4913026229902243
+ProMM	NH3	3-methyl-2-oxopentanoic acid	Yes	No	(Halloran, 2026)	0.0
+ProMM	NH3	4-hydroxybenzoic acid	Yes	No	(Halloran, 2026)	0.0
+ProMM	NH3	4-methyl-2-oxopentanoic acid	Yes	No	(Halloran, 2026)	0.0
+ProMM	NH3	Isoleucine	Yes	Yes	(Halloran, 2026)	0.5369144790315348
+ProMM	NH3	Kynurenine	Yes	No	(Halloran, 2026)	0.0
+ProMM	NH3	Leucine	Yes	Yes	(Halloran, 2026)	1.1553065991222187
+ProMM	NH3	Thymidine	Yes	No	(Halloran, 2026)	0.0
+ProMM	NH3	Valine	Yes	Yes	(Halloran, 2026)	0.4697718915364014
+Seawater Medium	NH3	Phenol	Yes	Yes	(Koch, 2020)	0.26518342580206855
+Seawater Medium	NH3	alpha-Mannan	Yes	Yes	(Koch, 2020)	0.0
