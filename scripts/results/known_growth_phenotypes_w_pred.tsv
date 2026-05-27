@@ -1,60 +1,60 @@
 Minimal Media	Medium N Source(s)	Added Metabolite(s)	Prochlorococcus Exometabolite	Experimental Growth	Reference	FBA Predicted Growth Rate
-L1	Nitrate	Acetate		Yes		0.3700032261147617
-L1	Nitrate	Alanine		Yes		6.592127693786372
-L1	Nitrate	DHPS (dihydroxypropanesulfonate)		Yes		9.409586800491514
-L1	Nitrate	Glucose 		Yes		18.822013262417233
-L1	Nitrate	Glutamate		Yes		9.392862355399904
-L1	Nitrate	Glycerol-3-phosphate		Yes		25.112540186541455
-L1	Nitrate	Proline		Yes		7.184107545262706
-L1	Nitrate	Tyrosine		Yes		0.32719501008099283
-L1	Nitrate	Valine		Yes		1.5162263113120842
-Marine Broth	NH3, Nitrate	Alanine		Yes	(Kratzl, 2026)	6.592127693785203
-Marine Broth	NH3, Nitrate	Alanine, Pyruvate		Yes	(Kratzl, 2026)	9.45581594939957
-Marine Broth	NH3, Nitrate	Arginine		Yes	(Kratzl, 2026)	3.577733631954485
-Marine Broth	NH3, Nitrate	Arginine, Pyruvate		Yes	(Kratzl, 2026)	9.297973086369819
+L1	Nitrate	Acetate		Yes		0.37
+L1	Nitrate	Alanine		Yes		0.585
+L1	Nitrate	DHPS (dihydroxypropanesulfonate)		Yes		0.583
+L1	Nitrate	Glucose 		Yes		0.647
+L1	Nitrate	Glutamate		Yes		0.71
+L1	Nitrate	Glycerol-3-phosphate		Yes		0.804
+L1	Nitrate	Proline		Yes		0.687
+L1	Nitrate	Tyrosine		Yes		0.327
+L1	Nitrate	Valine		Yes		0.492
+Marine Broth	NH3, Nitrate	Alanine		Yes	(Kratzl, 2026)	0.585
+Marine Broth	NH3, Nitrate	Alanine, Pyruvate		Yes	(Kratzl, 2026)	0.766
+Marine Broth	NH3, Nitrate	Arginine		Yes	(Kratzl, 2026)	0.613
+Marine Broth	NH3, Nitrate	Arginine, Pyruvate		Yes	(Kratzl, 2026)	0.78
 Marine Broth	NH3, Nitrate	Cystine		No	(Kratzl, 2026)	0.0
 Marine Broth	NH3, Nitrate	Cystine, Pyruvate		No	(Kratzl, 2026)	0.0
 Marine Broth	NH3, Nitrate	Glutamine		Yes	(Kratzl, 2026)	0.0
 Marine Broth	NH3, Nitrate	Glutamine, Pyruvate		Yes	(Kratzl, 2026)	0.0
-Marine Broth	NH3, Nitrate	Lysine		Yes	(Kratzl, 2026)	0.0
-Marine Broth	NH3, Nitrate	Lysine, Pyruvate		Yes	(Kratzl, 2026)	8.795859716996082
+Marine Broth	NH3, Nitrate	Lysine		Yes	(Kratzl, 2026)	0.504
+Marine Broth	NH3, Nitrate	Lysine, Pyruvate		Yes	(Kratzl, 2026)	0.692
 Marine Broth	NH3, Nitrate	Methionine		No	(Kratzl, 2026)	0.0
 Marine Broth	NH3, Nitrate	Methionine, Pyruvate		Yes	(Kratzl, 2026)	0.0
-Marine Broth	NH3, Nitrate	Proline		No	(Kratzl, 2026)	7.1841075452627745
-Marine Broth	NH3, Nitrate	Proline, Pyruvate		Yes	(Kratzl, 2026)	9.523219996222394
-Marine Broth (No Nitrogen)		Ammonium, Glucose		Yes	(Kratzl, 2026)	13.139978822079081
-Marine Broth (No Nitrogen)		Ammonium, Pyruvate		Yes	(Kratzl, 2026)	7.0785768830931985
-Marine Broth (No Nitrogen)		Ammonium, Succinate		No	(Kratzl, 2026)	0.8945969228185091
-Marine Broth (No Nitrogen)		Nitrate, Glucose		Yes	(Kratzl, 2026)	18.822013262419055
-Marine Broth (No Nitrogen)		Nitrate, Pyruvate		Yes	(Kratzl, 2026)	8.662236442500234
-Marine Broth (No Nitrogen)		Nitrate, Succinate		No	(Kratzl, 2026)	7.002814114179707
-Marine Broth (No Nitrogen)		Urea+Pyruvate		No	(Kratzl, 2026)	0.0
-Marine Broth (No Nitrogen)		Urea, Glucose		Yes	(Kratzl, 2026)	0.0
-Marine Broth (No Nitrogen)		Urea, Succinate		No	(Kratzl, 2026)	0.0
-Minimal Basal Medium (Moran Lab)	NH3	3-hydroxybutyrate		Yes		3.3577740976358403
-Minimal Basal Medium (Moran Lab)	NH3	Acetate		Yes		0.38534169397881946
-Minimal Basal Medium (Moran Lab)	NH3	Alanine		Unsure		4.902267488930263
+Marine Broth	NH3, Nitrate	Proline		No	(Kratzl, 2026)	0.687
+Marine Broth	NH3, Nitrate	Proline, Pyruvate		Yes	(Kratzl, 2026)	0.852
+Marine Broth (No Nitrogen)		Ammonium, Glucose		Yes	(Kratzl, 2026)	0.75
+Marine Broth (No Nitrogen)		Ammonium, Pyruvate		Yes	(Kratzl, 2026)	0.565
+Marine Broth (No Nitrogen)		Ammonium, Succinate		No	(Kratzl, 2026)	0.64
+Marine Broth (No Nitrogen)		Nitrate, Glucose		Yes	(Kratzl, 2026)	0.647
+Marine Broth (No Nitrogen)		Nitrate, Pyruvate		Yes	(Kratzl, 2026)	0.486
+Marine Broth (No Nitrogen)		Nitrate, Succinate		No	(Kratzl, 2026)	0.538
+Marine Broth (No Nitrogen)		Urea+Pyruvate		No	(Kratzl, 2026)	-0.032
+Marine Broth (No Nitrogen)		Urea, Glucose		Yes	(Kratzl, 2026)	-0.032
+Marine Broth (No Nitrogen)		Urea, Succinate		No	(Kratzl, 2026)	-0.032
+Minimal Basal Medium (Moran Lab)	NH3	3-hydroxybutyrate		Yes		0.55
+Minimal Basal Medium (Moran Lab)	NH3	Acetate		Yes		0.385
+Minimal Basal Medium (Moran Lab)	NH3	Alanine		Unsure		0.585
 Minimal Basal Medium (Moran Lab)	NH3	Alginate		No		0.0
-Minimal Basal Medium (Moran Lab)	NH3	Choline		No		1.1206276071555686e-14
+Minimal Basal Medium (Moran Lab)	NH3	Choline		No		0.0
 Minimal Basal Medium (Moran Lab)	NH3	Ectoine		No		0.0
 Minimal Basal Medium (Moran Lab)	NH3	Fructose		No		0.0
-Minimal Basal Medium (Moran Lab)	NH3	Galactose		Yes		12.055280545962567
+Minimal Basal Medium (Moran Lab)	NH3	Galactose		Yes		0.73
 Minimal Basal Medium (Moran Lab)	NH3	Galacturonic Acid		Yes		0.0
-Minimal Basal Medium (Moran Lab)	NH3	Glucose 		Yes		13.139978821974477
+Minimal Basal Medium (Moran Lab)	NH3	Glucose 		Yes		0.75
 Minimal Basal Medium (Moran Lab)	NH3	Glucuronic Acid		No		0.0
 Minimal Basal Medium (Moran Lab)	NH3	Glycolate		No		0.0
 Minimal Basal Medium (Moran Lab)	NH3	Homarine		Unsure		0.0
 Minimal Basal Medium (Moran Lab)	NH3	Mannuronic Acid		Yes		0.0
-Minimal Basal Medium (Moran Lab)	NH3	Proline		Unsure		0.8272622360263236
+Minimal Basal Medium (Moran Lab)	NH3	Proline		Unsure		0.638
 Minimal Basal Medium (Moran Lab)	NH3	Sucrose		No		0.0
-ProMM	NH3	3-methyl-2-oxobutanoic acid	Yes	Yes	(Halloran, 2026)	0.4913026229902243
+ProMM	NH3	3-methyl-2-oxobutanoic acid	Yes	Yes	(Halloran, 2026)	0.491
 ProMM	NH3	3-methyl-2-oxopentanoic acid	Yes	No	(Halloran, 2026)	0.0
 ProMM	NH3	4-hydroxybenzoic acid	Yes	No	(Halloran, 2026)	0.0
 ProMM	NH3	4-methyl-2-oxopentanoic acid	Yes	No	(Halloran, 2026)	0.0
-ProMM	NH3	Isoleucine	Yes	Yes	(Halloran, 2026)	0.5369144790315348
+ProMM	NH3	Isoleucine	Yes	Yes	(Halloran, 2026)	0.537
 ProMM	NH3	Kynurenine	Yes	No	(Halloran, 2026)	0.0
-ProMM	NH3	Leucine	Yes	Yes	(Halloran, 2026)	1.1553065991222187
+ProMM	NH3	Leucine	Yes	Yes	(Halloran, 2026)	0.499
 ProMM	NH3	Thymidine	Yes	No	(Halloran, 2026)	0.0
-ProMM	NH3	Valine	Yes	Yes	(Halloran, 2026)	0.4697718915364014
-Seawater Medium	NH3	Phenol	Yes	Yes	(Koch, 2020)	0.26518342580206855
+ProMM	NH3	Valine	Yes	Yes	(Halloran, 2026)	0.47
+Seawater Medium	NH3	Phenol	Yes	Yes	(Koch, 2020)	0.265
 Seawater Medium	NH3	alpha-Mannan	Yes	Yes	(Koch, 2020)	0.0
