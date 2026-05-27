@@ -22,6 +22,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+from matplotlib.lines import Line2D
 import seaborn as sns
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -155,14 +156,31 @@ def load_substrates(model: cobra.Model, media_defs: dict) -> pd.DataFrame:
 
     df = df[df["growth"] == "Yes"].copy()
     df = df[~df["met_id"].astype(str).str.contains(",", na=True)].copy()
-    df = df.drop_duplicates(subset="met_id", keep="first").copy()
 
-    # Manually add aspartate and glycine if absent from TSV
+    # Normalise pro_exomet: fill missing as "No"
+    if "pro_exomet" in df.columns:
+        df["pro_exomet"] = df["pro_exomet"].fillna("No")
+    else:
+        df["pro_exomet"] = "No"
+
+    # Sort so "Yes" pro_exomet rows come first — ensures dedup keeps the
+    # annotated version when a substrate appears in multiple media contexts
+    # (e.g. Valine: l1/NaN vs promm_no_c/Yes → keep promm_no_c row).
+    df = (
+        df.sort_values("pro_exomet", key=lambda s: s.map({"Yes": 0}).fillna(1),
+                       ascending=True, kind="stable")
+          .drop_duplicates(subset="met_id", keep="first")
+          .copy()
+    )
+
+    # Manually add aspartate and glycine if absent from TSV.
+    # Both were measured in the Pro exometabolome — mark as Yes.
     for name, met_id in [("Aspartate", "cpd00041"), ("Glycine", "cpd00033")]:
         if met_id not in df["met_id"].values:
             df = pd.concat(
                 [df, pd.DataFrame([{"minimal_media": "l1", "c_source": name,
-                                    "met_id": met_id, "growth": "Yes"}])],
+                                    "met_id": met_id, "growth": "Yes",
+                                    "pro_exomet": "Yes"}])],
                 ignore_index=True,
             )
 
@@ -204,6 +222,7 @@ def load_substrates(model: cobra.Model, media_defs: dict) -> pd.DataFrame:
             "n_c":              n_c,
             "substrate_class":  SUBSTRATE_CLASS.get(met_id, "Other"),
             "entry_point":      ENTRY_POINT.get(met_id, "Other"),
+            "pro_exomet":       row.get("pro_exomet", "No"),
         })
 
     substrate_df = pd.DataFrame(records)
@@ -254,6 +273,7 @@ def run_pfba(
                     "cue":              cue,
                     "substrate_class":  row["substrate_class"],
                     "entry_point":      row["entry_point"],
+                    "pro_exomet":       row["pro_exomet"],
                 })
                 print(f"  OK   {name:28s}  mu={growth:.4f}  CUE={cue:.3f}")
 
@@ -328,23 +348,72 @@ def plot_scores_categorical(
     explained_var: np.ndarray,
     title: str,
     out_path: Path,
+    pro_exomet_series: Optional[pd.Series] = None,
 ) -> None:
-    """Scatter plot coloured by a categorical variable."""
+    """Scatter plot coloured by a categorical variable.
+
+    If *pro_exomet_series* is provided, points with value "Yes" are drawn as
+    stars (★) and all others as circles (●).  A second legend explains the
+    marker shapes.
+    """
     fig, ax = plt.subplots(figsize=(10, 8))
 
     for cls in sorted(color_series.unique()):
-        subs = scores_df[color_series == cls]
-        ax.scatter(
-            subs["PC1"], subs["PC2"],
-            color=color_dict.get(cls, "#9E9E9E"),
-            s=180, edgecolor="black", linewidth=0.6,
-            label=cls, zorder=3,
-        )
+        color      = color_dict.get(cls, "#9E9E9E")
+        class_mask = color_series == cls
+
+        if pro_exomet_series is not None:
+            # non-Pro → circle
+            mask_other = class_mask & (pro_exomet_series != "Yes")
+            subs_other = scores_df[mask_other]
+            if len(subs_other):
+                ax.scatter(subs_other["PC1"], subs_other["PC2"],
+                           color=color, marker="o", s=180,
+                           edgecolor="black", linewidth=0.6,
+                           label="_nolegend_", zorder=3)
+            # Pro exometabolite → star
+            mask_pro = class_mask & (pro_exomet_series == "Yes")
+            subs_pro = scores_df[mask_pro]
+            if len(subs_pro):
+                ax.scatter(subs_pro["PC1"], subs_pro["PC2"],
+                           color=color, marker="*", s=300,
+                           edgecolor="black", linewidth=0.6,
+                           label="_nolegend_", zorder=3)
+        else:
+            subs = scores_df[class_mask]
+            ax.scatter(subs["PC1"], subs["PC2"],
+                       color=color, marker="o", s=180,
+                       edgecolor="black", linewidth=0.6,
+                       label="_nolegend_", zorder=3)
+
     _annotate_points(ax, scores_df)
     _axis_labels(ax, explained_var)
     ax.set_title(title, fontsize=13)
-    ax.legend(title=legend_title, bbox_to_anchor=(1.02, 1),
-              loc="upper left", fontsize=9)
+
+    # Legend 1: colour by class
+    color_handles = [
+        Line2D([0], [0], marker="o", color="w",
+               markerfacecolor=color_dict.get(cls, "#9E9E9E"),
+               markeredgecolor="black", markersize=9, label=cls)
+        for cls in sorted(color_series.unique())
+    ]
+    color_legend = ax.legend(handles=color_handles, title=legend_title,
+                             bbox_to_anchor=(1.02, 1), loc="upper left", fontsize=9)
+    ax.add_artist(color_legend)
+
+    # Legend 2: marker shape (only when pro_exomet_series is provided)
+    if pro_exomet_series is not None:
+        shape_handles = [
+            Line2D([0], [0], marker="*", color="w",
+                   markerfacecolor="gray", markeredgecolor="black",
+                   markersize=13, label="Pro exometabolite"),
+            Line2D([0], [0], marker="o", color="w",
+                   markerfacecolor="gray", markeredgecolor="black",
+                   markersize=9, label="Other"),
+        ]
+        ax.legend(handles=shape_handles, title="Source",
+                  bbox_to_anchor=(1.02, 0), loc="lower left", fontsize=9)
+
     sns.despine(ax=ax)
     plt.tight_layout()
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
@@ -548,7 +617,7 @@ def main():
     scores_df.to_csv(OUT_PATH / "pca_scores_growth_normalized.csv")
     loadings_df.to_csv(OUT_PATH / "pca_loadings_growth_normalized.csv")
 
-    # Colour by substrate class
+    # Colour by substrate class (★ = Pro exometabolite, ● = other)
     plot_scores_categorical(
         scores_df,
         color_series=summary_df.loc[scores_df.index, "substrate_class"],
@@ -557,9 +626,10 @@ def main():
         explained_var=ev,
         title="MIT1002 flux PCA (growth-rate-normalised) — by chemical class",
         out_path=OUT_PATH / "pca_scores_by_class.png",
+        pro_exomet_series=summary_df.loc[scores_df.index, "pro_exomet"],
     )
 
-    # Colour by entry point
+    # Colour by entry point (★ = Pro exometabolite, ● = other)
     plot_scores_categorical(
         scores_df,
         color_series=summary_df.loc[scores_df.index, "entry_point"],
@@ -568,6 +638,7 @@ def main():
         explained_var=ev,
         title="MIT1002 flux PCA (growth-rate-normalised) — by entry point",
         out_path=OUT_PATH / "pca_scores_by_entry_point.png",
+        pro_exomet_series=summary_df.loc[scores_df.index, "pro_exomet"],
     )
 
     # Colour by number of active reactions
