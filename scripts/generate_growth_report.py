@@ -223,6 +223,12 @@ def beautify_table(exp_pred_table: pd.DataFrame):
     # Replacing the media names in the minimal_media column with the human-friendly versions
     exp_pred_table["minimal_media"] = exp_pred_table["minimal_media"].map(media_names)
 
+    # Round growth rates below (absolute value) 1e-3 to 0
+    # To avoid negative 0s
+    exp_pred_table["fba_growth_rate"] = exp_pred_table["fba_growth_rate"].apply(
+        lambda x: 0 if abs(x) < 1e-3 else x
+    )
+
     # Round the FBA predicted growth rates to 3 decimal places for easier readability
     exp_pred_table["fba_growth_rate"] = exp_pred_table["fba_growth_rate"].round(3)
 
