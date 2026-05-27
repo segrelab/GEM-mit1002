@@ -35,34 +35,46 @@ TOTAL_UPTAKE = 60       # mmol C / gDW / hr
 BIOMASS_RXN = "bio1_biomass"
 CO2_EX_RXN = "EX_cpd00011_e0"
 
-# Chemical class annotations by ModelSEED met_id.
-# Categories reflect metabolic entry point where relevant.
-SUBSTRATE_CLASS = {
-    "cpd00027": "Monosaccharide",   # Glucose       -> glycolysis
-    "cpd00029": "Organic acid",     # Acetate       -> acetyl-CoA
-    "cpd00035": "Amino acid",       # Alanine
-    "cpd00023": "Amino acid",       # Glutamate
-    "cpd00080": "Sugar phosphate",  # Glycerol-3-P  -> glycolysis/lipid
-    "cpd00107": "Amino acid",       # Leucine
-    "cpd00156": "Amino acid",       # Valine
-    "cpd00322": "Amino acid",       # Isoleucine
-    "cpd00797": "Organic acid",     # 3-Hydroxybutyrate -> acetyl-CoA
-    "cpd00123": "Organic acid",     # 3-Methyl-2-oxobutanoate (keto acid)
-    "cpd00051": "Amino acid",       # Arginine
-    "cpd00039": "Amino acid",       # Lysine
-    "cpd00069": "Amino acid",       # Tyrosine
-    "cpd00129": "Amino acid",       # Proline
-    "cpd00127": "Other",            # Phenol        -> aromatic catabolism
-    "cpd00041": "Amino acid",       # Aspartate
-    "cpd00033": "Amino acid",       # Glycine
+# Metabolic entry point into central metabolism, keyed by ModelSEED met_id.
+# Entry point = the central-metabolism intermediate the substrate first produces
+# (or the pathway step at which it joins glycolysis / TCA cycle).
+ENTRY_POINT = {
+    # ── Glycolysis ──────────────────────────────────────────────────────────
+    "cpd00027": "Glycolysis",        # Glucose       → G6P
+    "cpd00108": "Glycolysis",        # Galactose     → G1P → G6P (Leloir pathway)
+    "cpd00080": "Glycolysis",        # Glycerol-3-P  → DHAP (aldolase/G3P dehydrogenase)
+    # ── Pyruvate ────────────────────────────────────────────────────────────
+    "cpd00035": "Pyruvate",          # Alanine       → Pyr (alanine aminotransferase)
+    "cpd00033": "Pyruvate",          # Glycine       → Ser → Pyr (serine hydroxymethyltransferase)
+    "cpd23538": "Pyruvate",          # DHPS          → C3 sulfo-intermediate → Pyr + sulfite
+    # ── Acetyl-CoA ──────────────────────────────────────────────────────────
+    "cpd00029": "Acetyl-CoA",        # Acetate       → AcCoA (acetyl-CoA synthetase)
+    "cpd00797": "Acetyl-CoA",        # 3-HB          → AcAcCoA → 2× AcCoA
+    "cpd00107": "Acetyl-CoA",        # Leucine       → HMG-CoA → AcCoA (ketogenic only)
+    "cpd00039": "Acetyl-CoA",        # Lysine        → saccharopine/pipecolate → AcCoA
+    # ── TCA — α-ketoglutarate ───────────────────────────────────────────────
+    "cpd00023": "TCA — α-KG",        # Glutamate     → α-KG (glutamate dehydrogenase)
+    "cpd00129": "TCA — α-KG",        # Proline       → Glu → α-KG
+    "cpd00051": "TCA — α-KG",        # Arginine      → Glu → α-KG (arginine succinyltransferase)
+    # ── TCA — oxaloacetate ──────────────────────────────────────────────────
+    "cpd00041": "TCA — OAA",         # Aspartate     → OAA (aspartate aminotransferase)
+    # ── TCA — succinyl-CoA (via propionyl-CoA) ──────────────────────────────
+    "cpd00156": "TCA — Succinyl-CoA",  # Valine      → propionyl-CoA → succinyl-CoA
+    "cpd00322": "TCA — Succinyl-CoA",  # Isoleucine  → propionyl-CoA → succinyl-CoA (+AcCoA)
+    "cpd00123": "TCA — Succinyl-CoA",  # KIC         → isobutyryl-CoA → propionyl-CoA → succinyl-CoA
+    # ── Aromatic catabolism (split TCA entry) ───────────────────────────────
+    "cpd00069": "Aromatic catabolism", # Tyrosine    → homogentisate → fumarate + AcAcCoA
+    "cpd00127": "Aromatic catabolism", # Phenol      → catechol → β-ketoadipate → succinyl-CoA + AcCoA
 }
 
-CLASS_COLORS = {
-    "Monosaccharide": "#2196F3",   # blue
-    "Amino acid":     "#4CAF50",   # green
-    "Organic acid":   "#F44336",   # red
-    "Sugar phosphate": "#9C27B0",  # purple
-    "Other":          "#9E9E9E",   # gray
+ENTRY_POINT_COLORS = {
+    "Glycolysis":           "#1f77b4",  # blue
+    "Pyruvate":             "#ff7f0e",  # orange
+    "Acetyl-CoA":           "#2ca02c",  # green
+    "TCA — α-KG":           "#d62728",  # red
+    "TCA — OAA":            "#9467bd",  # purple
+    "TCA — Succinyl-CoA":   "#8c564b",  # brown
+    "Aromatic catabolism":  "#e377c2",  # pink
 }
 
 
@@ -138,18 +150,18 @@ def load_substrates(model: cobra.Model, media_defs: dict) -> pd.DataFrame:
             continue
 
         records.append({
-            "name":            c_source,
-            "met_id":          met_id,
-            "exchange_id":     ex_id,
-            "media_key":       media_key,
-            "n_c":             n_c,
-            "substrate_class": SUBSTRATE_CLASS.get(met_id, "Other"),
+            "name":        c_source,
+            "met_id":      met_id,
+            "exchange_id": ex_id,
+            "media_key":   media_key,
+            "n_c":         n_c,
+            "entry_point": ENTRY_POINT.get(met_id, "Other"),
         })
 
     substrate_df = pd.DataFrame(records)
     print(f"\nSubstrate panel: {len(substrate_df)} substrates")
     print(
-        substrate_df[["name", "met_id", "n_c", "media_key", "substrate_class"]]
+        substrate_df[["name", "met_id", "n_c", "media_key", "entry_point"]]
         .to_string(index=False)
     )
     return substrate_df
@@ -193,12 +205,12 @@ def run_pfba(
 
                 flux_records[name] = sol.fluxes.to_dict()
                 summary_records.append({
-                    "substrate":       name,
-                    "met_id":          row["met_id"],
-                    "growth_rate":     growth,
-                    "co2_flux":        co2_flux,
-                    "cue":             cue,
-                    "substrate_class": row["substrate_class"],
+                    "substrate":   name,
+                    "met_id":      row["met_id"],
+                    "growth_rate": growth,
+                    "co2_flux":    co2_flux,
+                    "cue":         cue,
+                    "entry_point": row["entry_point"],
                 })
                 print(f"  OK   {name:28s}  mu={growth:.4f}  CUE={cue:.3f}")
 
@@ -263,12 +275,12 @@ def plot_scores(
 ) -> None:
     fig, ax = plt.subplots(figsize=(10, 8))
 
-    classes = summary_df.loc[scores_df.index, "substrate_class"]
+    classes = summary_df.loc[scores_df.index, "entry_point"]
     for cls in sorted(classes.unique()):
         subs = scores_df[classes == cls]
         ax.scatter(
             subs["PC1"], subs["PC2"],
-            color=CLASS_COLORS.get(cls, "#9E9E9E"),
+            color=ENTRY_POINT_COLORS.get(cls, "#9E9E9E"),
             s=180, edgecolor="black", linewidth=0.6,
             label=cls, zorder=3,
         )
@@ -337,7 +349,7 @@ def plot_loadings(
 
 def plot_growth_cue(summary_df: pd.DataFrame, out_path: Path) -> None:
     df = summary_df.sort_values("growth_rate", ascending=False).reset_index()
-    colors = [CLASS_COLORS.get(c, "#9E9E9E") for c in df["substrate_class"]]
+    colors = [ENTRY_POINT_COLORS.get(c, "#9E9E9E") for c in df["entry_point"]]
 
     fig, axes = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
 
@@ -354,8 +366,8 @@ def plot_growth_cue(summary_df: pd.DataFrame, out_path: Path) -> None:
 
     handles = [
         mpatches.Patch(color=c, label=lbl)
-        for lbl, c in CLASS_COLORS.items()
-        if lbl in df["substrate_class"].values
+        for lbl, c in ENTRY_POINT_COLORS.items()
+        if lbl in df["entry_point"].values
     ]
     axes[0].legend(
         handles=handles, title="Class",
