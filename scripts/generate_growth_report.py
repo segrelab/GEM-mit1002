@@ -29,6 +29,9 @@ media_names = {
     "swm": "Seawater Medium",
 }
 
+# Define the total uptake to use for the simulations, in mmol C / gDW / hr
+TOTAL_UPTAKE = 60.0  # Matches a glucose uptake of 10 mmol / gDW / hr
+
 
 def generate_growth_phenotype_report(model: cobra.Model):
     # Load the TSV of the growth phenotypes
@@ -51,8 +54,20 @@ def generate_growth_phenotype_report(model: cobra.Model):
             for met_id in row["met_id"]
         ):
             # If it does, add the exchange reaction to the minimal media used
+            # Control the ammount of carbon taken up by dividing the total
+            # uptake by the number of carbons in the metabolite, so that every
+            # metabolite has the same ammount of carbon
             for met_id in row["met_id"]:
-                minimal_media["EX_" + met_id + "_e0"] = 1000.0
+                # Get the metabolite object from the model
+                # Assuming the cytosolic version has a formula
+                met = model.metabolites.get_by_id(met_id + "_c0")
+                # Get the number of carbons in the metabolite from its formula
+                n_c = met.elements.get("C", 0)
+                # Set the uptake for the exchange reaction for this metabolite
+                if n_c > 0:
+                    minimal_media["EX_" + met_id + "_e0"] = TOTAL_UPTAKE / n_c
+                else:
+                    minimal_media["EX_" + met_id + "_e0"] = 1000.0
             # Mark the exchange reaction as present
             ex_rxn_present.append("Yes")
         else:
@@ -204,8 +219,13 @@ def beautify_table(exp_pred_table: pd.DataFrame):
         n_dict[minimal_media] = ", ".join(n_containing_compounds)
     # Add a column to the table with the nitrogen-containing compounds, separated by commas
     exp_pred_table["Medium N Source(s)"] = exp_pred_table["minimal_media"].map(n_dict)
+
     # Replacing the media names in the minimal_media column with the human-friendly versions
     exp_pred_table["minimal_media"] = exp_pred_table["minimal_media"].map(media_names)
+
+    # Round the FBA predicted growth rates to 3 decimal places for easier readability
+    exp_pred_table["fba_growth_rate"] = exp_pred_table["fba_growth_rate"].round(3)
+
     # Subset the columns we want
     exp_pred_table = exp_pred_table[
         [
