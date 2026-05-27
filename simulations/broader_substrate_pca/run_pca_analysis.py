@@ -352,43 +352,47 @@ def plot_scores_categorical(
     print(f"  Saved: {out_path.name}")
 
 
-def plot_scores_cn_ratio(
+def plot_scores_continuous(
     scores_df: pd.DataFrame,
-    cn_series: pd.Series,
+    value_series: pd.Series,
+    cbar_label: str,
     explained_var: np.ndarray,
     title: str,
     out_path: Path,
+    cmap: str = "plasma",
+    inf_label: str = "No value (∞)",
+    inf_color: str = "#aaaaaa",
+    inf_marker: str = "^",
 ) -> None:
-    """Scatter plot coloured by C:N ratio (continuous).
+    """Scatter plot coloured by any continuous variable.
 
-    N-free substrates (C:N = inf) are plotted as grey triangles and
-    labelled separately in the legend.
+    Infinite/NaN values are plotted as grey triangles with a separate legend
+    entry, so they don't compress the colourscale for finite values.
     """
     fig, ax = plt.subplots(figsize=(10, 8))
 
-    n_free_mask = np.isinf(cn_series)
-    n_has_mask  = ~n_free_mask
+    finite_mask = np.isfinite(value_series)
+    subs_fin = scores_df[finite_mask]
+    vals     = value_series[finite_mask].values.astype(float)
 
-    # N-containing substrates — coloured by C:N ratio
-    subs_n = scores_df[n_has_mask]
-    vals   = cn_series[n_has_mask].values.astype(float)
-    sc = ax.scatter(
-        subs_n["PC1"], subs_n["PC2"],
-        c=vals, cmap="plasma", vmin=vals.min(), vmax=vals.max(),
-        s=180, edgecolor="black", linewidth=0.6, zorder=3,
-    )
-    cbar = plt.colorbar(sc, ax=ax, shrink=0.7, pad=0.02)
-    cbar.set_label("C:N ratio", fontsize=10)
+    if len(vals) > 0:
+        sc = ax.scatter(
+            subs_fin["PC1"], subs_fin["PC2"],
+            c=vals, cmap=cmap, vmin=vals.min(), vmax=vals.max(),
+            s=180, edgecolor="black", linewidth=0.6, zorder=3,
+        )
+        cbar = plt.colorbar(sc, ax=ax, shrink=0.7, pad=0.02)
+        cbar.set_label(cbar_label, fontsize=10)
 
-    # N-free substrates — grey triangles
-    subs_nf = scores_df[n_free_mask]
-    ax.scatter(
-        subs_nf["PC1"], subs_nf["PC2"],
-        color="#aaaaaa", marker="^",
-        s=180, edgecolor="black", linewidth=0.6,
-        label="No nitrogen (C:N = ∞)", zorder=3,
-    )
-    ax.legend(loc="lower right", fontsize=9)
+    subs_inf = scores_df[~finite_mask]
+    if len(subs_inf) > 0:
+        ax.scatter(
+            subs_inf["PC1"], subs_inf["PC2"],
+            color=inf_color, marker=inf_marker,
+            s=180, edgecolor="black", linewidth=0.6,
+            label=inf_label, zorder=3,
+        )
+        ax.legend(loc="lower right", fontsize=9)
 
     _annotate_points(ax, scores_df)
     _axis_labels(ax, explained_var)
@@ -398,6 +402,17 @@ def plot_scores_cn_ratio(
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"  Saved: {out_path.name}")
+
+
+def plot_scores_cn_ratio(scores_df, cn_series, explained_var, title, out_path):
+    """Convenience wrapper: colour by C:N ratio."""
+    plot_scores_continuous(
+        scores_df, cn_series,
+        cbar_label="C:N ratio",
+        explained_var=explained_var, title=title, out_path=out_path,
+        cmap="plasma",
+        inf_label="No nitrogen (C:N = ∞)", inf_color="#aaaaaa", inf_marker="^",
+    )
 
 
 def plot_loadings(
@@ -501,6 +516,17 @@ def main():
     flux_matrix.to_csv(OUT_PATH / "flux_matrix.csv")
     summary_df.to_csv(OUT_PATH / "growth_and_cue.csv")
 
+    # ── Active reaction counts ────────────────────────────────────────────────
+    # Count reactions with |flux| > threshold per substrate.
+    # Uses the raw (non-normalised) flux matrix so the count reflects total
+    # metabolic activity, not per-unit-growth activity.
+    ACTIVE_THRESHOLD = 1e-6
+    active_rxn_counts = (flux_matrix.abs() > ACTIVE_THRESHOLD).sum(axis=1)
+    active_rxn_counts.name = "active_reactions"
+    print("\nActive reaction counts (|flux| > 1e-6):")
+    for sub, n in active_rxn_counts.sort_values().items():
+        print(f"  {sub:30s}  {n}")
+
     # ── C:N ratios from model metabolite.elements ─────────────────────────────
     cn_series = pd.Series(
         {row["substrate"]: get_cn_ratio(model, row["met_id"])
@@ -542,6 +568,17 @@ def main():
         explained_var=ev,
         title="MIT1002 flux PCA (growth-rate-normalised) — by entry point",
         out_path=OUT_PATH / "pca_scores_by_entry_point.png",
+    )
+
+    # Colour by number of active reactions
+    plot_scores_continuous(
+        scores_df,
+        value_series=active_rxn_counts.loc[scores_df.index],
+        cbar_label="Active reactions (|flux| > 1e-6)",
+        explained_var=ev,
+        title="MIT1002 flux PCA (growth-rate-normalised) — by active reaction count",
+        out_path=OUT_PATH / "pca_scores_by_active_reactions.png",
+        cmap="viridis",
     )
 
     # Colour by C:N ratio
