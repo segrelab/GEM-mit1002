@@ -2,46 +2,55 @@
 Baseline (no forced dissipation) SMF and PMF budgets across carbon sources.
 
 For each substrate we grow the model on an equal-carbon amount (TOTAL_UPTAKE / n_c)
-with pFBA, then decompose how the cell BUILDS and SPENDS each ion-motive force:
+with pFBA, then decompose how the cell BUILDS and SPENDS each ion-motive force
+across the membrane:
 
-  SMF  -> the Na+_e0 budget   PMF -> the H+_e0 budget
+  SMF -> the Na+_e0 budget    PMF -> the H+_e0 budget
 
-For every reaction touching the extracellular ion:
+For every TRANSMEMBRANE reaction touching the extracellular ion:
     rate = flux * stoich_coeff(ion_e0)
     rate > 0  -> ion pumped OUT  -> PRODUCES the motive force
     rate < 0  -> ion brought IN  -> CONSUMES (spends) the motive force
 
-At steady state production == consumption, so per substrate we draw two
-side-by-side stacked bars: producers (left, solid) and consumers (right, hatched).
+Boundary exchange reactions (EX_*) are EXCLUDED on purpose: this figure shows
+only transmembrane bioenergetic flux, not the net acid/base exchange the model
+uses to balance protons with the medium. As a result the producer and consumer
+bars need not sum to exactly equal heights (they differ by that excluded
+medium-exchange term, sizeable only for H+).
 
-The point of the figure: Na+-coupled-substrate growth (glutamate, aspartate,
-alanine, glycine, lysine) imposes a standing SMF *demand* (the symporters spend
-Na+ to import carbon) that NaNQR must continuously regenerate, whereas glucose
-and glycerol carry no such Na+ symport demand. This is what motivates having
-NaNQR / an explicit Na+ cycle in the model at all -- no unphysiological forcing
-required.
-
-Companion to plot_smf_pmf_budget.py (which sweeps forced dissipation for one
-substrate); this one compares substrates at their own optimum.
+The story:
+  - NaNQR is the sole SMF producer on every substrate (SMF panel, left bars).
+  - The Na+/H+ antiporter (bold, same color in both panels) appears as an SMF
+    CONSUMER (Na+ in) and a PMF PRODUCER (H+ out) at equal magnitude -- i.e. it
+    launders sodium-motive force into proton-motive force. ~1/5 to ~1/3 of the
+    PMF driving ATP synthase is sodium-derived.
 """
 
 import warnings
+from collections import defaultdict
 from pathlib import Path
 
 import cobra
 import cobra.flux_analysis
 import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
 import pickle as pkl
 
-matplotlib.rcParams.update({"font.size": 9, "axes.linewidth": 0.8})
+matplotlib.rcParams.update({
+    "font.size": 11,
+    "axes.linewidth": 0.8,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "pdf.fonttype": 42,   # editable text in Illustrator
+    "ps.fonttype": 42,
+})
 
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
-# Na_symporter flags which substrates ride in on a Na+ symporter (cost the SMF)
 SUBSTRATES = [
     {"name": "glucose",   "met_id": "cpd00027", "n_c": 6, "na_symport": False},
     {"name": "glycerol",  "met_id": "cpd00100", "n_c": 3, "na_symport": False},
@@ -51,7 +60,6 @@ SUBSTRATES = [
     {"name": "glycine",   "met_id": "cpd00033", "n_c": 2, "na_symport": True},
     {"name": "lysine",    "met_id": "cpd00039", "n_c": 6, "na_symport": True},
 ]
-RATE_THRESHOLD = 0.4   # mmol/gDW/hr; smaller contributions -> "other"
 
 FILE_PATH = Path(__file__).resolve().parent
 REPO_ROOT = FILE_PATH.parents[1]
@@ -61,56 +69,52 @@ OUT_PATH.mkdir(exist_ok=True)
 TOTAL_UPTAKE = 60
 BIOMASS_RXN = "bio1_biomass"
 
-LABELS = {
-    "ec7211_c0":      "NaNQR (NADH→Na⁺ pump)",
-    "rxn05209_c0":    "Na⁺/H⁺ antiporter",
-    "rxn05298_c0":    "Glu:Na⁺ symporter",
-    "rxn05215_c0":    "Ala:Na⁺ symporter",
-    "rxn34493_c0":    "Asp:Na⁺ symporter",
-    "rxn08661_c0":    "Gly:Na⁺ symporter",
-    "rxn08854_c0":    "Lys:Na⁺ symporter",
-    "rxn05313_c0":    "Pi:3Na⁺ symporter",
-    "EX_cpd00971_e0": "Na⁺ medium exchange",
-    "rxn08173_c0":    "ATP synthase (F₁)",
-    "rxn13688_c0":    "cyt-c oxidase",
-    "rxn14412_c0":    "cyt-c reductase",
-    "rxn14421_c0":    "cyt-bo reductase",
-    "rxn14422_c0":    "cyt-bo oxidase",
-    "EX_cpd00067_e0": "H⁺ medium exchange",
-    "rxn05488_c0":    "acetate:H⁺ symport",
-    "rxn05559_c0":    "formate:H⁺ symport",
-    "rxn05625_c0":    "nitrite:H⁺ symport",
-    "rxn05312_c0":    "Pi:H⁺ export",
+# Reaction -> display category. Reactions not listed (and not exchanges) fall
+# into "other"; exchanges (EX_*) are dropped entirely (transmembrane only).
+CYTOCHROME_RXNS = {"rxn13688_c0", "rxn14412_c0", "rxn14421_c0", "rxn14422_c0"}
+AA_SYMPORT_RXNS = {"rxn05298_c0", "rxn05215_c0", "rxn34493_c0",
+                   "rxn08661_c0", "rxn08854_c0"}
+
+NANQR = "NaNQR (NADH→Na⁺ pump)"
+ANTIPORT = "Na⁺/H⁺ antiporter"
+ATPSYN = "ATP synthase (F₁)"
+CYTO = "Cytochrome ETC"
+AASYM = "AA:Na⁺ symporter"
+
+
+def category(rxn_id):
+    if rxn_id.startswith("EX_"):
+        return None                      # drop boundary exchanges
+    if rxn_id == "ec7211_c0":
+        return NANQR
+    if rxn_id == "rxn05209_c0":
+        return ANTIPORT
+    if rxn_id == "rxn08173_c0":
+        return ATPSYN
+    if rxn_id in CYTOCHROME_RXNS:
+        return CYTO
+    if rxn_id in AA_SYMPORT_RXNS:
+        return AASYM
+    return "other"
+
+
+# Palette (antiporter is the bold accent and shared across both panels)
+COLORS = {
+    ANTIPORT:          "#803E25",   # bold dark brick -- the SMF->PMF launderer
+    NANQR:             "#E38D6B",   # salmon -- the SMF generator
+    ATPSYN:            "#EBB309",   # gold -- the PMF sink
+    CYTO:              "#5B8C8F",   # teal -- proton-pumping ETC
+    AASYM:             "#BBD5E9",   # light blue -- Na+-coupled carbon uptake
+    "other (produce)": "#BDBDBD",
+    "other (consume)": "#9E9E9E",
 }
 
-COLOR_MAP = {
-    "ec7211_c0":      "#e6550d",   # NaNQR - orange (the SMF generator)
-    "rxn05209_c0":    "#6a51a3",   # Na+/H+ antiporter - purple (the switcher)
-    "rxn08173_c0":    "#cb181d",   # ATP synthase - red (PMF -> ATP)
-    "rxn05298_c0":    "#31a354",   # symporters - green
-    "rxn05215_c0":    "#31a354",
-    "rxn34493_c0":    "#31a354",
-    "rxn08661_c0":    "#31a354",
-    "rxn08854_c0":    "#31a354",
-    "rxn05313_c0":    "#969696",   # Pi:3Na+ symporter - gray
-    "rxn13688_c0":    "#3182bd",   # cyt-c oxidase - blue
-    "rxn14412_c0":    "#6baed6",   # cyt-c reductase - light blue
-    "rxn14421_c0":    "#08519c",   # cyt-bo reductase - dark blue
-    "rxn14422_c0":    "#9ecae1",   # cyt-bo oxidase - pale blue
-    "EX_cpd00971_e0": "#d9d9d9",   # Na+ medium exchange - pale gray
-    "EX_cpd00067_e0": "#d9d9d9",   # H+ medium exchange - pale gray
-}
-
-
-def short_label(rxn_id, model):
-    if rxn_id in LABELS:
-        return LABELS[rxn_id]
-    name = model.reactions.get_by_id(rxn_id).name
-    return (name[:32] + "…") if len(name) > 33 else name
+# Bottom-to-top stacking order (antiporter at the base, aligned across panels)
+STACK_ORDER = [ANTIPORT, NANQR, ATPSYN, CYTO, AASYM,
+               "other (produce)", "other (consume)"]
 
 
 def run_substrates(model, minimal_media):
-    """Return {substrate_name: cobra.Solution} at baseline (no forcing)."""
     sols, growth = {}, {}
     for sub in SUBSTRATES:
         ex_id = f"EX_{sub['met_id']}_e0"
@@ -129,82 +133,75 @@ def run_substrates(model, minimal_media):
 
 
 def ion_budget(model, sols, ion_met):
-    """DataFrame indexed by substrate, cols=reaction ids, signed rate (flux*coeff)."""
-    ion_rxns = [r.id for r in model.reactions if ion_met in r.metabolites]
+    """DataFrame indexed by substrate, cols = display category, signed rate.
+    Exchanges dropped; minor transmembrane terms split into other produce/consume."""
     rows = {}
     for name, sol in sols.items():
-        row = {}
-        for rid in ion_rxns:
-            coeff = model.reactions.get_by_id(rid).metabolites[ion_met]
-            rate = sol.fluxes[rid] * coeff
-            if abs(rate) > 1e-9:
-                row[rid] = rate
-        rows[name] = row
-    # preserve substrate order
+        agg = defaultdict(float)
+        for r in model.reactions:
+            if ion_met not in r.metabolites:
+                continue
+            cat = category(r.id)
+            if cat is None:
+                continue
+            rate = sol.fluxes[r.id] * r.metabolites[ion_met]
+            if abs(rate) < 1e-9:
+                continue
+            if cat == "other":
+                agg["other (produce)" if rate > 0 else "other (consume)"] += rate
+            else:
+                agg[cat] += rate
+        rows[name] = dict(agg)
     df = pd.DataFrame(rows).T.reindex([s["name"] for s in SUBSTRATES]).fillna(0.0)
-    df = df.loc[:, (df.abs() > 1e-9).any(axis=0)]
     return df
 
 
-def collapse_small(df, threshold):
-    keep, small = [], []
-    for c in df.columns:
-        (keep if df[c].abs().max() >= threshold else small).append(c)
-    out = df[keep].copy()
-    if small:
-        s = df[small]
-        out["other (produce)"] = s.clip(lower=0).sum(axis=1)
-        out["other (consume)"] = s.clip(upper=0).sum(axis=1)
-    return out
-
-
-def plot_budget(ax, df, model, title, ylabel):
+def plot_budget(ax, df, panel_letter, title, ylabel):
     subs = df.index.tolist()
     x = np.arange(len(subs))
     width = 0.38
 
-    order = df.abs().sum(axis=0).sort_values(ascending=False).index.tolist()
-    cmap = plt.get_cmap("tab20")
-    fb = 0
-    colors = {}
-    for col in order:
-        if col in COLOR_MAP:
-            colors[col] = COLOR_MAP[col]
-        elif col.startswith("other"):
-            colors[col] = "#bdbdbd"
-        else:
-            colors[col] = cmap(fb % 20)
-            fb += 1
-
+    cols = [c for c in STACK_ORDER if c in df.columns]
     prod_bottom = np.zeros(len(subs))
     cons_bottom = np.zeros(len(subs))
     legend = {}
 
-    for col in order:
+    for col in cols:
         vals = df[col].values
         prod = np.clip(vals, 0, None)
         cons = np.clip(vals, None, 0)
-        label = "other" if col.startswith("other") else short_label(col, model)
+        color = COLORS.get(col, "#cccccc")
+        label = "other" if col.startswith("other") else col
         if prod.any():
             b = ax.bar(x - width / 2, prod, width, bottom=prod_bottom,
-                       color=colors[col], edgecolor="white", linewidth=0.3)
+                       color=color, edgecolor="white", linewidth=0.4)
             prod_bottom += prod
             legend.setdefault(label, b)
         if cons.any():
             b = ax.bar(x + width / 2, -cons, width, bottom=cons_bottom,
-                       color=colors[col], edgecolor="white", linewidth=0.3,
-                       hatch="///")
+                       color=color, edgecolor="white", linewidth=0.4, hatch="//")
             cons_bottom += -cons
             legend.setdefault(label, b)
 
-    ax.set_xticks(x)
-    # mark Na+-symport substrates with a dagger
     na_set = {s["name"] for s in SUBSTRATES if s["na_symport"]}
+    ax.set_xticks(x)
     ax.set_xticklabels([f"{s}†" if s in na_set else s for s in subs])
     ax.set_ylabel(ylabel)
-    ax.set_title(title)
-    ax.legend(legend.values(), legend.keys(),
-              fontsize=6.5, bbox_to_anchor=(1.01, 1), loc="upper left")
+    ax.set_title(title, loc="center", fontsize=12, pad=8)
+    ax.text(-0.08, 1.04, panel_letter, transform=ax.transAxes,
+            fontsize=15, fontweight="bold", va="bottom", ha="right")
+    ax.margins(y=0.02)
+
+    # Legend: reaction colors + a produce/consume key
+    handles = list(legend.values())
+    labels = list(legend.keys())
+    produce_key = mpatches.Patch(facecolor="0.75", edgecolor="white", label="produce")
+    consume_key = mpatches.Patch(facecolor="0.75", edgecolor="white",
+                                 hatch="//", label="consume")
+    handles += [produce_key, consume_key]
+    labels += ["produce (left)", "consume (right)"]
+    ax.legend(handles, labels, fontsize=8.5, frameon=False,
+              bbox_to_anchor=(1.01, 1.0), loc="upper left")
 
 
 def main():
@@ -215,33 +212,32 @@ def main():
     print("Running baseline pFBA per substrate (equal carbon, no forced dissipation)...")
     sols, growth = run_substrates(model, minimal_media)
 
-    na_e = model.metabolites.cpd00971_e0
-    h_e = model.metabolites.cpd00067_e0
+    na_df = ion_budget(model, sols, model.metabolites.cpd00971_e0)
+    h_df = ion_budget(model, sols, model.metabolites.cpd00067_e0)
 
-    na_df = collapse_small(ion_budget(model, sols, na_e), RATE_THRESHOLD)
-    h_df = collapse_small(ion_budget(model, sols, h_e), RATE_THRESHOLD)
-
-    na_named = na_df.rename(columns={c: short_label(c, model) for c in na_df.columns
-                                     if not c.startswith("other")})
-    h_named = h_df.rename(columns={c: short_label(c, model) for c in h_df.columns
-                                   if not c.startswith("other")})
-    na_named.to_csv(OUT_PATH / "baseline_smf_budget.csv")
-    h_named.to_csv(OUT_PATH / "baseline_pmf_budget.csv")
+    na_df.to_csv(OUT_PATH / "baseline_smf_budget.csv")
+    h_df.to_csv(OUT_PATH / "baseline_pmf_budget.csv")
     pd.Series(growth, name="growth_rate").to_csv(OUT_PATH / "baseline_growth.csv")
 
-    fig, (ax_smf, ax_pmf) = plt.subplots(2, 1, figsize=(11, 10))
-    plot_budget(ax_smf, na_df, model,
-                "SMF budget (Na⁺_e0) across carbon sources  (†=Na⁺-symport substrate)\n"
-                "left bar = produces SMF (Na⁺ out) | right bar (hatched) = consumes SMF (Na⁺ in)",
-                "Na⁺ flux across membrane (mmol/gDW/hr)")
-    plot_budget(ax_pmf, h_df, model,
-                "PMF budget (H⁺_e0) across carbon sources\n"
-                "left bar = produces PMF (H⁺ out) | right bar (hatched) = consumes PMF (H⁺ in)",
-                "H⁺ flux across membrane (mmol/gDW/hr)")
-    fig.tight_layout()
+    # report the headline: antiporter share of PMF production
+    print("\nAntiporter share of PMF production:")
+    for s in [x["name"] for x in SUBSTRATES]:
+        prod = h_df.loc[s].clip(lower=0).sum()
+        share = h_df.loc[s, ANTIPORT] / prod if prod else float("nan")
+        print(f"  {s:<10s} {share*100:4.1f}%")
+
+    fig, (ax_smf, ax_pmf) = plt.subplots(2, 1, figsize=(9.5, 9))
+    plot_budget(ax_smf, na_df, "A",
+                "Sodium-motive force budget (Na⁺, transmembrane)",
+                "Na⁺ flux (mmol gDW⁻¹ h⁻¹)")
+    plot_budget(ax_pmf, h_df, "B",
+                "Proton-motive force budget (H⁺, transmembrane)",
+                "H⁺ flux (mmol gDW⁻¹ h⁻¹)")
+    fig.text(0.01, 0.005, "† Na⁺-symporter substrate", fontsize=8.5, style="italic")
+    fig.tight_layout(rect=(0, 0.02, 1, 1))
     fig.savefig(OUT_PATH / "baseline_smf_pmf_budget.pdf", bbox_inches="tight")
-    fig.savefig(OUT_PATH / "baseline_smf_pmf_budget.png", dpi=150, bbox_inches="tight")
-    print("Saved: baseline_smf_pmf_budget.pdf/.png")
+    fig.savefig(OUT_PATH / "baseline_smf_pmf_budget.png", dpi=300, bbox_inches="tight")
+    print("\nSaved: baseline_smf_pmf_budget.pdf/.png (300 dpi)")
     print("Saved: baseline_smf_budget.csv, baseline_pmf_budget.csv, baseline_growth.csv")
 
 
