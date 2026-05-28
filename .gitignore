@@ -14,4 +14,5 @@ env/*
 bigg_rxn_db.tsv
 BLAST/dbs/*
 simulations/CAFBA/results/json_fluxes/*
+simulations/smf_dissipation/results/flux_distributions/*
 .claude
