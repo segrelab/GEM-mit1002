@@ -1,0 +1,25 @@
+organism,metabolite,met_id,n_c,metabolite_concentration,carbon_concentration
+Crocosphaera watsonii,glutamic acid,cpd00023,,,
+Crocosphaera watsonii,ectoine,cpd03727,,,
+Crocosphaera watsonii,arginine,,,,
+Crocosphaera watsonii,malic acid,,,,
+Crocosphaera watsonii,glucose 6-phosphate,,,,
+Crocosphaera watsonii,putrescine,,,,
+Crocosphaera watsonii,glutathione,,,,
+Crocosphaera watsonii,pyridoxine,,,,
+Crocosphaera watsonii,uridine,,,,
+Crocosphaera watsonii,serine,,,,
+Emiliania huxleyi,DHPS,cpd23538,,,
+Micromonas commoda,taurine,,,,
+Prochlorococcus marinus,glutamic acid,cpd00023,5,2.1e+2,1.1e+3
+Prochlorococcus marinus,alanine,cpd00035,3,8.5e+1,2.6e+2
+Prochlorococcus marinus,valine,cpd00156,5,6.2e+1,3.1e+2
+Prochlorococcus marinus,aspartate,cpd00041,4,5.7e+1,2.3e+2
+Prochlorococcus marinus,isoleucine,cpd00322,6,4.5e+1,2.7e+2
+Prochlorococcus marinus,phenylalanine,cpd00066,9,3.7e+1,3.3e+2
+Prochlorococcus marinus,leucine,cpd00107,6,4.2e+1,2.5e+2
+Prochlorococcus marinus,glycine,cpd00033,2,3.3e+1,6.6e+1
+Prochlorococcus marinus,methionine,cpd00060,5,1.0e+1,5.0e+1
+Prochlorococcus marinus,proline,cpd00129,5,1.4e+1,6.9e+1
+Synechococcus,isoleucine,cpd00322,,,
+Thalassiosira pseudonana,sn-glycerol 3-phosphate,,,,

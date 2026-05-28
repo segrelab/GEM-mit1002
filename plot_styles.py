@@ -8,6 +8,23 @@ ccomp_colors = {
     "light_orange": "#FFBB62",  # Not technically a C-CoMP color, but I used it on my ISME poster
 }
 
+# Define the colors for the "Summer I Turned Pretty" palette
+tsitp_colors = {
+    "dark_blue": "#2D5F80",
+    "med_blue": "#4D82A6",
+    "light_blue": "#BBD5E9",
+    "dark_green": "#5A8C72",
+    "light_green": "#BDDACC",
+    "dark_orange": "#C0604A",
+    "light_orange": "#E57E66",
+    "dark_pink": "#C4788A",
+    "light_pink": "#F2BFB5",
+    "dark_yellow": "#EBB309",
+    "light_yellow": "#F6D5A6",
+    "dark_tan": "#C9BC9B",
+    "light_tan": "#FBF9EA",
+}
+
 
 # Define the style for the plots (gray axes, no top or right axis lines)
 def set_plot_style(g):
@@ -20,6 +37,13 @@ def set_plot_style(g):
     # Remove the top and right axis lines
     g.spines["top"].set_visible(False)
     g.spines["right"].set_visible(False)
+    # Make all text (axis labels, tick labels, title, and legend) gray
+    g.xaxis.label.set_color("gray")
+    g.yaxis.label.set_color("gray")
+    g.title.set_color("gray")
+    if g.get_legend() is not None:
+        for text in g.get_legend().get_texts():
+            text.set_color("gray")
 
 
 def carbon_fates_bar(data):

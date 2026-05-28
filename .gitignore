@@ -14,3 +14,4 @@ env/*
 bigg_rxn_db.tsv
 BLAST/dbs/*
 simulations/CAFBA/results/json_fluxes/*
+.claude

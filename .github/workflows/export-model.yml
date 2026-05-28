@@ -25,21 +25,12 @@ jobs:
       # Install everything I need
       - name: Install Dependencies
         run: |
-          echo Installing Dependencies
           python -m pip install --upgrade pip
-          python -m pip install importlib-resources==5.13.0
-          python -m pip install numpy==1.23.5
-          python -m pip install memote
-          python -m pip install cobra
-          python -m pip install pytest
-          python -m pip install matplotlib
-          python -m pip install seaborn
-          python -m pip install openpyxl
-          python -m pip install git+https://github.com/segrelab/GEM2CUE.git@remove-classes
+          python -m pip install -r requirements.txt
 
       # Export model file as json and excel file
       - name: Export Model
-        run: python export_model.py
+        run: python scripts/export_model.py
 
       # Auto-commit the changes directly without stashing
       - name: Auto-commit results

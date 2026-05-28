@@ -1,0 +1,13 @@
+name,id,EX_in_model,c0_in_model,formula
+2_keto_3_deoxy_6_phosphogluconate,cpd02711,False,True,C6H8O9P
+3-phosphoglycerate,cpd00169,False,True,C3H4O7P
+a-ketoglutarate,cpd00024,False,True,C5H4O5
+adenosine_5_monophosphate,cpd00018,False,True,C10H12N5O7P
+cysteate,cpd00395,False,True,C3H6NO5S
+desthiobiotin,cpd01311,False,True,C10H17N2O3
+glutamic_acid,cpd00023,True,True,C5H8NO4
+glutathione_oxidized,cpd00111,False,True,C20H30N6O12S2
+glycerol_3_phosphate,cpd00080,True,True,C3H7O6P
+n_acetylglutamic_acid,cpd00477,False,True,C7H9NO5
+phosphoenolpyruvate,cpd00061,False,True,C3H2O6P
+uridine_5_monophosphate,cpd00091,False,True,C9H11N2O9P
