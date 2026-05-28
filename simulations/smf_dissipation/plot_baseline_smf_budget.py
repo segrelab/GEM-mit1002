@@ -39,26 +39,28 @@ import numpy as np
 import pandas as pd
 import pickle as pkl
 
-matplotlib.rcParams.update({
-    "font.size": 11,
-    "axes.linewidth": 0.8,
-    "axes.spines.top": False,
-    "axes.spines.right": False,
-    "pdf.fonttype": 42,   # editable text in Illustrator
-    "ps.fonttype": 42,
-})
+matplotlib.rcParams.update(
+    {
+        "font.size": 11,
+        "axes.linewidth": 0.8,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "pdf.fonttype": 42,  # editable text in Illustrator
+        "ps.fonttype": 42,
+    }
+)
 
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
 SUBSTRATES = [
-    {"name": "glucose",   "met_id": "cpd00027", "n_c": 6, "na_symport": False},
-    {"name": "glycerol",  "met_id": "cpd00100", "n_c": 3, "na_symport": False},
+    {"name": "glucose", "met_id": "cpd00027", "n_c": 6, "na_symport": False},
+    {"name": "glycerol", "met_id": "cpd00100", "n_c": 3, "na_symport": False},
     {"name": "glutamate", "met_id": "cpd00023", "n_c": 5, "na_symport": True},
     {"name": "aspartate", "met_id": "cpd00041", "n_c": 4, "na_symport": True},
-    {"name": "alanine",   "met_id": "cpd00035", "n_c": 3, "na_symport": True},
-    {"name": "glycine",   "met_id": "cpd00033", "n_c": 2, "na_symport": True},
-    {"name": "lysine",    "met_id": "cpd00039", "n_c": 6, "na_symport": True},
+    {"name": "alanine", "met_id": "cpd00035", "n_c": 3, "na_symport": True},
+    {"name": "glycine", "met_id": "cpd00033", "n_c": 2, "na_symport": True},
+    {"name": "lysine", "met_id": "cpd00039", "n_c": 6, "na_symport": True},
 ]
 
 FILE_PATH = Path(__file__).resolve().parent
@@ -72,8 +74,13 @@ BIOMASS_RXN = "bio1_biomass"
 # Reaction -> display category. Reactions not listed (and not exchanges) fall
 # into "other"; exchanges (EX_*) are dropped entirely (transmembrane only).
 CYTOCHROME_RXNS = {"rxn13688_c0", "rxn14412_c0", "rxn14421_c0", "rxn14422_c0"}
-AA_SYMPORT_RXNS = {"rxn05298_c0", "rxn05215_c0", "rxn34493_c0",
-                   "rxn08661_c0", "rxn08854_c0"}
+AA_SYMPORT_RXNS = {
+    "rxn05298_c0",
+    "rxn05215_c0",
+    "rxn34493_c0",
+    "rxn08661_c0",
+    "rxn08854_c0",
+}
 
 NANQR = "NaNQR (NADH→Na⁺ pump)"
 ANTIPORT = "Na⁺/H⁺ antiporter"
@@ -84,7 +91,7 @@ AASYM = "AA:Na⁺ symporter"
 
 def category(rxn_id):
     if rxn_id.startswith("EX_"):
-        return None                      # drop boundary exchanges
+        return None  # drop boundary exchanges
     if rxn_id == "ec7211_c0":
         return NANQR
     if rxn_id == "rxn05209_c0":
@@ -100,18 +107,25 @@ def category(rxn_id):
 
 # Palette (antiporter is the bold accent and shared across both panels)
 COLORS = {
-    ANTIPORT:          "#803E25",   # bold dark brick -- the SMF->PMF launderer
-    NANQR:             "#E38D6B",   # salmon -- the SMF generator
-    ATPSYN:            "#EBB309",   # gold -- the PMF sink
-    CYTO:              "#5B8C8F",   # teal -- proton-pumping ETC
-    AASYM:             "#BBD5E9",   # light blue -- Na+-coupled carbon uptake
+    ATPSYN: "#803E25",  # bold dark brick
+    CYTO: "#E38D6B",  # salmon
+    ANTIPORT: "#EBB309",  # gold
+    NANQR: "#5B8C8F",  # teal
+    AASYM: "#BBD5E9",  # light blue
     "other (produce)": "#BDBDBD",
     "other (consume)": "#9E9E9E",
 }
 
 # Bottom-to-top stacking order (antiporter at the base, aligned across panels)
-STACK_ORDER = [ANTIPORT, NANQR, ATPSYN, CYTO, AASYM,
-               "other (produce)", "other (consume)"]
+STACK_ORDER = [
+    ANTIPORT,
+    NANQR,
+    ATPSYN,
+    CYTO,
+    AASYM,
+    "other (produce)",
+    "other (consume)",
+]
 
 
 def run_substrates(model, minimal_media):
@@ -127,8 +141,10 @@ def run_substrates(model, minimal_media):
                 sol = cobra.flux_analysis.pfba(model)
         sols[sub["name"]] = sol
         growth[sub["name"]] = sol.fluxes[BIOMASS_RXN]
-        print(f"  {sub['name']:<10s} growth={sol.fluxes[BIOMASS_RXN]:.4f}  "
-              f"NaNQR={sol.fluxes['ec7211_c0']:.2f}")
+        print(
+            f"  {sub['name']:<10s} growth={sol.fluxes[BIOMASS_RXN]:.4f}  "
+            f"NaNQR={sol.fluxes['ec7211_c0']:.2f}"
+        )
     return sols, growth
 
 
@@ -173,13 +189,28 @@ def plot_budget(ax, df, title, ylabel):
         color = COLORS.get(col, "#cccccc")
         label = "other" if col.startswith("other") else col
         if prod.any():
-            b = ax.bar(x - width / 2, prod, width, bottom=prod_bottom,
-                       color=color, edgecolor="white", linewidth=0.4)
+            b = ax.bar(
+                x - width / 2,
+                prod,
+                width,
+                bottom=prod_bottom,
+                color=color,
+                edgecolor="white",
+                linewidth=0.4,
+            )
             prod_bottom += prod
             legend.setdefault(label, b)
         if cons.any():
-            b = ax.bar(x + width / 2, -cons, width, bottom=cons_bottom,
-                       color=color, edgecolor="white", linewidth=0.4, hatch="//")
+            b = ax.bar(
+                x + width / 2,
+                -cons,
+                width,
+                bottom=cons_bottom,
+                color=color,
+                edgecolor="white",
+                linewidth=0.4,
+                hatch="//",
+            )
             cons_bottom += -cons
             legend.setdefault(label, b)
 
@@ -194,20 +225,31 @@ def plot_budget(ax, df, title, ylabel):
     handles = list(legend.values())
     labels = list(legend.keys())
     produce_key = mpatches.Patch(facecolor="0.75", edgecolor="white", label="produce")
-    consume_key = mpatches.Patch(facecolor="0.75", edgecolor="white",
-                                 hatch="//", label="consume")
+    consume_key = mpatches.Patch(
+        facecolor="0.75", edgecolor="white", hatch="//", label="consume"
+    )
     handles += [produce_key, consume_key]
     labels += ["produce (left)", "consume (right)"]
-    ax.legend(handles, labels, fontsize=8.5, frameon=False,
-              bbox_to_anchor=(1.01, 1.0), loc="upper left")
+    ax.legend(
+        handles,
+        labels,
+        fontsize=8.5,
+        frameon=False,
+        bbox_to_anchor=(1.01, 1.0),
+        loc="upper left",
+    )
 
 
 def main():
     model = cobra.io.read_sbml_model(REPO_ROOT / "model.xml")
-    with open(REPO_ROOT / "test" / "test_files" / "media" / "media_definitions.pkl", "rb") as fh:
+    with open(
+        REPO_ROOT / "test" / "test_files" / "media" / "media_definitions.pkl", "rb"
+    ) as fh:
         minimal_media = pkl.load(fh)["minimal"]
 
-    print("Running baseline pFBA per substrate (equal carbon, no forced dissipation)...")
+    print(
+        "Running baseline pFBA per substrate (equal carbon, no forced dissipation)..."
+    )
     sols, growth = run_substrates(model, minimal_media)
 
     na_df = ion_budget(model, sols, model.metabolites.cpd00971_e0)
@@ -225,17 +267,25 @@ def main():
         print(f"  {s:<10s} {share*100:4.1f}%")
 
     fig, (ax_smf, ax_pmf) = plt.subplots(2, 1, figsize=(9.5, 9))
-    plot_budget(ax_smf, na_df,
-                "Sodium-motive force budget (Na⁺, transmembrane)",
-                "Na⁺ flux (mmol gDW⁻¹ h⁻¹)")
-    plot_budget(ax_pmf, h_df,
-                "Proton-motive force budget (H⁺, transmembrane)",
-                "H⁺ flux (mmol gDW⁻¹ h⁻¹)")
+    plot_budget(
+        ax_smf,
+        na_df,
+        "Sodium-motive force budget (Na⁺, transmembrane)",
+        "Na⁺ flux (mmol gDW⁻¹ h⁻¹)",
+    )
+    plot_budget(
+        ax_pmf,
+        h_df,
+        "Proton-motive force budget (H⁺, transmembrane)",
+        "H⁺ flux (mmol gDW⁻¹ h⁻¹)",
+    )
     fig.text(0.01, 0.005, "† Na⁺-symporter substrate", fontsize=8.5, style="italic")
     fig.tight_layout(rect=(0, 0.02, 1, 1))
     fig.savefig(OUT_PATH / "baseline_smf_pmf_budget.png", dpi=300, bbox_inches="tight")
     print("\nSaved: baseline_smf_pmf_budget.png (300 dpi)")
-    print("Saved: baseline_smf_budget.csv, baseline_pmf_budget.csv, baseline_growth.csv")
+    print(
+        "Saved: baseline_smf_budget.csv, baseline_pmf_budget.csv, baseline_growth.csv"
+    )
 
 
 if __name__ == "__main__":
