@@ -156,7 +156,7 @@ def ion_budget(model, sols, ion_met):
     return df
 
 
-def plot_budget(ax, df, panel_letter, title, ylabel):
+def plot_budget(ax, df, title, ylabel):
     subs = df.index.tolist()
     x = np.arange(len(subs))
     width = 0.38
@@ -188,8 +188,6 @@ def plot_budget(ax, df, panel_letter, title, ylabel):
     ax.set_xticklabels([f"{s}†" if s in na_set else s for s in subs])
     ax.set_ylabel(ylabel)
     ax.set_title(title, loc="center", fontsize=12, pad=8)
-    ax.text(-0.08, 1.04, panel_letter, transform=ax.transAxes,
-            fontsize=15, fontweight="bold", va="bottom", ha="right")
     ax.margins(y=0.02)
 
     # Legend: reaction colors + a produce/consume key
@@ -227,17 +225,16 @@ def main():
         print(f"  {s:<10s} {share*100:4.1f}%")
 
     fig, (ax_smf, ax_pmf) = plt.subplots(2, 1, figsize=(9.5, 9))
-    plot_budget(ax_smf, na_df, "A",
+    plot_budget(ax_smf, na_df,
                 "Sodium-motive force budget (Na⁺, transmembrane)",
                 "Na⁺ flux (mmol gDW⁻¹ h⁻¹)")
-    plot_budget(ax_pmf, h_df, "B",
+    plot_budget(ax_pmf, h_df,
                 "Proton-motive force budget (H⁺, transmembrane)",
                 "H⁺ flux (mmol gDW⁻¹ h⁻¹)")
     fig.text(0.01, 0.005, "† Na⁺-symporter substrate", fontsize=8.5, style="italic")
     fig.tight_layout(rect=(0, 0.02, 1, 1))
-    fig.savefig(OUT_PATH / "baseline_smf_pmf_budget.pdf", bbox_inches="tight")
     fig.savefig(OUT_PATH / "baseline_smf_pmf_budget.png", dpi=300, bbox_inches="tight")
-    print("\nSaved: baseline_smf_pmf_budget.pdf/.png (300 dpi)")
+    print("\nSaved: baseline_smf_pmf_budget.png (300 dpi)")
     print("Saved: baseline_smf_budget.csv, baseline_pmf_budget.csv, baseline_growth.csv")
 
 

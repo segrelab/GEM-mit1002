@@ -13,9 +13,9 @@ Key findings from run_smf_sweep.py:
   - Glycine: no overflow despite high Na+ symporter flux (routes carbons to CO2)
 
 Figures produced:
-  growth_vs_dissipation.pdf     -- growth rate across substrates
-  overflow_vs_dissipation.pdf   -- acetate & NH3 secretion per substrate
-  mechanism_vs_dissipation.pdf  -- ATP synthase and Na+/H+ antiporter fluxes (the why)
+  growth_vs_dissipation.png     -- growth rate across substrates
+  overflow_vs_dissipation.png   -- acetate & NH3 secretion per substrate
+  mechanism_vs_dissipation.png  -- ATP synthase and Na+/H+ antiporter fluxes (the why)
 """
 
 from pathlib import Path
@@ -104,9 +104,8 @@ ax_norm.text(
 )
 
 fig1.tight_layout()
-fig1.savefig(OUT_PATH / "growth_vs_dissipation.pdf", bbox_inches="tight")
 fig1.savefig(OUT_PATH / "growth_vs_dissipation.png", dpi=150, bbox_inches="tight")
-print("Saved: growth_vs_dissipation.pdf/.png")
+print("Saved: growth_vs_dissipation.png")
 
 # ---------------------------------------------------------------------------
 # Figure 2: Overflow — acetate + NH3 secretion per substrate
@@ -159,9 +158,8 @@ fig2.suptitle("Overflow secretion vs. SMF dissipation\n"
               "Acetate increases on all substrates; onset is substrate-specific",
               y=1.01, fontsize=9)
 fig2.tight_layout()
-fig2.savefig(OUT_PATH / "overflow_vs_dissipation.pdf", bbox_inches="tight")
 fig2.savefig(OUT_PATH / "overflow_vs_dissipation.png", dpi=150, bbox_inches="tight")
-print("Saved: overflow_vs_dissipation.pdf/.png")
+print("Saved: overflow_vs_dissipation.png")
 
 # ---------------------------------------------------------------------------
 # Figure 3: Mechanism — ATP synthase and Na+/H+ antiporter reversal
@@ -197,9 +195,8 @@ ax_anti.text(
 ax_anti.legend(fontsize=7, loc="lower left")
 
 fig3.tight_layout()
-fig3.savefig(OUT_PATH / "mechanism_vs_dissipation.pdf", bbox_inches="tight")
 fig3.savefig(OUT_PATH / "mechanism_vs_dissipation.png", dpi=150, bbox_inches="tight")
-print("Saved: mechanism_vs_dissipation.pdf/.png")
+print("Saved: mechanism_vs_dissipation.png")
 
 # ---------------------------------------------------------------------------
 # Figure 4: Combined summary — acetate overflow per substrate on one axis
@@ -239,9 +236,8 @@ if (ace_asp > 0.1).any():
     )
 
 fig4.tight_layout()
-fig4.savefig(OUT_PATH / "acetate_overflow_summary.pdf", bbox_inches="tight")
 fig4.savefig(OUT_PATH / "acetate_overflow_summary.png", dpi=150, bbox_inches="tight")
-print("Saved: acetate_overflow_summary.pdf/.png")
+print("Saved: acetate_overflow_summary.png")
 
 # ---------------------------------------------------------------------------
 # Print text summary

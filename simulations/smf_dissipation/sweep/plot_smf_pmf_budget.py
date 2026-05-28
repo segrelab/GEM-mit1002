@@ -40,7 +40,7 @@ SWEEP_LEVELS = list(range(0, 220, 20))   # dissipation lower bounds to show
 RATE_THRESHOLD = 0.4                      # mmol/gDW/hr; smaller contributions -> "other"
 
 FILE_PATH = Path(__file__).resolve().parent
-REPO_ROOT = FILE_PATH.parents[1]
+REPO_ROOT = FILE_PATH.parents[2]
 OUT_PATH = FILE_PATH / "results"
 OUT_PATH.mkdir(exist_ok=True)
 
@@ -262,9 +262,8 @@ def main():
                 "left bar = produces PMF (H⁺ pumped out) | right bar (hatched) = consumes PMF (H⁺ in)",
                 "H⁺ flux across membrane (mmol/gDW/hr)")
     fig.tight_layout()
-    fig.savefig(OUT_PATH / f"smf_pmf_budget_{SUBSTRATE['name']}.pdf", bbox_inches="tight")
     fig.savefig(OUT_PATH / f"smf_pmf_budget_{SUBSTRATE['name']}.png", dpi=150, bbox_inches="tight")
-    print(f"Saved: smf_pmf_budget_{SUBSTRATE['name']}.pdf/.png")
+    print(f"Saved: smf_pmf_budget_{SUBSTRATE['name']}.png")
     print(f"Saved: smf_budget_{SUBSTRATE['name']}.csv, pmf_budget_{SUBSTRATE['name']}.csv")
 
 

@@ -26,7 +26,7 @@ import pandas as pd
 # Paths
 # ---------------------------------------------------------------------------
 FILE_PATH = Path(__file__).resolve().parent
-REPO_ROOT = FILE_PATH.parents[1]
+REPO_ROOT = FILE_PATH.parents[2]
 OUT_PATH = FILE_PATH / "results"
 FLUX_DIR = OUT_PATH / "flux_distributions"
 OUT_PATH.mkdir(exist_ok=True)
