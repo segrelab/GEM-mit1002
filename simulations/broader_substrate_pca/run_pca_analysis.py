@@ -21,7 +21,6 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 from matplotlib.lines import Line2D
 import seaborn as sns
 from sklearn.decomposition import PCA
@@ -527,40 +526,6 @@ def plot_loadings(
     print(f"  Saved: {out_path.name}")
 
 
-def plot_growth_cue(summary_df: pd.DataFrame, out_path: Path) -> None:
-    df     = summary_df.sort_values("growth_rate", ascending=False).reset_index()
-    colors = [ENTRY_POINT_COLORS.get(c, "#9E9E9E") for c in df["entry_point"]]
-
-    fig, axes = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
-
-    axes[0].bar(df["substrate"], df["growth_rate"],
-                color=colors, edgecolor="black", lw=0.5)
-    axes[0].set_ylabel("Growth rate (1/hr)", fontsize=11)
-    axes[0].set_title("MIT1002 growth rate and CUE — broader substrate panel",
-                      fontsize=12)
-    sns.despine(ax=axes[0])
-
-    axes[1].bar(df["substrate"], df["cue"],
-                color=colors, edgecolor="black", lw=0.5)
-    axes[1].set_ylabel("CUE", fontsize=11)
-    axes[1].set_ylim(0, 1)
-    plt.setp(axes[1].get_xticklabels(), rotation=45, ha="right", fontsize=9)
-    sns.despine(ax=axes[1])
-
-    handles = [
-        mpatches.Patch(color=c, label=lbl)
-        for lbl, c in ENTRY_POINT_COLORS.items()
-        if lbl in df["entry_point"].values
-    ]
-    axes[0].legend(handles=handles, title="Entry point",
-                   bbox_to_anchor=(1.01, 1), loc="upper left", fontsize=9)
-
-    plt.tight_layout()
-    fig.savefig(out_path, dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    print(f"  Saved: {out_path.name}")
-
-
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -666,10 +631,6 @@ def main():
         "Growth-rate-normalised PCA",
         OUT_PATH / "loadings_growth_normalized.png",
     )
-
-    # ── Growth and CUE summary ────────────────────────────────────────────────
-    print("\nPlotting growth rate and CUE summary...")
-    plot_growth_cue(summary_df, OUT_PATH / "growth_and_cue.png")
 
     print(f"\nAll results saved to: {OUT_PATH}")
 
