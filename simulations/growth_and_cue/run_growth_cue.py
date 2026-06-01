@@ -45,6 +45,30 @@ TOTAL_UPTAKE = 60       # mmol C / gDW / hr
 BIOMASS_RXN = "bio1_biomass"
 CO2_EX_RXN = "EX_cpd00011_e0"
 
+# Exchange metabolites whose max |flux| across substrates is below this are
+# lumped into a single grey "Other" segment (keeps the trace-ion colours out).
+EX_FLUX_THRESHOLD = 1.0  # mmol / gDW / hr
+
+# Qualitative palette for exchange metabolites — the SMF-figure family extended
+# with a few harmonising tones. Carbon sources and trace "Other" get fixed
+# neutral colours so they don't compete with the byproducts/co-substrates.
+EX_PALETTE = [
+    "#5B8C8F",  # teal
+    "#E38D6B",  # salmon
+    "#EBB309",  # gold
+    "#803E25",  # dark brick
+    "#BBD5E9",  # light blue
+    "#7E9B6B",  # olive
+    "#9B6A9E",  # mauve
+    "#3F6F8C",  # steel blue
+    "#C98B8B",  # dusty rose
+    "#8C4F6B",  # plum
+    "#6E7B8B",  # slate
+    "#BFB13A",  # brass
+]
+CARBON_SOURCE_COLOR = "#C9BC9B"   # muted tan — all substrate carbon sources
+OTHER_COLOR = "#bdbdbd"           # grey — collapsed trace metabolites
+
 # Entry point into central metabolism = the first central-metabolism
 # intermediate the substrate's catabolism produces.
 ENTRY_POINT = {
@@ -164,9 +188,15 @@ def load_substrates(model: cobra.Model, media_defs: dict) -> pd.DataFrame:
     return substrate_df
 
 
-def run_pfba(model, media_defs, substrate_df) -> pd.DataFrame:
-    """Run pFBA per substrate; return summary DataFrame with growth + CUE."""
+def run_pfba(model, media_defs, substrate_df) -> tuple:
+    """Run pFBA per substrate.
+
+    Returns (summary_df, ex_records) where summary_df holds growth + CUE and
+    ex_records maps {substrate: {exchange_rxn_id: flux}} (non-zero fluxes only).
+    """
+    ex_rxn_ids = [r.id for r in model.reactions if r.id.startswith("EX_")]
     rows = []
+    ex_records = {}
     for _, row in substrate_df.iterrows():
         name = row["name"]
         media = media_utils.clean_media(model, media_defs[row["media_key"]])
@@ -191,10 +221,12 @@ def run_pfba(model, media_defs, substrate_df) -> pd.DataFrame:
                     "cue":         cue,
                     "entry_point": row["entry_point"],
                 })
+                ex_records[name] = {rid: sol.fluxes[rid] for rid in ex_rxn_ids
+                                    if abs(sol.fluxes[rid]) > 1e-9}
                 print(f"  OK   {name:28s}  mu={growth:.4f}  CUE={cue:.3f}")
             except Exception as exc:
                 print(f"  FAIL {name}: {exc}")
-    return pd.DataFrame(rows).set_index("substrate")
+    return pd.DataFrame(rows).set_index("substrate"), ex_records
 
 
 def plot_growth_cue(summary_df: pd.DataFrame, out_path: Path) -> None:
@@ -285,6 +317,118 @@ def plot_growth_cue_correlation(summary_df: pd.DataFrame, out_path: Path) -> Non
     print(f"  Saved: {out_path.name}  (Pearson r={r:.2f}, p={p:.2g})")
 
 
+def build_exchange_df(model, ex_records, substrate_order, threshold):
+    """{substrate: {ex_rxn: flux}} -> DataFrame (substrate x metabolite name).
+
+    Columns are renamed from exchange-reaction id to the metabolite name.
+    Trace metabolites (max |flux| < threshold) are collapsed into 'Other'.
+    """
+    df = pd.DataFrame(ex_records).T.reindex(substrate_order).fillna(0.0)
+    rename = {}
+    for rid in df.columns:
+        met = next(iter(model.reactions.get_by_id(rid).metabolites))
+        rename[rid] = met.name
+    df = df.rename(columns=rename)
+    # collapse duplicate metabolite-name columns if any arise (version-safe)
+    if df.columns.duplicated().any():
+        df = df.T.groupby(level=0).sum().T
+
+    if threshold > 0:
+        keep = [c for c in df.columns if df[c].abs().max() >= threshold]
+        small = [c for c in df.columns if c not in keep]
+        out = df[keep].copy()
+        if small:
+            out["Other"] = df[small].sum(axis=1)
+        df = out
+    return df
+
+
+def _merge_carbon_sources(df, carbon_source_names):
+    """Collapse all substrate-carbon-source columns into one 'Carbon source'."""
+    cs = [c for c in df.columns if c in carbon_source_names]
+    rest = [c for c in df.columns if c not in carbon_source_names]
+    out = df[rest].copy()
+    if cs:
+        out["Carbon source"] = df[cs].sum(axis=1)
+    return out
+
+
+def _ordered_cols(df, pin_first=None, pin_last=None):
+    """Column order: pinned-first, then regular by descending magnitude, pinned-last."""
+    skip = {pin_first, pin_last}
+    middle = sorted((c for c in df.columns if c not in skip),
+                    key=lambda c: df[c].abs().sum(), reverse=True)
+    head = [pin_first] if pin_first in df.columns else []
+    tail = [pin_last] if pin_last in df.columns else []
+    return head + middle + tail
+
+
+def _stacked_bar(df, colors, title, ylabel, out_path):
+    fig, ax = plt.subplots(figsize=(13, 7))
+    x = np.arange(len(df.index))
+    bottom = np.zeros(len(df))
+    for col in df.columns:
+        vals = df[col].values
+        ax.bar(x, vals, bottom=bottom, color=colors[col], label=col,
+               edgecolor="white", linewidth=0.3)
+        bottom += vals
+    ax.axhline(0, color="black", lw=0.6)
+    ax.set_xticks(x)
+    ax.set_xticklabels(df.index, rotation=45, ha="right", fontsize=8)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title, fontsize=12, pad=8)
+    ax.margins(x=0.01)
+    ax.legend(title="Metabolite", bbox_to_anchor=(1.01, 1), loc="upper left",
+              fontsize=7, title_fontsize=8.5, frameon=False)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  Saved: {out_path.name}")
+
+
+def plot_exchange_stacks(ex_df, carbon_source_names, out_dir):
+    """Two stacked-bar charts, both drawn upward, with shared metabolite colours.
+
+    Uptake fluxes are negated so they read as positive bars. All substrate
+    carbon sources are merged into one 'Carbon source' segment in the uptake
+    chart (each appears on a single bar). Byproducts/co-substrates keep
+    consistent colours across both charts.
+    """
+    uptake = (-ex_df.clip(upper=0))          # negative fluxes -> positive uptake
+    exud = ex_df.clip(lower=0)               # positive fluxes -> exudation
+    uptake = uptake.loc[:, (uptake != 0).any(axis=0)]
+    exud = exud.loc[:, (exud != 0).any(axis=0)]
+    uptake = _merge_carbon_sources(uptake, carbon_source_names)
+
+    # Shared colour map over the "regular" metabolites (everything except the
+    # fixed-colour Carbon source / Other), ordered by total magnitude so shared
+    # metabolites get the same colour in both charts.
+    special = {"Carbon source", "Other"}
+    regular = (set(uptake.columns) | set(exud.columns)) - special
+
+    def total_mag(c):
+        m = 0.0
+        if c in uptake.columns:
+            m += uptake[c].abs().sum()
+        if c in exud.columns:
+            m += exud[c].abs().sum()
+        return m
+
+    ordered_reg = sorted(regular, key=total_mag, reverse=True)
+    colors = {c: EX_PALETTE[i % len(EX_PALETTE)] for i, c in enumerate(ordered_reg)}
+    colors["Carbon source"] = CARBON_SOURCE_COLOR
+    colors["Other"] = OTHER_COLOR
+
+    up_cols = _ordered_cols(uptake, pin_first="Carbon source", pin_last="Other")
+    ex_cols = _ordered_cols(exud, pin_last="Other")
+    _stacked_bar(uptake[up_cols], colors,
+                 "MIT1002 uptake fluxes across substrates",
+                 "Uptake flux (mmol gDW⁻¹ h⁻¹)", out_dir / "uptake_fluxes.png")
+    _stacked_bar(exud[ex_cols], colors,
+                 "MIT1002 exudation fluxes across substrates",
+                 "Exudation flux (mmol gDW⁻¹ h⁻¹)", out_dir / "exudation_fluxes.png")
+
+
 def main():
     print("Loading model...")
     model = cobra.io.read_sbml_model(REPO_ROOT / "model.xml")
@@ -297,13 +441,25 @@ def main():
     substrate_df = load_substrates(model, media_defs)
 
     print("\nRunning pFBA simulations...")
-    summary_df = run_pfba(model, media_defs, substrate_df)
+    summary_df, ex_records = run_pfba(model, media_defs, substrate_df)
     print(f"\nSuccessful: {len(summary_df)}/{len(substrate_df)} substrates")
 
     summary_df.to_csv(OUT_PATH / "growth_and_cue.csv")
     print("\nPlotting growth rate and CUE...")
     plot_growth_cue(summary_df, OUT_PATH / "growth_and_cue.png")
     plot_growth_cue_correlation(summary_df, OUT_PATH / "growth_vs_cue_scatter.png")
+
+    # Exchange (uptake/exudation) stacked bars, substrates ordered by growth rate
+    print("\nPlotting exchange fluxes...")
+    order = summary_df.sort_values("growth_rate", ascending=False).index.tolist()
+    ex_df = build_exchange_df(model, ex_records, order, EX_FLUX_THRESHOLD)
+    ex_df.to_csv(OUT_PATH / "exchange_fluxes.csv")
+    # Metabolite names that are substrate carbon sources (merged in uptake chart)
+    carbon_source_names = {
+        next(iter(model.reactions.get_by_id(r["exchange_id"]).metabolites)).name
+        for _, r in substrate_df.iterrows()
+    }
+    plot_exchange_stacks(ex_df, carbon_source_names, OUT_PATH)
     print(f"\nAll results saved to: {OUT_PATH}")
 
 
