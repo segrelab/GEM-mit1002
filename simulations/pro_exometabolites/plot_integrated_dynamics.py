@@ -226,6 +226,8 @@ def main() -> None:
             color=c_pro,
             alpha=0.10,
         )
+    # Set the y-axis limits so that the first day's value take up most of the space (the second day is just a repeat of the first)
+    ax2.set_ylim(0, 130)
     ax2.set_ylabel(
         "Prochlorococcus density (×10⁶ cells mL⁻¹)", color=c_pro, fontsize=10
     )
