@@ -200,11 +200,14 @@ def main() -> None:
         zorder=4,
     )
 
-    # Subset the x-axis (time) to the first diel cycle
     ax1.set_xlabel("Time (h)", fontsize=11)
     ax1.set_ylabel("Concentration (nM)", fontsize=11)
+    # Subset the x-axis (time) to the first diel cycle
     ax1.set_xlim(0, 22)
     ax1.set_xticks(range(0, 23, 4))
+    # Subset the y-axis to only show positive concentrations
+    # The simulated glutamate can go negative when Pro starts reabsorbing it
+    ax1.set_ylim(bottom=0)
 
     # Pro density (right inner)
     ax2.plot(
@@ -223,12 +226,14 @@ def main() -> None:
             color=c_pro,
             alpha=0.10,
         )
-    ax2.set_ylabel("Pro density (×10⁶ cells mL⁻¹)", color=c_pro, fontsize=10)
+    ax2.set_ylabel(
+        "Prochlorococcus density (×10⁶ cells mL⁻¹)", color=c_pro, fontsize=10
+    )
     ax2.tick_params(axis="y", labelcolor=c_pro)
 
     # Amac biomass (right outer)
     ax3.plot(times, X_ugL, "-", color=c_amac, lw=2.6, label="Amac biomass")
-    ax3.set_ylabel("Amac biomass (μg DW L⁻¹)", color=c_amac, fontsize=10)
+    ax3.set_ylabel("A. macleodii biomass (μg DW L⁻¹)", color=c_amac, fontsize=10)
     ax3.tick_params(axis="y", labelcolor=c_amac)
 
     # Combined legend
