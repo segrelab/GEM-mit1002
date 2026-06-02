@@ -493,6 +493,9 @@ def plot_exchange_stacks(ex_df, carbon_source_names, out_dir):
     exud = exud.loc[:, (exud != 0).any(axis=0)]
     uptake = _merge_carbon_sources(uptake, carbon_source_names)
 
+    # Drop H2O from the exudation chart
+    exud = exud.drop(columns=["H2O [e0]"], errors="ignore")
+
     # Shared colour map over the "regular" metabolites (everything except the
     # fixed-colour Carbon source / Other), ordered by total magnitude so shared
     # metabolites get the same colour in both charts.
