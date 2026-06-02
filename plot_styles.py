@@ -9,18 +9,13 @@ ccomp_colors = {
 }
 
 # Define the colors for the "Summer I Turned Pretty" palette
-tsitp_colors = {
-    "dark_blue": "#2D5F80",
-    "med_blue": "#4D82A6",
+summer_colors = {
+    "teal": "#5B8C8F",
     "light_blue": "#BBD5E9",
-    "dark_green": "#5A8C72",
-    "light_green": "#BDDACC",
-    "dark_orange": "#C0604A",
-    "light_orange": "#E57E66",
-    "dark_pink": "#C4788A",
-    "light_pink": "#F2BFB5",
-    "dark_yellow": "#EBB309",
-    "light_yellow": "#F6D5A6",
+    "green": "#7E9B6B",
+    "pink": "#E57E66",
+    "dark_pink": "#893625",
+    "yellow": "#EBB309",
     "dark_tan": "#C9BC9B",
     "light_tan": "#FBF9EA",
 }
