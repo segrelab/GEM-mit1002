@@ -33,6 +33,7 @@ secretion). Starts from 0 nM (BASAL has NH3 removed in the simulation).
 """
 
 from pathlib import Path
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,10 +42,15 @@ import pandas as pd
 # ── Paths and parameters ────────────────────────────────────────────────────────
 
 SCRIPT_DIR = Path(__file__).parent
+REPO_ROOT = SCRIPT_DIR.parents[1]
 RESULTS_DIR = SCRIPT_DIR / "results"
 DATA_DIR = SCRIPT_DIR / "data"
 FIG_DIR = SCRIPT_DIR / "figs"
 FIG_DIR.mkdir(exist_ok=True)
+
+# Import plot_styles.py from the root of the repo
+sys.path.append(str(REPO_ROOT))
+from plot_styles import summer_colors
 
 F_PLOT = 10.0
 ALT_DW_G = 2.5e-13  # g/cell
@@ -167,11 +173,11 @@ def main() -> None:
     shade_dark(ax1)
     ax1.axhline(0, color="black", lw=0.5, zorder=1)
 
-    c_glu_exp = "#1f78b4"  # blue (experimental)
-    c_glu_sim = "#a6cee3"  # light blue (simulated)
-    c_nh4 = "#e31a1c"  # red (NH4)
-    c_pro = "#7570b3"  # purple (Pro)
-    c_amac = "#33a02c"  # green (Amac)
+    c_glu_exp = summer_colors["dark_pink"]
+    c_glu_sim = summer_colors["pink"]
+    c_nh4 = summer_colors["yellow"]
+    c_pro = summer_colors["green"]
+    c_amac = summer_colors["teal"]
 
     ax1.plot(
         times,
