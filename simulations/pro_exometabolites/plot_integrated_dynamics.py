@@ -165,20 +165,23 @@ def main() -> None:
     )
 
     # ── Plot ────────────────────────────────────────────────────────────────────
-    fig, ax1 = plt.subplots(figsize=(11.5, 5.2))
+    fig, ax1 = plt.subplots(figsize=(7, 5.2))
     ax2 = ax1.twinx()  # Pro density (×10⁶ cells/mL)
     ax3 = ax1.twinx()  # Amac biomass (μg/L)
     ax3.spines["right"].set_position(("outward", 60))
 
+    # Background shading for dark periods
     shade_dark(ax1, alpha=0.4)
     ax1.axhline(0, color="black", lw=0.5, zorder=1)
 
+    # Defnine colors for each line
     c_glu_exp = summer_colors["dark_pink"]
     c_glu_sim = summer_colors["pink"]
     c_nh4 = summer_colors["yellow"]
     c_pro = summer_colors["green"]
     c_amac = summer_colors["teal"]
 
+    # Plot glutamte concentrations
     ax1.plot(
         times,
         glu_exp_at_times,
@@ -250,7 +253,7 @@ def main() -> None:
         labels=l1 + l2 + l3 + ["Dark period"],
         fontsize=8,
         loc="upper left",
-        ncol=2,
+        ncol=1,
         framealpha=0.85,
     )
 
