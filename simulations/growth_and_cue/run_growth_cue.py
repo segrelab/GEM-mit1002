@@ -487,19 +487,25 @@ def plot_exchange_stacks(ex_df, carbon_source_names, out_dir):
     chart (each appears on a single bar). Byproducts/co-substrates keep
     consistent colours across both charts.
     """
+    # Separate uptake and exudation
     uptake = -ex_df.clip(upper=0)  # negative fluxes -> positive uptake
     exud = ex_df.clip(lower=0)  # positive fluxes -> exudation
+
+    # Drop zero-only columns (e.g. if no exudation of a metabolite occurs)
     uptake = uptake.loc[:, (uptake != 0).any(axis=0)]
     exud = exud.loc[:, (exud != 0).any(axis=0)]
+
+    # Merge all substrate carbon sources into one column in the uptake chart
+    # So they don't have unique colours and the chart is less busy
     uptake = _merge_carbon_sources(uptake, carbon_source_names)
 
     # Drop H2O from the exudation chart
-    exud = exud.drop(columns=["H2O [e0]"], errors="ignore")
+    exud = exud.drop(columns=["H2O"], errors="ignore")
 
     # Shared colour map over the "regular" metabolites (everything except the
     # fixed-colour Carbon source / Other), ordered by total magnitude so shared
     # metabolites get the same colour in both charts.
-    special = {"H2O [e0]", "H+ [e0]", "CO2 [e0]", "NH3 [e0]", "Carbon source", "Other"}
+    special = {"H2O", "H+", "CO2", "NH3", "Carbon source", "Other"}
     regular = (set(uptake.columns) | set(exud.columns)) - special
 
     def total_mag(c):
@@ -513,10 +519,10 @@ def plot_exchange_stacks(ex_df, carbon_source_names, out_dir):
     ordered_reg = sorted(regular, key=total_mag, reverse=True)
     colors = {c: EX_PALETTE[i % len(EX_PALETTE)] for i, c in enumerate(ordered_reg)}
     # Define the special colors
-    colors["H+ [e0]"] = H_COLOR
-    colors["H2O [e0]"] = H2O_COLOR
-    colors["CO2 [e0]"] = CO2_COLOR
-    colors["NH3 [e0]"] = NH3_COLOR
+    colors["H+"] = H_COLOR
+    colors["H2O"] = H2O_COLOR
+    colors["CO2"] = CO2_COLOR
+    colors["NH3"] = NH3_COLOR
     colors["Carbon source"] = CARBON_SOURCE_COLOR
     colors["Other"] = OTHER_COLOR
 
@@ -563,9 +569,12 @@ def main():
     order = summary_df.sort_values("growth_rate", ascending=False).index.tolist()
     ex_df = build_exchange_df(model, ex_records, order, EX_FLUX_THRESHOLD)
     ex_df.to_csv(OUT_PATH / "exchange_fluxes.csv")
+    # Drop the " [e0]" suffix from the metabolite names for cleaner labels
+    ex_df = ex_df.rename(columns=lambda c: c.replace(" [e0]", ""))
     # Metabolite names that are substrate carbon sources (merged in uptake chart)
+    # Remove the " [e0]" suffix from the names with "[:-5]"
     carbon_source_names = {
-        next(iter(model.reactions.get_by_id(r["exchange_id"]).metabolites)).name
+        next(iter(model.reactions.get_by_id(r["exchange_id"]).metabolites)).name[:-5]
         for _, r in substrate_df.iterrows()
     }
     plot_exchange_stacks(ex_df, carbon_source_names, OUT_PATH)
