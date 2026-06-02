@@ -68,7 +68,7 @@ NH3_EX = "EX_cpd00013_e0"
 
 def shade_dark(ax, alpha: float = 0.15) -> None:
     for d0, d1 in DARK_PERIODS:
-        ax.axvspan(d0, d1, color="gray", alpha=alpha, zorder=0)
+        ax.axvspan(d0, d1, color=summer_colors["dark_tan"], alpha=alpha, zorder=0)
 
 
 def main() -> None:
@@ -170,7 +170,7 @@ def main() -> None:
     ax3 = ax1.twinx()  # Amac biomass (μg/L)
     ax3.spines["right"].set_position(("outward", 60))
 
-    shade_dark(ax1)
+    shade_dark(ax1, alpha=0.4)
     ax1.axhline(0, color="black", lw=0.5, zorder=1)
 
     c_glu_exp = summer_colors["dark_pink"]
@@ -186,7 +186,7 @@ def main() -> None:
         color=c_glu_exp,
         lw=2,
         ms=5,
-        label="Glu — experimental (smoothed)",
+        label="Glutamate (Experimental)",
         zorder=4,
     )
     ax1.plot(
@@ -196,14 +196,15 @@ def main() -> None:
         color=c_glu_sim,
         lw=2,
         ms=4,
-        label="Glu — simulated (exp − Amac uptake)",
+        label="Glutamate (Simulated)",
         zorder=4,
     )
 
+    # Subset the x-axis (time) to the first diel cycle
     ax1.set_xlabel("Time (h)", fontsize=11)
     ax1.set_ylabel("Concentration (nM)", fontsize=11)
-    ax1.set_xlim(0, 46)
-    ax1.set_xticks(range(0, 47, 4))
+    ax1.set_xlim(0, 22)
+    ax1.set_xticks(range(0, 23, 4))
 
     # Pro density (right inner)
     ax2.plot(
@@ -234,12 +235,14 @@ def main() -> None:
     h1, l1 = ax1.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()
     h3, l3 = ax3.get_legend_handles_labels()
-    dark_patch = plt.Rectangle((0, 0), 1, 1, fc="gray", alpha=0.3, label="Dark period")
+    dark_patch = plt.Rectangle(
+        (0, 0), 1, 1, fc=summer_colors["dark_tan"], label="Dark period"
+    )
     ax1.legend(
         handles=h1 + h2 + h3 + [dark_patch],
         labels=l1 + l2 + l3 + ["Dark period"],
         fontsize=8,
-        loc="upper right",
+        loc="upper left",
         ncol=2,
         framealpha=0.85,
     )
