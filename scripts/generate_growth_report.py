@@ -257,11 +257,15 @@ def beautify_table(exp_pred_table: pd.DataFrame):
             "fba_growth_rate": "FBA Predicted Growth Rate",
         }
     )
-    # Save
+    # Save as a tsv
     exp_pred_table.to_csv(
         os.path.join(RESULTS_DIR, "known_growth_phenotypes_w_pred.tsv"),
         index=False,
         sep="\t",
+    )
+    # Save as excel
+    exp_pred_table.to_excel(
+        os.path.join(RESULTS_DIR, "known_growth_phenotypes_w_pred.xlsx"), index=False
     )
 
 
