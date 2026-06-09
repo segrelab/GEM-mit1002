@@ -32,12 +32,6 @@ def main():
     # Fit a regression line for growth rate and NOSC
     m_growth, d_growth = fit(merged_df, "growth_rate", ["nosc"])
 
-    # Print the results
-    print(f"CUE ~ nosc: R² = {m_cue.score(d_cue[['nosc']], d_cue['cue']):.3f}")
-    print(
-        f"Growth rate ~ nosc: R² = {m_growth.score(d_growth[['nosc']], d_growth['growth_rate']):.3f}"
-    )
-
     # Plot the results
     fig, ax = plt.subplots(figsize=(5, 5))
     ax2 = ax.twinx()
