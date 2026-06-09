@@ -12,6 +12,10 @@ FIG_PATH = FILE_PATH / "figures"
 RES_PATH.mkdir(exist_ok=True)
 FIG_PATH.mkdir(exist_ok=True)
 
+# Define colors to use
+CUE_C = "#4f8a8b"
+GROWTH_C = "#e8896a"
+
 
 def main():
     # Load the results
@@ -25,12 +29,31 @@ def main():
     # Fit a regression line for CUE and NOSC
     m_cue, d_cue = fit(merged_df, "cue", ["nosc"])
 
+    # Fit a regression line for growth rate and NOSC
+    m_growth, d_growth = fit(merged_df, "growth_rate", ["nosc"])
+
     # Print the results
     print(f"CUE ~ nosc: R² = {m_cue.score(d_cue[['nosc']], d_cue['cue']):.3f}")
+    print(
+        f"Growth rate ~ nosc: R² = {m_growth.score(d_growth[['nosc']], d_growth['growth_rate']):.3f}"
+    )
 
     # Plot the results
     fig, ax = plt.subplots(figsize=(5, 5))
-    reg_plot(ax, m_cue, d_cue, "cue", ["nosc"])
+    ax2 = ax.twinx()
+    reg_plot(ax, m_cue, d_cue, "cue", ["nosc"], colors=CUE_C)
+    reg_plot(ax2, m_growth, d_growth, "growth_rate", ["nosc"], colors=GROWTH_C)
+
+    ax.set_ylabel(
+        f"CUE (R² = {m_cue.score(d_cue[['nosc']], d_cue['cue']):.2f})", color=CUE_C
+    )
+    ax2.set_ylabel(
+        f"growth rate (R² = {m_growth.score(d_growth[['nosc']], d_growth['growth_rate']):.2f})",
+        color=GROWTH_C,
+    )
+    ax.tick_params(axis="y", colors=CUE_C)
+    ax2.tick_params(axis="y", colors=GROWTH_C)
+
     plt.tight_layout()
     plt.savefig(FIG_PATH / "cue_vs_nosc.png")
 
@@ -50,6 +73,7 @@ def reg_plot(ax, m, d, y, xcols, colors=None):
     else:  # multiple: observed vs fitted
         x = m.predict(d[xcols].values)
         xlab = "predicted " + y
+
     ax.scatter(x, d[y], c=colors, s=70, edgecolor="white", linewidth=0.8, zorder=3)
     xs = sorted(x)  # regression/1:1 line
     if len(xcols) == 1:
@@ -64,14 +88,7 @@ def reg_plot(ax, m, d, y, xcols, colors=None):
         ax.plot(xs, xs, "--", color="#666", lw=1)
     ax.set_xlabel(xlab)
     ax.set_ylabel(y)
-    ax.text(
-        0.05,
-        0.9,
-        f"$R^2$={m.score(d[xcols], d[y]):.2f}",
-        transform=ax.transAxes,
-        fontweight="bold",
-    )
-    ax.spines[["top", "right"]].set_visible(False)
+    ax.spines["top"].set_visible(False)
 
 
 if __name__ == "__main__":
