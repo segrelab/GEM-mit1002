@@ -98,6 +98,20 @@ def count_carbons(formula: str) -> Optional[int]:
     return 0
 
 
+def calculate_nosc(elements: dict, charge: float) -> Optional[float]:
+    # Extract the number of atoms of each element, defaulting to 0 if not present
+    C = elements.get("C", 0)
+    H = elements.get("H", 0)
+    N = elements.get("N", 0)
+    O = elements.get("O", 0)
+    P = elements.get("P", 0)
+    S = elements.get("S", 0)
+
+    # Calulate NOSC
+    nosc = 4 - ((4 * C) + H - (3 * N) - (2 * O) + (5 * P) - (2 * S) - charge) / C
+    return nosc
+
+
 def load_substrates(model: cobra.Model, media_defs: dict) -> pd.DataFrame:
     """Build the single-substrate panel from the known-growth-phenotypes TSV."""
     df = pd.read_csv(TEST_FILE_DIR / "known_growth_phenotypes.tsv", sep="\t")
@@ -158,21 +172,13 @@ def load_substrates(model: cobra.Model, media_defs: dict) -> pd.DataFrame:
             print(f"  SKIP (unknown media '{media_key}'): {c_source}")
             continue
 
-        try:
-            n_c = count_carbons(model.metabolites.get_by_id(f"{met_id}_e0").formula)
-            model_name = model.metabolites.get_by_id(f"{met_id}_e0").name[
-                :-5
-            ]  # drop " [e0]" suffix
-        except KeyError:
-            n_c = None
-            for met in model.metabolites:
-                if met.id.startswith(met_id):
-                    n_c = count_carbons(met.formula)
-                    model_name = met.name
-                    break
-        if not n_c:
-            print(f"  SKIP (can't determine n_c): {c_source}")
-            continue
+        # Get the metabolite
+        met = model.metabolites.get_by_id(f"{met_id}_e0")
+
+        # Get information about the metabolit
+        n_c = count_carbons(met.formula)
+        model_name = met.name[:-5]  # drop " [e0]" suffix
+        nosc = calculate_nosc(met.elements, met.charge)
 
         records.append(
             {
@@ -183,6 +189,7 @@ def load_substrates(model: cobra.Model, media_defs: dict) -> pd.DataFrame:
                 "media_key": media_key,
                 "n_c": n_c,
                 "entry_point": ENTRY_POINT.get(met_id, "Other"),
+                "nosc": nosc,
             }
         )
 
