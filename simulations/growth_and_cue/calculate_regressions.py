@@ -52,6 +52,20 @@ def main():
     plt.tight_layout()
     plt.savefig(FIG_PATH / "nosc_regression.png")
 
+    # Make a table of the R2 values
+    r2_df = pd.DataFrame(
+        {
+            "metric": ["CUE", "growth rate"],
+            "NOSC": [
+                m_cue.score(d_cue[["nosc"]], d_cue["cue"]),
+                m_growth.score(d_growth[["nosc"]], d_growth["growth_rate"]),
+            ],
+        }
+    )
+    # Round everything to 3 decimal places
+    r2_df["NOSC"] = r2_df["NOSC"].round(3)
+    r2_df.to_csv(RES_PATH / "regression_r2s.csv", index=False)
+
 
 # Helper function to fit a regression model and return the model and the dataframe used for fitting
 def fit(df, y, xcols):
