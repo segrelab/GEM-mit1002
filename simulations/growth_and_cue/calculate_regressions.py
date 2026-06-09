@@ -32,12 +32,12 @@ def main():
     # Fit a regression line for growth rate and NOSC
     m_growth, d_growth = fit(merged_df, "growth_rate", ["nosc"])
 
-    # Plot the results
+    # Plot the results on twin axes
     fig, ax = plt.subplots(figsize=(5, 5))
     ax2 = ax.twinx()
     reg_plot(ax, m_cue, d_cue, "cue", ["nosc"], colors=CUE_C)
     reg_plot(ax2, m_growth, d_growth, "growth_rate", ["nosc"], colors=GROWTH_C)
-
+    # Set the Y axis labels and include the R2 values in the label and color to match the points
     ax.set_ylabel(
         f"CUE (R² = {m_cue.score(d_cue[['nosc']], d_cue['cue']):.2f})", color=CUE_C
     )
@@ -45,11 +45,12 @@ def main():
         f"growth rate (R² = {m_growth.score(d_growth[['nosc']], d_growth['growth_rate']):.2f})",
         color=GROWTH_C,
     )
+    # Color the tick lables to match the points/axis
     ax.tick_params(axis="y", colors=CUE_C)
     ax2.tick_params(axis="y", colors=GROWTH_C)
 
     plt.tight_layout()
-    plt.savefig(FIG_PATH / "cue_vs_nosc.png")
+    plt.savefig(FIG_PATH / "nosc_regression.png")
 
 
 # Helper function to fit a regression model and return the model and the dataframe used for fitting
