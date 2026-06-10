@@ -26,9 +26,12 @@ def main():
     # Merge the results with the substrate info
     merged_df = pd.merge(results_df, substrate_df, on="met_id")
 
+    # Fit a regression line for growth rate and atp_cost
+    m_growth_v_atp, d_growth_v_atp = fit(merged_df, "growth_rate", ["atp_cost"])
+    m_cue_v_atp, d_cue_v_atp = fit(merged_df, "cue", ["atp_cost"])
+
     # Fit a regression line for CUE and NOSC
     m_cue, d_cue = fit(merged_df, "cue", ["nosc"])
-
     # Fit a regression line for growth rate and NOSC
     m_growth, d_growth = fit(merged_df, "growth_rate", ["nosc"])
 
@@ -60,10 +63,17 @@ def main():
                 m_cue.score(d_cue[["nosc"]], d_cue["cue"]),
                 m_growth.score(d_growth[["nosc"]], d_growth["growth_rate"]),
             ],
+            "ATP cost": [
+                m_cue_v_atp.score(d_cue_v_atp[["atp_cost"]], d_cue_v_atp["cue"]),
+                m_growth_v_atp.score(
+                    d_growth_v_atp[["atp_cost"]], d_growth_v_atp["growth_rate"]
+                ),
+            ],
         }
     )
     # Round everything to 3 decimal places
     r2_df["NOSC"] = r2_df["NOSC"].round(3)
+    r2_df["ATP cost"] = r2_df["ATP cost"].round(3)
     r2_df.to_csv(RES_PATH / "regression_r2s.csv", index=False)
 
 
