@@ -301,5 +301,4 @@ if __name__ == "__main__":
 
     # Generate the reports
     generate_growth_phenotype_report(model)
-    # TODO: Un-comment this!
-    # generate_biomass_producibility_report(model)
+    generate_biomass_producibility_report(model)
