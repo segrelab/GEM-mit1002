@@ -68,11 +68,8 @@ def main():
     with open(TEST_FILE_DIR / "media" / "media_definitions.pkl", "rb") as f:
         media_defs = pkl.load(f)
 
-    print("\nBuilding substrate panel...")
-    substrate_df = load_substrates(model, media_defs)
-
-    # Save the substrate df
-    substrate_df.to_csv(OUT_PATH / "substrate_panel.csv", index=False)
+    print("Loading the substrate panel...")
+    substrate_df = pd.read_csv(OUT_PATH / "substrate_panel.csv")
 
     print("\nRunning pFBA simulations...")
     summary_df, ex_records = run_pfba(model, media_defs, substrate_df)
@@ -85,117 +82,6 @@ def main():
     order = summary_df.sort_values("growth_rate", ascending=False).index.tolist()
     ex_df = build_exchange_df(model, ex_records, order, EX_FLUX_THRESHOLD)
     ex_df.to_csv(OUT_PATH / "exchange_fluxes.csv")
-
-
-def count_carbons(formula: str) -> Optional[int]:
-    """Number of carbon atoms in a molecular formula string."""
-    if not formula:
-        return None
-    m = re.search(r"C(\d*)", formula)
-    if m:
-        n = m.group(1)
-        return int(n) if n else 1
-    return 0
-
-
-def calculate_nosc(elements: dict, charge: float) -> Optional[float]:
-    # Extract the number of atoms of each element, defaulting to 0 if not present
-    C = elements.get("C", 0)
-    H = elements.get("H", 0)
-    N = elements.get("N", 0)
-    O = elements.get("O", 0)
-    P = elements.get("P", 0)
-    S = elements.get("S", 0)
-
-    # Calulate NOSC
-    nosc = 4 - ((4 * C) + H - (3 * N) - (2 * O) + (5 * P) - (2 * S) - charge) / C
-    return nosc
-
-
-def load_substrates(model: cobra.Model, media_defs: dict) -> pd.DataFrame:
-    """Build the single-substrate panel from the known-growth-phenotypes TSV."""
-    df = pd.read_csv(TEST_FILE_DIR / "known_growth_phenotypes.tsv", sep="\t")
-    df = df[df["growth"] == "Yes"].copy()
-    df = df[~df["met_id"].astype(str).str.contains(",", na=True)].copy()
-
-    if "pro_exomet" in df.columns:
-        df["pro_exomet"] = df["pro_exomet"].fillna("No")
-    else:
-        df["pro_exomet"] = "No"
-
-    # Keep the Pro-exometabolite-annotated row when a substrate appears in
-    # multiple media contexts (stable sort puts "Yes" first, then dedup).
-    df = (
-        df.sort_values(
-            "pro_exomet",
-            key=lambda s: s.map({"Yes": 0}).fillna(1),
-            ascending=True,
-            kind="stable",
-        )
-        .drop_duplicates(subset="met_id", keep="first")
-        .copy()
-    )
-
-    # Aspartate and glycine were measured in the Pro exometabolome; add if absent.
-    for name, met_id in [("Aspartate", "cpd00041"), ("Glycine", "cpd00033")]:
-        if met_id not in df["met_id"].values:
-            df = pd.concat(
-                [
-                    df,
-                    pd.DataFrame(
-                        [
-                            {
-                                "minimal_media": "l1",
-                                "c_source": name,
-                                "met_id": met_id,
-                                "growth": "Yes",
-                                "pro_exomet": "Yes",
-                            }
-                        ]
-                    ),
-                ],
-                ignore_index=True,
-            )
-
-    rxn_ids = {r.id for r in model.reactions}
-    records = []
-    for _, row in df.iterrows():
-        met_id = str(row["met_id"]).strip()
-        c_source = str(row["c_source"]).strip()
-        ex_id = f"EX_{met_id}_e0"
-        media_key = str(row["minimal_media"]).strip()
-
-        if ex_id not in rxn_ids:
-            print(f"  SKIP (no exchange rxn)  : {c_source} ({met_id})")
-            continue
-        if media_key not in media_defs:
-            print(f"  SKIP (unknown media '{media_key}'): {c_source}")
-            continue
-
-        # Get the metabolite
-        met = model.metabolites.get_by_id(f"{met_id}_e0")
-
-        # Get information about the metabolit
-        n_c = count_carbons(met.formula)
-        model_name = met.name[:-5]  # drop " [e0]" suffix
-        nosc = calculate_nosc(met.elements, met.charge)
-
-        records.append(
-            {
-                "name": c_source,
-                "name_in_model": model_name,
-                "met_id": met_id,
-                "exchange_id": ex_id,
-                "media_key": media_key,
-                "n_c": n_c,
-                "entry_point": ENTRY_POINT.get(met_id, "Other"),
-                "nosc": nosc,
-            }
-        )
-
-    substrate_df = pd.DataFrame(records)
-    print(f"\nSubstrate panel: {len(substrate_df)} substrates")
-    return substrate_df
 
 
 def run_pfba(model, media_defs, substrate_df) -> tuple:
