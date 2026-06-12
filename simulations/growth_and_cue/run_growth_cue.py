@@ -35,30 +35,6 @@ CO2_EX_RXN = "EX_cpd00011_e0"
 # lumped into a single grey "Other" segment (keeps the trace-ion colours out).
 EX_FLUX_THRESHOLD = 1.0  # mmol / gDW / hr
 
-# Entry point into central metabolism = the first central-metabolism
-# intermediate the substrate's catabolism produces.
-ENTRY_POINT = {
-    "cpd00027": "Glycolysis",  # Glucose      → G6P
-    "cpd00108": "Glycolysis",  # Galactose    → G1P → G6P
-    "cpd00080": "Glycolysis",  # Glycerol-3-P → DHAP
-    "cpd00035": "Pyruvate",  # Alanine      → Pyr
-    "cpd00033": "Pyruvate",  # Glycine      → Ser → Pyr
-    "cpd23538": "Pyruvate",  # DHPS         → Pyr + sulfite
-    "cpd00029": "Acetyl-CoA",  # Acetate      → AcCoA
-    "cpd00797": "Acetyl-CoA",  # 3-HB         → 2× AcCoA
-    "cpd00107": "Acetyl-CoA",  # Leucine      → AcCoA
-    "cpd00039": "Acetyl-CoA",  # Lysine       → AcCoA
-    "cpd00023": "TCA — α-KG",  # Glutamate    → α-KG
-    "cpd00129": "TCA — α-KG",  # Proline      → Glu → α-KG
-    "cpd00051": "TCA — α-KG",  # Arginine     → Glu → α-KG
-    "cpd00041": "TCA — OAA",  # Aspartate    → OAA
-    "cpd00156": "TCA — Succinyl-CoA",  # Valine       → succinyl-CoA
-    "cpd00322": "TCA — Succinyl-CoA",  # Isoleucine   → succinyl-CoA
-    "cpd00123": "TCA — Succinyl-CoA",  # KIC          → succinyl-CoA
-    "cpd00069": "Aromatic catabolism",  # Tyrosine     → fumarate + AcAcCoA
-    "cpd00127": "Aromatic catabolism",  # Phenol       → succinyl-CoA + AcCoA
-}
-
 
 def main():
     print("Loading model...")
@@ -116,7 +92,6 @@ def run_pfba(model, media_defs, substrate_df) -> tuple:
                         "growth_rate": growth,
                         "co2_flux": co2,
                         "cue": cue,
-                        "entry_point": row["entry_point"],
                     }
                 )
                 ex_records[name] = {
