@@ -1,0 +1,20 @@
+name,name_in_model,met_id,exchange_id,media_key,n_c,entry_point,nosc,atp_cost
+Leucine,L-Leucine,cpd00107,EX_cpd00107_e0,promm_no_c,6,Acetyl-CoA,-1.0,33.00000000000001
+Isoleucine,L-Isoleucine,cpd00322,EX_cpd00322_e0,promm_no_c,6,TCA — Succinyl-CoA,-1.0,27.80000000000003
+Valine,L-Valine,cpd00156,EX_cpd00156_e0,promm_no_c,5,TCA — Succinyl-CoA,-0.7999999999999998,39.49999999999999
+3-methyl-2-oxobutanoic acid,3-Methyl-2-oxobutanoate,cpd00123,EX_cpd00123_e0,promm_no_c,5,TCA — Succinyl-CoA,-0.40000000000000036,36.49999999999994
+Phenol,Phenol,cpd00127,EX_cpd00127_e0,swm,6,Aromatic catabolism,-0.666666666666667,17.093750000000007
+Glucose,D-Glucose,cpd00027,EX_cpd00027_e0,mbm,6,Glycolysis,0.0,5.999999999999755
+Acetate,Acetate,cpd00029,EX_cpd00029_e0,mbm,2,Acetyl-CoA,0.0,37.99999999999996
+3-hydroxybutyrate,(R)-3-Hydroxybutanoate,cpd00797,EX_cpd00797_e0,mbm,4,Acetyl-CoA,-0.5,23.900000000000016
+Alanine,L-Alanine,cpd00035,EX_cpd00035_e0,l1,3,Pyruvate,0.0,20.39473684210481
+Proline,L-Proline,cpd00129,EX_cpd00129_e0,l1,5,TCA — α-KG,-0.40000000000000036,19.499999999999996
+Glycerol-3-phosphate,Glycerol-3-phosphate,cpd00080,EX_cpd00080_e0,l1,3,Glycolysis,-0.666666666666667,1.641025641025616
+DHPS (dihydroxypropanesulfonate),"(S)-2,3-dihydroxypropane-1-sulfonate",cpd23538,EX_cpd23538_e0,l1,3,Pyruvate,1.3333333333333335,24.999999999999922
+Tyrosine,L-Tyrosine,cpd00069,EX_cpd00069_e0,l1,9,Aromatic catabolism,-0.22222222222222232,17.150000000000006
+Glutamate,L-Glutamate,cpd00023,EX_cpd00023_e0,l1,5,TCA — α-KG,0.3999999999999999,18.208333333333336
+Arginine,L-Arginine,cpd00051,EX_cpd00051_e0,marine_broth_wo_yeast_and_peptone,6,TCA — α-KG,0.3333333333333335,18.500000000000004
+Lysine,L-Lysine,cpd00039,EX_cpd00039_e0,marine_broth_wo_yeast_and_peptone,6,Acetyl-CoA,-0.666666666666667,28.448717948717988
+Galactose,Galactose,cpd00108,EX_cpd00108_e0,mbm,6,Glycolysis,0.0,5.228346456692745
+Aspartate,L-Aspartate,cpd00041,EX_cpd00041_e0,l1,4,TCA — OAA,1.0,14.000000000001181
+Glycine,Glycine,cpd00033,EX_cpd00033_e0,l1,2,Pyruvate,1.0,19.954545454545364
