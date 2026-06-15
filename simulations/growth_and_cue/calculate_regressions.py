@@ -57,6 +57,8 @@ def main():
 
     plt.tight_layout()
     plt.savefig(FIG_PATH / "nosc_regression.png")
+    # Save as an editedable format (e.g. SVG)
+    plt.savefig(FIG_PATH / "nosc_regression.svg")
 
     # Make a table of the R2 values
     r2_df = pd.DataFrame(
