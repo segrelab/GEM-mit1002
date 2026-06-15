@@ -10,22 +10,24 @@ sorted by growth rate. Self-contained: re-runs the simulations, no dependence
 on the (retired) PCA analysis.
 """
 
+import pickle as pkl
 import re
 import warnings
 from pathlib import Path
 from typing import Optional
-import pickle as pkl
 
 import cobra
 import cobra.flux_analysis
-from gem_utilities import media as media_utils
 import pandas as pd
+from gem_utilities import media as media_utils
 
 FILE_PATH = Path(__file__).resolve().parent
 REPO_ROOT = FILE_PATH.parents[1]
 TEST_FILE_DIR = REPO_ROOT / "test" / "test_files"
 OUT_PATH = FILE_PATH / "results"
 OUT_PATH.mkdir(exist_ok=True)
+FLUX_PATH = OUT_PATH / "fluxes"
+FLUX_PATH.mkdir(exist_ok=True)
 
 TOTAL_UPTAKE = 60  # mmol C / gDW / hr
 BIOMASS_RXN = "bio1_biomass"
@@ -48,7 +50,9 @@ def main():
     substrate_df = pd.read_csv(OUT_PATH / "substrate_panel.csv")
 
     print("\nRunning pFBA simulations...")
-    summary_df, ex_records = run_pfba(model, media_defs, substrate_df)
+    summary_df, ex_records = run_pfba(
+        model, media_defs, substrate_df, save_fluxes=True, fluxes_path=FLUX_PATH
+    )
     print(f"\nSuccessful: {len(summary_df)}/{len(substrate_df)} substrates")
 
     # Save the results
@@ -60,7 +64,9 @@ def main():
     ex_df.to_csv(OUT_PATH / "exchange_fluxes.csv")
 
 
-def run_pfba(model, media_defs, substrate_df) -> tuple:
+def run_pfba(
+    model, media_defs, substrate_df, save_fluxes=False, fluxes_path=None
+) -> tuple:
     """Run pFBA per substrate.
 
     Returns (summary_df, ex_records) where summary_df holds growth + CUE and
@@ -79,12 +85,31 @@ def run_pfba(model, media_defs, substrate_df) -> tuple:
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
                     sol = cobra.flux_analysis.pfba(model)
+
+                # Save all of the fluxes (if requested)
+                if save_fluxes:
+                    sol.fluxes.to_json(fluxes_path / f"{name}.json")
+
+                # Extract specific fluxes
                 growth = sol.fluxes[BIOMASS_RXN]
                 if growth < 1e-6:
                     print(f"  WARN (near-zero growth)  : {name}  mu={growth:.5f}")
                     continue
                 co2 = sol.fluxes.get(CO2_EX_RXN, 0.0)
+
+                # Calculate the CUE/BGE
+                # FIXME: BUG! TOTAL_UPTAKE might not be the actual uptake rate
                 cue = 1.0 - (co2 / TOTAL_UPTAKE)
+                # TODO: Add BGE calculation here
+
+                # Extract the exchange fluxes
+                ex_records[name] = {
+                    rid: sol.fluxes[rid]
+                    for rid in ex_rxn_ids
+                    if abs(sol.fluxes[rid]) > 1e-9
+                }
+
+                # Add the substrate results to the full results
                 rows.append(
                     {
                         "substrate": name,
@@ -94,11 +119,7 @@ def run_pfba(model, media_defs, substrate_df) -> tuple:
                         "cue": cue,
                     }
                 )
-                ex_records[name] = {
-                    rid: sol.fluxes[rid]
-                    for rid in ex_rxn_ids
-                    if abs(sol.fluxes[rid]) > 1e-9
-                }
+                # Print a status message
                 print(f"  OK   {name:28s}  mu={growth:.4f}  CUE={cue:.3f}")
             except Exception as exc:
                 print(f"  FAIL {name}: {exc}")
