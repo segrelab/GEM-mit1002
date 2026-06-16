@@ -96,10 +96,15 @@ def run_pfba(
                     print(f"  WARN (near-zero growth)  : {name}  mu={growth:.5f}")
                     continue
                 co2 = sol.fluxes.get(CO2_EX_RXN, 0.0)
+                # Get the uptake flux for the exchange ID
+                # Absolute value since uptake is negative
+                uptake = abs(sol.fluxes.get(row["exchange_id"], 0.0))
+                # Convert the uptake to mmol C / gDW / h
+                uptake_c = uptake * row["n_c"]
 
                 # Calculate the CUE/BGE
-                # FIXME: BUG! TOTAL_UPTAKE might not be the actual uptake rate
-                cue = 1.0 - (co2 / TOTAL_UPTAKE)
+                # TODO: Use the helper function
+                cue = 1.0 - (co2 / uptake_c)
                 # TODO: Add BGE calculation here
 
                 # Extract the exchange fluxes

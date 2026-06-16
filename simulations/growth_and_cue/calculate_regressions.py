@@ -27,7 +27,7 @@ def main():
     merged_df = pd.merge(results_df, substrate_df, on="met_id")
 
     # For debugging
-    print(merged_df.groupby("entry_point_x")[["atp_cost", "growth_rate"]].mean())
+    print(merged_df.groupby("entry_point")[["atp_cost", "growth_rate"]].mean())
 
     # Fit a regression line for growth rate and atp_cost
     m_growth_v_atp, d_growth_v_atp = fit(merged_df, "growth_rate", ["atp_cost"])
