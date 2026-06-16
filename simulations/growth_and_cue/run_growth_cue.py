@@ -77,7 +77,7 @@ def run_pfba(
     ex_records = {}
     for _, row in substrate_df.iterrows():
         name = row["name"]
-        media = media_utils.clean_media(model, media_defs[row["media_key"]])
+        media = media_utils.clean_media(model, media_defs["minimal"])
         media[row["exchange_id"]] = TOTAL_UPTAKE / row["n_c"]
         with model:
             model.medium = media
