@@ -1,14 +1,14 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from matplotlib.lines import Line2D
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.lines import Line2D
 from scipy import stats
 
 matplotlib.rcParams.update(
@@ -44,15 +44,22 @@ ENTRY_POINT_ORDER = list(ENTRY_POINT_COLORS)
 
 
 def main():
+    # Load the substrate panel
+    substrate_df = pd.read_csv(IN_PATH / "substrate_panel.csv")
     # Load the Growth and CUE results
     summary_df = pd.read_csv(IN_PATH / "growth_and_cue.csv", index_col=0)
+    # Rename the "name" column in the substrate_df to "substrate" so that it can be merged with the results_df
+    substrate_df = substrate_df.rename(columns={"name": "substrate"})
+    # Merge the results with the substrate info
+    merged_df = pd.merge(summary_df, substrate_df, on="met_id")
+
     # Plot the bar charts of growth rate and CUE, coloured by entry point into central metabolism
-    plot_growth_cue(summary_df, OUT_PATH / "growth_and_cue.png")
+    plot_growth_cue(merged_df, OUT_PATH, "growth_and_cue")
     # Plot the correlation between growth rate and CUE across substrates
-    plot_growth_cue_correlation(summary_df, OUT_PATH / "growth_vs_cue_scatter.png")
+    plot_growth_cue_correlation(merged_df, OUT_PATH, "growth_vs_cue_scatter")
 
 
-def plot_growth_cue(summary_df: pd.DataFrame, out_path: Path) -> None:
+def plot_growth_cue(summary_df: pd.DataFrame, out_path: Path, filename: str) -> None:
     df = summary_df.sort_values("growth_rate", ascending=False).reset_index()
     colors = [ENTRY_POINT_COLORS.get(c, "#9E9E9E") for c in df["entry_point"]]
     x = np.arange(len(df))
@@ -90,12 +97,14 @@ def plot_growth_cue(summary_df: pd.DataFrame, out_path: Path) -> None:
     )
 
     fig.tight_layout()
-    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    fig.savefig(out_path / f"{filename}.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
     print(f"  Saved: {out_path.name}")
 
 
-def plot_growth_cue_correlation(summary_df: pd.DataFrame, out_path: Path) -> None:
+def plot_growth_cue_correlation(
+    summary_df: pd.DataFrame, out_path: Path, filename: str
+) -> None:
     df = summary_df.reset_index()
     colors = [ENTRY_POINT_COLORS.get(c, "#9E9E9E") for c in df["entry_point"]]
     x = df["growth_rate"].values.astype(float)
@@ -173,7 +182,10 @@ def plot_growth_cue_correlation(summary_df: pd.DataFrame, out_path: Path) -> Non
     )
 
     fig.tight_layout()
-    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    # Save the figure as a PNG
+    fig.savefig(out_path / f"{filename}.png", dpi=300, bbox_inches="tight")
+    # Save the figure as an SVG
+    fig.savefig(out_path / f"{filename}.svg", dpi=300, bbox_inches="tight")
     plt.close(fig)
     print(f"  Saved: {out_path.name}  (Pearson r={r:.2f}, p={p:.2g})")
 
