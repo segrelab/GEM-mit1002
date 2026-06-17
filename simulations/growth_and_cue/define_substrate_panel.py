@@ -35,6 +35,8 @@ ENTRY_POINT = {
     "cpd00123": "TCA — Succinyl-CoA",  # KIC          → succinyl-CoA
     "cpd00069": "Aromatic catabolism",  # Tyrosine     → fumarate + AcAcCoA
     "cpd00127": "Aromatic catabolism",  # Phenol       → succinyl-CoA + AcCoA
+    "cpd01384": "ED - KDPG",  # D-Mannuronate → KDPG
+    "cpd00280": "ED - KDPG",  # D-Galacturonate → KDPG
 }
 
 # Define the biomass precurosors and their weights in the pool reaction
