@@ -29,13 +29,19 @@ OUT_PATH.mkdir(exist_ok=True)
 FLUX_PATH = OUT_PATH / "fluxes"
 FLUX_PATH.mkdir(exist_ok=True)
 
-TOTAL_UPTAKE = 60  # mmol C / gDW / hr
-BIOMASS_RXN = "bio1_biomass"
-CO2_EX_RXN = "EX_cpd00011_e0"
+# Set the total carbon uptake to use
+# I had originally used 60, but not all substrates reached that uptake rate
+# Phenol was the lowest uptake, at 27.7 mmol C / gDW / hr
+# So I needed to pick a value lower than that
+TOTAL_UPTAKE = 27  # mmol C / gDW / hr
 
 # Exchange metabolites whose max |flux| across substrates is below this are
 # lumped into a single grey "Other" segment (keeps the trace-ion colours out).
 EX_FLUX_THRESHOLD = 1.0  # mmol / gDW / hr
+
+# Define key reaction IDs
+BIOMASS_RXN = "bio1_biomass"
+CO2_EX_RXN = "EX_cpd00011_e0"
 
 
 def main():
