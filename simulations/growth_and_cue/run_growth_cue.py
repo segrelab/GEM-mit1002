@@ -30,10 +30,7 @@ FLUX_PATH = OUT_PATH / "fluxes"
 FLUX_PATH.mkdir(exist_ok=True)
 
 # Set the total carbon uptake to use
-# I had originally used 60, but not all substrates reached that uptake rate
-# Phenol was the lowest uptake, at 27.7 mmol C / gDW / hr
-# So I needed to pick a value lower than that
-TOTAL_UPTAKE = 27  # mmol C / gDW / hr
+TOTAL_UPTAKE = 60  # mmol C / gDW / hr
 
 # Exchange metabolites whose max |flux| across substrates is below this are
 # lumped into a single grey "Other" segment (keeps the trace-ion colours out).
@@ -84,7 +81,10 @@ def run_pfba(
     for _, row in substrate_df.iterrows():
         name = row["name"]
         media = media_utils.clean_media(model, media_defs["minimal"])
+        # Add the carbon source to the media
         media[row["exchange_id"]] = TOTAL_UPTAKE / row["n_c"]
+        # Change the oxygen level to be unlimited
+        media["EX_cpd00007_e0"] = 1000
         with model:
             model.medium = media
             try:
