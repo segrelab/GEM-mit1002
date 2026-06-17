@@ -32,6 +32,9 @@ FLUX_PATH.mkdir(exist_ok=True)
 # Set the total carbon uptake to use
 TOTAL_UPTAKE = 60  # mmol C / gDW / hr
 
+# Define the O2 levels to test
+O2_LEVELS = [1, 10, 100]
+
 # Exchange metabolites whose max |flux| across substrates is below this are
 # lumped into a single grey "Other" segment (keeps the trace-ion colours out).
 EX_FLUX_THRESHOLD = 1.0  # mmol / gDW / hr
@@ -53,9 +56,7 @@ def main():
     substrate_df = pd.read_csv(OUT_PATH / "substrate_panel.csv")
 
     print("\nRunning pFBA simulations...")
-    summary_df, ex_records = run_pfba(
-        model, media_defs, substrate_df, save_fluxes=True, fluxes_path=FLUX_PATH
-    )
+    summary_df, ex_records = run_pfba(model, media_defs, substrate_df)
     print(f"\nSuccessful: {len(summary_df)}/{len(substrate_df)} substrates")
 
     # Save the results
@@ -83,57 +84,63 @@ def run_pfba(
         media = media_utils.clean_media(model, media_defs["minimal"])
         # Add the carbon source to the media
         media[row["exchange_id"]] = TOTAL_UPTAKE / row["n_c"]
-        # Change the oxygen level to be unlimited
-        media["EX_cpd00007_e0"] = 1000
-        with model:
-            model.medium = media
-            try:
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    sol = cobra.flux_analysis.pfba(model)
+        for o2_level in O2_LEVELS:
+            # Change the oxygen level to be unlimited
+            media["EX_cpd00007_e0"] = o2_level
+            with model:
+                model.medium = media
+                try:
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        sol = cobra.flux_analysis.pfba(model)
 
-                # Save all of the fluxes (if requested)
-                if save_fluxes:
-                    sol.fluxes.to_json(fluxes_path / f"{name}.json")
+                    # Save all of the fluxes (if requested)
+                    if save_fluxes:
+                        sol.fluxes.to_json(fluxes_path / f"{name}_o2_{o2_level}.json")
 
-                # Extract specific fluxes
-                growth = sol.fluxes[BIOMASS_RXN]
-                if growth < 1e-6:
-                    print(f"  WARN (near-zero growth)  : {name}  mu={growth:.5f}")
-                    continue
-                co2 = sol.fluxes.get(CO2_EX_RXN, 0.0)
-                # Get the uptake flux for the exchange ID
-                # Absolute value since uptake is negative
-                uptake = abs(sol.fluxes.get(row["exchange_id"], 0.0))
-                # Convert the uptake to mmol C / gDW / h
-                uptake_c = uptake * row["n_c"]
+                    # Extract specific fluxes
+                    growth = sol.fluxes[BIOMASS_RXN]
+                    if growth < 1e-6:
+                        print(
+                            f"  WARN (near-zero growth)  : {name} (O2 = {o2_level}) mu={growth:.5f}"
+                        )
+                        continue
+                    co2 = sol.fluxes.get(CO2_EX_RXN, 0.0)
+                    # Get the uptake flux for the exchange ID
+                    # Absolute value since uptake is negative
+                    uptake = abs(sol.fluxes.get(row["exchange_id"], 0.0))
+                    # Convert the uptake to mmol C / gDW / h
+                    uptake_c = uptake * row["n_c"]
 
-                # Calculate the CUE/BGE
-                # TODO: Use the helper function
-                cue = 1.0 - (co2 / uptake_c)
-                # TODO: Add BGE calculation here
+                    # Calculate the CUE/BGE
+                    # TODO: Use the helper function
+                    cue = 1.0 - (co2 / uptake_c)
+                    # TODO: Add BGE calculation here
 
-                # Extract the exchange fluxes
-                ex_records[name] = {
-                    rid: sol.fluxes[rid]
-                    for rid in ex_rxn_ids
-                    if abs(sol.fluxes[rid]) > 1e-9
-                }
-
-                # Add the substrate results to the full results
-                rows.append(
-                    {
-                        "substrate": name,
-                        "met_id": row["met_id"],
-                        "growth_rate": growth,
-                        "co2_flux": co2,
-                        "cue": cue,
+                    # Extract the exchange fluxes
+                    ex_records[name] = {
+                        rid: sol.fluxes[rid]
+                        for rid in ex_rxn_ids
+                        if abs(sol.fluxes[rid]) > 1e-9
                     }
-                )
-                # Print a status message
-                print(f"  OK   {name:28s}  mu={growth:.4f}  CUE={cue:.3f}")
-            except Exception as exc:
-                print(f"  FAIL {name}: {exc}")
+
+                    # Add the substrate results to the full results
+                    rows.append(
+                        {
+                            "substrate": name,
+                            "met_id": row["met_id"],
+                            "o2_level": o2_level,
+                            "growth_rate": growth,
+                            "co2_flux": co2,
+                            "cue": cue,
+                        }
+                    )
+                    # Print a status message
+                    print(
+                        f"  OK   {name:28s} (O2 = {o2_level})  mu={growth:.4f}  CUE={cue:.3f}"
+                    )
+                except Exception as exc:
+                    print(f"  FAIL {name} (O2 = {o2_level}): {exc}")
     return pd.DataFrame(rows).set_index("substrate"), ex_records
 
 

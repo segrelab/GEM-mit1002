@@ -106,27 +106,65 @@ def plot_growth_cue_correlation(
     summary_df: pd.DataFrame, out_path: Path, filename: str
 ) -> None:
     df = summary_df.reset_index()
-    colors = [ENTRY_POINT_COLORS.get(c, "#9E9E9E") for c in df["entry_point"]]
-    x = df["growth_rate"].values.astype(float)
-    y = df["cue"].values.astype(float)
 
+    # Oxygen levels, highest first. The dot is anchored at the highest level
+    # (where growth and CUE are ~perfectly correlated, i.e. along the diagonal)
+    # and arrows trace how each substrate moves as O2 drops to the next level.
+    levels = sorted(df["o2_level"].unique(), reverse=True)
+    anchor_level = levels[0]
+
+    anchor = df[df["o2_level"] == anchor_level]
+    colors = [ENTRY_POINT_COLORS.get(c, "#9E9E9E") for c in anchor["entry_point"]]
+    x = anchor["growth_rate"].values.astype(float)
+    y = anchor["cue"].values.astype(float)
+
+    # Correlation reported at the anchor (highest-O2) level.
     r, p = stats.pearsonr(x, y)
     rho, p_s = stats.spearmanr(x, y)
 
     fig, ax = plt.subplots(figsize=(8.5, 6.5))
-    ax.scatter(x, y, c=colors, s=120, edgecolor="white", linewidth=0.6, zorder=3)
 
-    # Least-squares fit line
+    # Diagonal dots: one per substrate at the highest O2 level.
+    ax.scatter(x, y, c=colors, s=120, edgecolor="white", linewidth=0.6, zorder=4)
+
+    # Least-squares fit line through the anchor-level points.
     slope, intercept = np.polyfit(x, y, 1)
     xs = np.linspace(x.min(), x.max(), 100)
     ax.plot(xs, slope * xs + intercept, color="#555555", ls="--", lw=1.2, zorder=2)
 
-    # Substrate labels. Default is offset to the right of the point; a few
-    # near-coincident points get a manual override so labels don't overlap.
+    # For each substrate, draw arrows from one O2 level to the next one down,
+    # following the trajectory: anchor_level -> ... -> lowest level.
+    for substrate, sdf in df.groupby("substrate"):
+        sdf = sdf.set_index("o2_level")
+        color = ENTRY_POINT_COLORS.get(
+            sdf["entry_point"].iloc[0], "#9E9E9E"
+        )
+        for lo_hi, lo_lo in zip(levels[:-1], levels[1:]):
+            if lo_hi not in sdf.index or lo_lo not in sdf.index:
+                continue
+            x0, y0 = sdf.loc[lo_hi, "growth_rate"], sdf.loc[lo_hi, "cue"]
+            x1, y1 = sdf.loc[lo_lo, "growth_rate"], sdf.loc[lo_lo, "cue"]
+            ax.annotate(
+                "",
+                xy=(x1, y1),
+                xytext=(x0, y0),
+                arrowprops=dict(
+                    arrowstyle="-|>",
+                    color=color,
+                    lw=1.3,
+                    alpha=0.8,
+                    shrinkA=4,
+                    shrinkB=2,
+                ),
+                zorder=3,
+            )
+
+    # Substrate labels at the anchor (diagonal) dots. Default offset is to the
+    # right; near-coincident points get a manual override so labels don't overlap.
     label_offsets = {  # substrate: (dx, dy, ha, va)
         "Galactose": (0, 9, "center", "bottom"),  # sits almost on Glucose
     }
-    for _, row in df.iterrows():
+    for _, row in anchor.iterrows():
         dx, dy, ha, va = label_offsets.get(row["substrate"], (5, 0, "left", "center"))
         ax.annotate(
             row["substrate"],
@@ -139,37 +177,67 @@ def plot_growth_cue_correlation(
             color="#555555",
         )
 
+    # Annotations don't trigger autoscaling, so expand the axes to cover all
+    # O2 levels (the arrow endpoints), with a small margin.
+    gx = df["growth_rate"].astype(float)
+    gy = df["cue"].astype(float)
+    xpad = 0.05 * (gx.max() - gx.min())
+    ypad = 0.05 * (gy.max() - gy.min())
+    ax.set_xlim(gx.min() - xpad, gx.max() + xpad)
+    ax.set_ylim(gy.min() - ypad, gy.max() + ypad)
+
     ax.set_xlabel("Growth rate (h⁻¹)")
     ax.set_ylabel("Carbon-use efficiency")
     ax.set_title(
         "Growth rate vs. carbon-use efficiency across substrates", fontsize=12, pad=8
     )
 
-    # Correlation metrics
+    # Correlation metrics (at the highest O2 level).
     txt = (
+        f"At O₂ = {anchor_level:g}\n"
         f"Pearson  r = {r:.2f}  (p = {p:.2g})\n"
         f"Spearman ρ = {rho:.2f}  (p = {p_s:.2g})"
     )
     ax.text(
-        0.025,
-        0.025,
+        1.01,
+        0.45,
         txt,
         transform=ax.transAxes,
         fontsize=9,
-        va="bottom",
+        va="top",
         ha="left",
         linespacing=1.4,
         bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="#cccccc", alpha=0.9),
     )
 
-    # Legend: entry-point colors + the fit line
+    # Legend: entry-point colors, the fit line, and the arrow meaning.
     handles = [
         mpatches.Patch(facecolor=ENTRY_POINT_COLORS[lbl], edgecolor="white", label=lbl)
         for lbl in ENTRY_POINT_ORDER
-        if lbl in df["entry_point"].values
+        if lbl in anchor["entry_point"].values
     ]
     handles.append(
         Line2D([0], [0], color="#555555", ls="--", lw=1.2, label="linear fit")
+    )
+    handles.append(
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="#777777",
+            lw=0,
+            markersize=7,
+            label=f"dot: O₂ = {anchor_level:g}",
+        )
+    )
+    handles.append(
+        Line2D(
+            [0],
+            [0],
+            color="#777777",
+            lw=1.3,
+            label="arrow: decreasing O₂",
+        )
     )
     ax.legend(
         handles=handles,
