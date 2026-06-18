@@ -43,6 +43,10 @@ EX_FLUX_THRESHOLD = 1.0  # mmol / gDW / hr
 BIOMASS_RXN = "bio1_biomass"
 CO2_EX_RXN = "EX_cpd00011_e0"
 
+# Define the amount of carbon in biomass
+# From scripts/results/iHS4156_biomass_composition_work_table.csv
+N_C_BIOMASS = 42.948  # mmol C
+
 
 def main():
     print("Loading model...")
@@ -115,7 +119,9 @@ def run_pfba(
                     # Calculate the CUE/BGE
                     # TODO: Use the helper function
                     cue = 1.0 - (co2 / uptake_c)
-                    # TODO: Add BGE calculation here
+                    # Calculate the BGE (Bacterial Growth Efficiency)
+                    # TODO: Use the helper function
+                    bge = (N_C_BIOMASS * growth) / ((N_C_BIOMASS * growth) + co2)
 
                     # Extract the exchange fluxes
                     ex_records[name] = {
@@ -133,6 +139,7 @@ def run_pfba(
                             "growth_rate": growth,
                             "co2_flux": co2,
                             "cue": cue,
+                            "bge": bge,
                         }
                     )
                     # Print a status message

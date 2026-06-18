@@ -55,8 +55,16 @@ def main():
 
     # Plot the bar charts of growth rate and CUE, coloured by entry point into central metabolism
     plot_growth_cue(merged_df, OUT_PATH, "growth_and_cue")
+
     # Plot the correlation between growth rate and CUE across substrates
-    plot_growth_cue_correlation(merged_df, OUT_PATH, "growth_vs_cue_scatter")
+    plot_growth_cue_correlation(
+        merged_df, OUT_PATH, "growth_vs_cue_scatter", metric="cue"
+    )
+
+    # Plot the correlation between growth rate and BGE across substrates
+    plot_growth_cue_correlation(
+        merged_df, OUT_PATH, "growth_vs_bge_scatter", metric="bge"
+    )
 
 
 def plot_growth_cue(summary_df: pd.DataFrame, out_path: Path, filename: str) -> None:
@@ -103,9 +111,21 @@ def plot_growth_cue(summary_df: pd.DataFrame, out_path: Path, filename: str) -> 
 
 
 def plot_growth_cue_correlation(
-    summary_df: pd.DataFrame, out_path: Path, filename: str
+    summary_df: pd.DataFrame, out_path: Path, filename: str, metric="cue"
 ) -> None:
     df = summary_df.reset_index()
+
+    # Check that the metric column exists
+    if metric not in df.columns:
+        raise ValueError(f"Column '{metric}' not found in the DataFrame")
+
+    # Define a label for the y-axis based on the metric
+    if metric == "cue":
+        y_label = "Carbon Use efficiency"
+    elif metric == "bge":
+        y_label = "Bacterial Growth Efficiency"
+    else:
+        y_label = metric
 
     # Oxygen levels, highest first. The dot is anchored at the highest level
     # (where growth and CUE are ~perfectly correlated, i.e. along the diagonal)
@@ -116,7 +136,7 @@ def plot_growth_cue_correlation(
     anchor = df[df["o2_level"] == anchor_level]
     colors = [ENTRY_POINT_COLORS.get(c, "#9E9E9E") for c in anchor["entry_point"]]
     x = anchor["growth_rate"].values.astype(float)
-    y = anchor["cue"].values.astype(float)
+    y = anchor[metric].values.astype(float)
 
     # Correlation reported at the anchor (highest-O2) level.
     r, p = stats.pearsonr(x, y)
@@ -136,14 +156,12 @@ def plot_growth_cue_correlation(
     # following the trajectory: anchor_level -> ... -> lowest level.
     for substrate, sdf in df.groupby("substrate"):
         sdf = sdf.set_index("o2_level")
-        color = ENTRY_POINT_COLORS.get(
-            sdf["entry_point"].iloc[0], "#9E9E9E"
-        )
+        color = ENTRY_POINT_COLORS.get(sdf["entry_point"].iloc[0], "#9E9E9E")
         for lo_hi, lo_lo in zip(levels[:-1], levels[1:]):
             if lo_hi not in sdf.index or lo_lo not in sdf.index:
                 continue
-            x0, y0 = sdf.loc[lo_hi, "growth_rate"], sdf.loc[lo_hi, "cue"]
-            x1, y1 = sdf.loc[lo_lo, "growth_rate"], sdf.loc[lo_lo, "cue"]
+            x0, y0 = sdf.loc[lo_hi, "growth_rate"], sdf.loc[lo_hi, metric]
+            x1, y1 = sdf.loc[lo_lo, "growth_rate"], sdf.loc[lo_lo, metric]
             ax.annotate(
                 "",
                 xy=(x1, y1),
@@ -168,7 +186,7 @@ def plot_growth_cue_correlation(
         dx, dy, ha, va = label_offsets.get(row["substrate"], (5, 0, "left", "center"))
         ax.annotate(
             row["substrate"],
-            (row["growth_rate"], row["cue"]),
+            (row["growth_rate"], row[metric]),
             xytext=(dx, dy),
             textcoords="offset points",
             fontsize=7,
@@ -180,17 +198,15 @@ def plot_growth_cue_correlation(
     # Annotations don't trigger autoscaling, so expand the axes to cover all
     # O2 levels (the arrow endpoints), with a small margin.
     gx = df["growth_rate"].astype(float)
-    gy = df["cue"].astype(float)
+    gy = df[metric].astype(float)
     xpad = 0.05 * (gx.max() - gx.min())
     ypad = 0.05 * (gy.max() - gy.min())
     ax.set_xlim(gx.min() - xpad, gx.max() + xpad)
     ax.set_ylim(gy.min() - ypad, gy.max() + ypad)
 
     ax.set_xlabel("Growth rate (h⁻¹)")
-    ax.set_ylabel("Carbon-use efficiency")
-    ax.set_title(
-        "Growth rate vs. carbon-use efficiency across substrates", fontsize=12, pad=8
-    )
+    ax.set_ylabel(y_label)
+    ax.set_title(f"Growth rate vs. {y_label} across substrates", fontsize=12, pad=8)
 
     # Correlation metrics (at the highest O2 level).
     txt = (
