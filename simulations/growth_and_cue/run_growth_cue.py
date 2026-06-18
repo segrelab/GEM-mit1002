@@ -33,7 +33,7 @@ FLUX_PATH.mkdir(exist_ok=True)
 TOTAL_UPTAKE = 60  # mmol C / gDW / hr
 
 # Define the O2 levels to test
-O2_LEVELS = [1, 10, 100]
+O2_LEVELS = [50, 40, 30, 20, 10, 1]
 
 # Exchange metabolites whose max |flux| across substrates is below this are
 # lumped into a single grey "Other" segment (keeps the trace-ion colours out).
