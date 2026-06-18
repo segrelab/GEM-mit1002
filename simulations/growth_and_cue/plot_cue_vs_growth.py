@@ -53,12 +53,13 @@ def main():
     # Merge the results with the substrate info
     merged_df = pd.merge(summary_df, substrate_df, on="met_id")
 
-    # Plot the bar charts of growth rate and CUE, coloured by entry point into central metabolism
-    plot_growth_cue(merged_df, OUT_PATH, "growth_and_cue")
-
     # Extract only the data for the anchor level
     anchor_level = sorted(merged_df["o2_level"].unique(), reverse=True)[0]
     anchor_df = merged_df[merged_df["o2_level"] == anchor_level]
+
+    # Plot the bar charts of growth rate and CUE, coloured by entry point into central metabolism
+    # Only for the "anchor level" (unlimited O2)
+    plot_growth_cue(anchor_df, OUT_PATH, "growth_and_cue")
 
     # Plot the correlation between growth rate and CUE for the anchor level
     plot_growth_cue_correlation(
@@ -124,13 +125,21 @@ def plot_growth_cue(summary_df: pd.DataFrame, out_path: Path, filename: str) -> 
 
 
 def plot_growth_cue_correlation(
-    summary_df: pd.DataFrame, out_path: Path, filename: str, metric="cue"
+    summary_df: pd.DataFrame,
+    out_path: Path,
+    filename: str,
+    metric="cue",
+    color_by="entry_point",
 ) -> None:
     df = summary_df.reset_index()
 
     # Check that the metric column exists
     if metric not in df.columns:
         raise ValueError(f"Column '{metric}' not found in the DataFrame")
+
+    # Check that the color_by column exists
+    if color_by not in df.columns:
+        raise ValueError(f"Column '{color_by}' not found in the DataFrame")
 
     # Define a label for the y-axis based on the metric
     if metric == "cue":
