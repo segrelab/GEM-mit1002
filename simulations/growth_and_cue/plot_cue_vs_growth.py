@@ -56,12 +56,25 @@ def main():
     # Plot the bar charts of growth rate and CUE, coloured by entry point into central metabolism
     plot_growth_cue(merged_df, OUT_PATH, "growth_and_cue")
 
-    # Plot the correlation between growth rate and CUE across substrates
+    # Extract only the data for the anchor level
+    anchor_level = sorted(merged_df["o2_level"].unique(), reverse=True)[0]
+    anchor_df = merged_df[merged_df["o2_level"] == anchor_level]
+
+    # Plot the correlation between growth rate and CUE for the anchor level
+    plot_growth_cue_correlation(
+        anchor_df, OUT_PATH, "growth_vs_cue_scatter_anchor", metric="cue"
+    )
+    # Plot the correlation between growth rate and BGE for the anchor level
+    plot_growth_cue_correlation(
+        anchor_df, OUT_PATH, "growth_vs_bge_scatter_anchor", metric="bge"
+    )
+
+    # Plot the correlations across all oxygen levels
+    # CUE
     plot_growth_cue_correlation(
         merged_df, OUT_PATH, "growth_vs_cue_scatter", metric="cue"
     )
-
-    # Plot the correlation between growth rate and BGE across substrates
+    # BGE
     plot_growth_cue_correlation(
         merged_df, OUT_PATH, "growth_vs_bge_scatter", metric="bge"
     )
