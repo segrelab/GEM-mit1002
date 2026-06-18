@@ -76,26 +76,6 @@ def main():
     # Load the model
     model = cobra.io.read_sbml_model(REPO_ROOT / "model.xml")
 
-    # Edit the model
-    # Block the biomass reaction
-    model.reactions.get_by_id(BIOMASS_RXN).bounds = (0, 0)
-    # Turn off the ATP maintenance reaction
-    model.reactions.get_by_id(ATPM).bounds = (0, 0)
-    # Add a reaction to drain the biomass precursors at a constant rate
-    # Forces the model to produce them
-    pool = cobra.Reaction("DM_pool")
-    # Add all the precurors as substrates to the pool reaction
-    # Their stoichiometric coefficients are the negative of their weights in the pool
-    pool_mets = {model.metabolites.get_by_id(m): -w for m, w in PRECURSORS.items()}
-    # Add CoA as a product of the pool reaction since it is recycled from acetyl-CoA and succinyl-CoA
-    # Its stoichiometric coefficient equal to the sum of the weights of the thioester precursors
-    pool_mets[model.metabolites.get_by_id(COA)] = sum(
-        w for m, w in PRECURSORS.items() if m in THIOESTERS
-    )
-    pool.add_metabolites(pool_mets)
-    pool.bounds = (POOL_RATE, POOL_RATE)  # force the conversion
-    model.add_reactions([pool])
-
     # Load the media definitions
     with open(TEST_FILE_DIR / "media" / "media_definitions.pkl", "rb") as f:
         media_defs = pkl.load(f)
@@ -174,11 +154,18 @@ def main():
         # Set the substrate uptake to be the total uptake divided by the number of carbons
         # So that every substrate has the same amount of carbon available
         media[ex_id] = TOTAL_UPTAKE / n_c
+        # Make the oxygen level unlimited
+        media["EX_cpd00007_e0"] = 1000
         # Set the media for the model
         model.medium = media
 
         # Calculate the NOSC
         nosc = calculate_nosc(met.elements, met.charge)
+
+        # Run pFBA
+        sol = cobra.flux_analysis.pfba(model)
+        # Get the oxygen uptake rate
+        o2_uptake = abs(sol.fluxes.get("EX_cpd00007_e0", 0.0))
 
         # Calculate the ATP cost of using this substrate
         print(f"Running the ATP Cost calculation for {c_source} ({met_id})...")
@@ -194,6 +181,7 @@ def main():
                 "n_c": n_c,
                 "entry_point": ENTRY_POINT.get(met_id, "Other"),
                 "nosc": nosc,
+                "o2_saturation": o2_uptake,
                 "atp_cost": atp_cost,
             }
         )
