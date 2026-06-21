@@ -33,7 +33,10 @@ FLUX_PATH.mkdir(exist_ok=True)
 TOTAL_UPTAKE = 60  # mmol C / gDW / hr
 
 # Define the O2 levels to test
-O2_LEVELS = [50, 40, 30, 20, 10, 1]
+# "SET_LEVELS" are the fixes lower bounds to set
+O2_SET_LEVELS = [50, 40, 30, 20, 10, 1]
+# "PERCENTAGE_LEVELS" are the percentage of the satureating O2 levels to test
+O2_PERCENTAGE_LEVLS = range(0, 110, 10)
 
 # Exchange metabolites whose max |flux| across substrates is below this are
 # lumped into a single grey "Other" segment (keeps the trace-ion colours out).
@@ -84,13 +87,28 @@ def run_pfba(
     rows = []
     ex_records = {}
     for _, row in substrate_df.iterrows():
+        # Get the name of the substrate being tested
         name = row["name"]
+
+        # Get the saturating o2 level for the substrate
+        o2_sat = row["o2_saturation"]
+        # Convert the percentage levels to actual O2 levels
+        O2_LEVELS = [o2_sat * p / 100 for p in O2_PERCENTAGE_LEVLS] + O2_SET_LEVELS
+
+        # Make a copy of the minimal media, and remove any metabolites not in the model
         media = media_utils.clean_media(model, media_defs["minimal"])
         # Add the carbon source to the media
         media[row["exchange_id"]] = TOTAL_UPTAKE / row["n_c"]
+
+        # Loop through all of the O2 levels to test
         for o2_level in O2_LEVELS:
-            # Change the oxygen level to be unlimited
+            # Get the percentage of the saturating O2 level
+            o2_percent = o2_level / o2_sat * 100 if o2_sat else 0
+
+            # Change the oxygen level to be the current O2 level
             media["EX_cpd00007_e0"] = o2_level
+
+            # Run the pFBA simulation
             with model:
                 model.medium = media
                 try:
@@ -135,7 +153,9 @@ def run_pfba(
                         {
                             "substrate": name,
                             "met_id": row["met_id"],
-                            "o2_level": o2_level,
+                            "o2_bound": o2_level,
+                            "o2_percent": o2_percent,
+                            "o2_flux": sol.fluxes["EX_cpd00007_e0"],
                             "growth_rate": growth,
                             "co2_flux": co2,
                             "cue": cue,
