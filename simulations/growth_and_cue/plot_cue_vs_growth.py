@@ -89,8 +89,20 @@ def main():
     merged_df = pd.merge(summary_df, substrate_df, on="met_id")
 
     # Extract only the data for the anchor level
-    anchor_level = sorted(merged_df["o2_level"].unique(), reverse=True)[0]
-    anchor_df = merged_df[merged_df["o2_level"] == anchor_level]
+    anchor_level = sorted(merged_df["o2_bound"].unique(), reverse=True)[0]
+    anchor_df = merged_df[merged_df["o2_bound"] == anchor_level]
+
+    # Extract the data for the "pre-set" oxygen levels
+    # Assume that the "pre-set" oxygen levels are those where the bound is a round number (e.g. 10, 20, 50)
+    # So its modulo 10 is 0
+    # And add the o2_bound == 1 level
+    pre_set_df = merged_df[merged_df["o2_bound"].mod(10) == 0]
+    pre_set_df = pd.concat([pre_set_df, merged_df[merged_df["o2_bound"] == 1]])
+
+    # Extract the data for the "percentile" oxygen levels
+    # Assume that the "percentile" oxygen levels are those where the percent is a round number (e.g. 10, 20, 30, 40, 50)
+    # So its modulo 10 is 0
+    percentile_df = merged_df[merged_df["o2_percent"].mod(10) == 0]
 
     # Plot the bar charts of growth rate and CUE, coloured by entry point into central metabolism
     # Only for the "anchor level" (unlimited O2)
@@ -105,14 +117,14 @@ def main():
         anchor_df, OUT_PATH, "growth_vs_bge_scatter_anchor", metric="bge"
     )
 
-    # Plot the correlations across all oxygen levels
+    # Plot the correlations across all pre-set oxygen levels
     # CUE, colored by entry point
     plot_growth_cue_correlation(
-        merged_df, OUT_PATH, "growth_vs_cue_scatter", metric="cue"
+        pre_set_df, OUT_PATH, "growth_vs_cue_scatter", metric="cue"
     )
     # CUE, coloured by substrate instead of entry point
     plot_growth_cue_correlation(
-        merged_df,
+        pre_set_df,
         OUT_PATH,
         "growth_vs_cue_scatter_by_substrate",
         metric="cue",
@@ -120,11 +132,11 @@ def main():
     )
     # BGE, colored by entry point
     plot_growth_cue_correlation(
-        merged_df, OUT_PATH, "growth_vs_bge_scatter", metric="bge"
+        pre_set_df, OUT_PATH, "growth_vs_bge_scatter", metric="bge"
     )
     # BGE, coloured by substrate instead of entry point
     plot_growth_cue_correlation(
-        merged_df,
+        pre_set_df,
         OUT_PATH,
         "growth_vs_bge_scatter_by_substrate",
         metric="bge",
@@ -194,7 +206,7 @@ def plot_growth_cue_correlation(
 
     # Define a label for the y-axis based on the metric
     if metric == "cue":
-        y_label = "Carbon Use efficiency"
+        y_label = "Carbon Use Efficiency"
     elif metric == "bge":
         y_label = "Bacterial Growth Efficiency"
     else:
@@ -203,10 +215,10 @@ def plot_growth_cue_correlation(
     # Oxygen levels, highest first. The dot is anchored at the highest level
     # (where growth and CUE are ~perfectly correlated, i.e. along the diagonal)
     # and arrows trace how each substrate moves as O2 drops to the next level.
-    levels = sorted(df["o2_level"].unique(), reverse=True)
+    levels = sorted(df["o2_bound"].unique(), reverse=True)
     anchor_level = levels[0]
 
-    anchor = df[df["o2_level"] == anchor_level]
+    anchor = df[df["o2_bound"] == anchor_level]
 
     # Build the colour mapping for whichever column we're colouring by.
     # entry_point uses a fixed category order; substrate is ordered by anchor
@@ -245,7 +257,7 @@ def plot_growth_cue_correlation(
     # For each substrate, draw arrows from one O2 level to the next one down,
     # following the trajectory: anchor_level -> ... -> lowest level.
     for substrate, sdf in df.groupby("substrate"):
-        sdf = sdf.set_index("o2_level")
+        sdf = sdf.set_index("o2_bound")
         color = cat_color(sdf[color_by].iloc[0])
         for lo_hi, lo_lo in zip(levels[:-1], levels[1:]):
             if lo_hi not in sdf.index or lo_lo not in sdf.index:
@@ -369,7 +381,7 @@ def plot_growth_cue_correlation(
     # Save the figure as an SVG
     fig.savefig(out_path / f"{filename}.svg", dpi=300, bbox_inches="tight")
     plt.close(fig)
-    print(f"  Saved: {out_path.name}  (Pearson r={r:.2f}, p={p:.2g})")
+    print(f"  Saved: {filename}.png/svg (Pearson r={r:.2f}, p={p:.2g})")
 
 
 if __name__ == "__main__":
