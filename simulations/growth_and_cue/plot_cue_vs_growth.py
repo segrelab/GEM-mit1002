@@ -87,6 +87,8 @@ def main():
     substrate_df = substrate_df.rename(columns={"name": "substrate"})
     # Merge the results with the substrate info
     merged_df = pd.merge(summary_df, substrate_df, on="met_id")
+    # Round the O2 percent values to 2 decimal places
+    merged_df["o2_percent"] = merged_df["o2_percent"].round(2)
 
     # Extract only the data for the anchor level
     anchor_level = sorted(merged_df["o2_bound"].unique(), reverse=True)[0]
@@ -102,7 +104,8 @@ def main():
     # Extract the data for the "percentile" oxygen levels
     # Assume that the "percentile" oxygen levels are those where the percent is a round number (e.g. 10, 20, 30, 40, 50)
     # So its modulo 10 is 0
-    percentile_df = merged_df[merged_df["o2_percent"].mod(10) == 0]
+    # Round the percent value first in case things are very slightly off
+    percentile_df = merged_df[round(merged_df["o2_percent"], 2).mod(10) == 0]
 
     # Plot the bar charts of growth rate and CUE, coloured by entry point into central metabolism
     # Only for the "anchor level" (unlimited O2)
@@ -140,6 +143,26 @@ def main():
         OUT_PATH,
         "growth_vs_bge_scatter_by_substrate",
         metric="bge",
+        color_by="substrate",
+    )
+
+    # Plot the correlations across all percentile oxygen levels
+    # CUE, coloured by substrate
+    plot_growth_cue_correlation(
+        percentile_df,
+        OUT_PATH,
+        "growth_vs_cue_scatter_by_substrate_percentiles",
+        metric="cue",
+        o2_level_col="o2_percent",
+        color_by="substrate",
+    )
+    # BGE, coloured by substrate
+    plot_growth_cue_correlation(
+        percentile_df,
+        OUT_PATH,
+        "growth_vs_bge_scatter_by_substrate_percentiles",
+        metric="bge",
+        o2_level_col="o2_percent",
         color_by="substrate",
     )
 
@@ -192,6 +215,7 @@ def plot_growth_cue_correlation(
     out_path: Path,
     filename: str,
     metric="cue",
+    o2_level_col="o2_bound",
     color_by="entry_point",
 ) -> None:
     df = summary_df.reset_index()
@@ -212,13 +236,26 @@ def plot_growth_cue_correlation(
     else:
         y_label = metric
 
-    # Oxygen levels, highest first. The dot is anchored at the highest level
-    # (where growth and CUE are ~perfectly correlated, i.e. along the diagonal)
-    # and arrows trace how each substrate moves as O2 drops to the next level.
-    levels = sorted(df["o2_bound"].unique(), reverse=True)
-    anchor_level = levels[0]
+    # Define a label for O2 levels used
+    if o2_level_col == "o2_bound":
+        o2_label = "O2 Lower Bound"
+    elif o2_level_col == "o2_percent":
+        o2_label = "O2 Saturation Percentile"
+    else:
+        o2_label = o2_level_col
 
-    anchor = df[df["o2_bound"] == anchor_level]
+    # Find the "anchor" level- the highest O2 level to plot the dots on the diagonal
+    # If you set O2 bounds, all will have data for the same "o2_bound" value
+    # But if you are doing percentiles, use the o2_percent column
+    levels = sorted(df[o2_level_col].unique(), reverse=True)
+    anchor_level = levels[0]
+    for met in df["met_id"].unique():
+        if anchor_level not in df[df["met_id"] == met][o2_level_col].values:
+            raise ValueError(
+                f"Metabolite '{met}' is missing data for the anchor level '{anchor_level}'"
+            )
+    # Extract the data for the anchor level
+    anchor = df[df[o2_level_col] == anchor_level]
 
     # Build the colour mapping for whichever column we're colouring by.
     # entry_point uses a fixed category order; substrate is ordered by anchor
@@ -257,7 +294,7 @@ def plot_growth_cue_correlation(
     # For each substrate, draw arrows from one O2 level to the next one down,
     # following the trajectory: anchor_level -> ... -> lowest level.
     for substrate, sdf in df.groupby("substrate"):
-        sdf = sdf.set_index("o2_bound")
+        sdf = sdf.set_index(o2_level_col)
         color = cat_color(sdf[color_by].iloc[0])
         for lo_hi, lo_lo in zip(levels[:-1], levels[1:]):
             if lo_hi not in sdf.index or lo_lo not in sdf.index:
@@ -316,7 +353,7 @@ def plot_growth_cue_correlation(
 
     # Correlation metrics (at the highest O2 level).
     txt = (
-        f"At O₂ = {anchor_level:g}\n"
+        f"At {o2_label} = {anchor_level:g}\n"
         f"Pearson  r = {r:.2f}  (p = {p:.2g})\n"
         f"Spearman ρ = {rho:.2f}  (p = {p_s:.2g})"
     )
@@ -351,7 +388,7 @@ def plot_growth_cue_correlation(
             color="#777777",
             lw=0,
             markersize=7,
-            label=f"dot: O₂ = {anchor_level:g}",
+            label=f"dot: {o2_label} = {anchor_level:g}",
         )
     )
     handles.append(
