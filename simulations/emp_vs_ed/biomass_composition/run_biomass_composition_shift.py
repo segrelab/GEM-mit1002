@@ -52,7 +52,7 @@ bio_components = model.reactions.get_by_id(BIOMASS_RXN).metabolites
 # Create a MultiIndex for the columns
 columns = pd.MultiIndex.from_product(
     [
-        [met.id for met in bio_components],
+        [met.name for met in bio_components],
         ["perturbed_s_coeff", "growth_rate", "cue", "bge"],
     ],
     names=["component", "metric"],
@@ -61,17 +61,21 @@ columns = pd.MultiIndex.from_product(
 # Create an empty DataFrame with MultiIndex columns and the perturbation levels as the index
 results = pd.DataFrame(index=log_perturbation_levels, columns=columns)
 
-# Loop through the biomass components
-for component, s_coeff in bio_components.items():
-    # Skip any products of the biomass reaction (stoichiomtric coefficient > 0)
-    if s_coeff > 0:
-        continue
-    # Skip ATP
-    if component.id == ATP_ID:
-        continue
-    # TODO: Skip other components?
+# Prepare the list of biomass components to process
+components_to_run = [
+    (component, s_coeff)
+    for component, s_coeff in bio_components.items()
+    if s_coeff < 0 and component.id != ATP_ID
+]
+
+for component_index, (component, s_coeff) in enumerate(components_to_run, start=1):
+    print(
+        f"Running component {component_index}/{len(components_to_run)}: '{component.name}'"
+    )
+    print("Progress: ", end="", flush=True)
+
     # Loop through the multiplier to use
-    for log_level in log_perturbation_levels:
+    for run_index, log_level in enumerate(log_perturbation_levels, start=1):
         # Calculate the new stoichiometric coefficient to use
         # Convert to log space, need to use abs() to avoid negative values
         log_s_coeff = np.log10(abs(s_coeff))
@@ -110,10 +114,17 @@ for component, s_coeff in bio_components.items():
             bge = (N_C_BIOMASS * growth) / ((N_C_BIOMASS * growth) + co2)
 
         # Save the results to the dataframe
-        results.loc[log_level, (component.id, "perturbed_s_coeff")] = perturbed_s_coeff
-        results.loc[log_level, (str(component.id), "growth_rate")] = growth
-        results.loc[log_level, (str(component.id), "cue")] = cue
-        results.loc[log_level, (str(component.id), "bge")] = bge
+        results.loc[log_level, (component.name, "perturbed_s_coeff")] = (
+            perturbed_s_coeff
+        )
+        results.loc[log_level, (str(component.name), "growth_rate")] = growth
+        results.loc[log_level, (str(component.name), "cue")] = cue
+        results.loc[log_level, (str(component.name), "bge")] = bge
+
+        if run_index % 10 == 0 or run_index == len(log_perturbation_levels):
+            print("X", end="", flush=True)
+
+    print(f" {run_index}/{len(log_perturbation_levels)} done")
 
     # Reset the stoichiometric coefficient to the original value
     model.reactions.get_by_id(BIOMASS_RXN).add_metabolites(
