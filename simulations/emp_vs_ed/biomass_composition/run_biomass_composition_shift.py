@@ -5,7 +5,7 @@ from pathlib import Path
 import cobra
 import numpy as np
 import pandas as pd
-from gem2cue import utils
+from gem_utilities import biomass
 
 FILE_PATH = Path(__file__).resolve().parent
 REPO_ROOT = FILE_PATH.parents[2]
@@ -50,16 +50,24 @@ N_C_BIOMASS = 42.948  # mmol C
 # Use an odd number of levels to include the base value
 log_perturbation_levels = np.linspace(-1, 1, 101)  # ±1 in log10 scale (1/10 to 10x)
 
-# TODO: Unlump the biomass reaction, add that to the model, and remove the old one
-# So that there are no lumped components, like "protein" in the biomass reaction
-
 # Get the biomass components dictionary
 bio_components = model.reactions.get_by_id(BIOMASS_RXN).metabolites
+
+# Unlump the biomass reaction, add that to the model, and remove the old one
+# So that there are no lumped components, like "protein" in the biomass reaction
+unlumped_biomass = biomass.unlump_biomass(bio_components, model)
+
+# Prepare the list of biomass components to process
+components_to_run = [
+    (component, s_coeff)
+    for component, s_coeff in unlumped_biomass.items()
+    if s_coeff < 0 and component.id != ATP_ID
+]
 
 # Create a MultiIndex for the columns
 columns = pd.MultiIndex.from_product(
     [
-        [met.name for met in bio_components],
+        [met.name for (met, coeff) in components_to_run],
         ["perturbed_s_coeff", "growth_rate", "cue", "bge", "ed_flux", "emp_flux"],
     ],
     names=["component", "metric"],
@@ -68,12 +76,6 @@ columns = pd.MultiIndex.from_product(
 # Create an empty DataFrame with MultiIndex columns and the perturbation levels as the index
 results = pd.DataFrame(index=log_perturbation_levels, columns=columns)
 
-# Prepare the list of biomass components to process
-components_to_run = [
-    (component, s_coeff)
-    for component, s_coeff in bio_components.items()
-    if s_coeff < 0 and component.id != ATP_ID
-]
 
 for component_index, (component, s_coeff) in enumerate(components_to_run, start=1):
     print(
@@ -94,6 +96,10 @@ for component_index, (component, s_coeff) in enumerate(components_to_run, start=
         model.reactions.get_by_id(BIOMASS_RXN).add_metabolites(
             {component: perturbed_s_coeff}, combine=False
         )
+
+        # FIXME: Do I need to rebalance the biomass so the weight is still 1?
+        # But then the stoichiometric coefficients will be affected?
+
         # Run pFBA
         sol = cobra.flux_analysis.pfba(model)
         # If the status is infeasible, skip extracting the results
