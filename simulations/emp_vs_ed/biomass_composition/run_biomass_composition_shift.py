@@ -32,10 +32,17 @@ model.medium = media_defs["minimal_glucose"]
 BIOMASS_RXN = "bio1_biomass"
 CO2_EX_RXN = "EX_cpd00011_e0"
 GLC_EX_RXN = "EX_cpd00027_e0"
+# Define a reaction to indicate flux through the ED pathway
+ed_rxn_id = "rxn01477_c0"
+# Define a reaction to indicate flux through the EMP
+emp_rxn_id = "rxn00558_c0"
+# Number of carbon atoms in glucose (to get the uptake in the carbon atom flux)
 GLC_N_C = 6
+# The ATP ID, to skip it in the analysis
 ATP_ID = "cpd00002_c0"
 
 # Define the amount of carbon in biomass
+# FIXME: Can't use the N_C_BIOMASS here, becuase it changes with the biomass composition
 # From scripts/results/iHS4156_biomass_composition_work_table.csv
 N_C_BIOMASS = 42.948  # mmol C
 
@@ -53,7 +60,7 @@ bio_components = model.reactions.get_by_id(BIOMASS_RXN).metabolites
 columns = pd.MultiIndex.from_product(
     [
         [met.name for met in bio_components],
-        ["perturbed_s_coeff", "growth_rate", "cue", "bge"],
+        ["perturbed_s_coeff", "growth_rate", "cue", "bge", "ed_flux", "emp_flux"],
     ],
     names=["component", "metric"],
 )
@@ -100,6 +107,11 @@ for component_index, (component, s_coeff) in enumerate(components_to_run, start=
             growth = sol.fluxes[BIOMASS_RXN]
             # Extract the CO2 release
             co2 = sol.fluxes.get(CO2_EX_RXN, 0.0)
+
+            # Extract the fluxes through the ED and EMP pathways
+            ed_flux = sol.fluxes.get(ed_rxn_id, 0.0)
+            emp_flux = sol.fluxes.get(emp_rxn_id, 0.0)
+
             # Get the uptake flux for the exchange ID
             # Absolute value since uptake is negative
             uptake = abs(sol.fluxes.get(GLC_EX_RXN, 0.0))
@@ -110,6 +122,7 @@ for component_index, (component, s_coeff) in enumerate(components_to_run, start=
             # TODO: Use the helper function
             cue = 1.0 - (co2 / uptake_c)
             # Calculate the BGE (Bacterial Growth Efficiency)
+            # FIXME: Can't use the N_C_BIOMASS here, becuase it changes with the biomass composition
             # TODO: Use the helper function
             bge = (N_C_BIOMASS * growth) / ((N_C_BIOMASS * growth) + co2)
 
@@ -120,6 +133,8 @@ for component_index, (component, s_coeff) in enumerate(components_to_run, start=
         results.loc[log_level, (str(component.name), "growth_rate")] = growth
         results.loc[log_level, (str(component.name), "cue")] = cue
         results.loc[log_level, (str(component.name), "bge")] = bge
+        results.loc[log_level, (str(component.name), "ed_flux")] = ed_flux
+        results.loc[log_level, (str(component.name), "emp_flux")] = emp_flux
 
         if run_index % 10 == 0 or run_index == len(log_perturbation_levels):
             print("X", end="", flush=True)
