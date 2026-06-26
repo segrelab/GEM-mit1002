@@ -56,6 +56,10 @@ bio_components = model.reactions.get_by_id(BIOMASS_RXN).metabolites
 # Unlump the biomass reaction, add that to the model, and remove the old one
 # So that there are no lumped components, like "protein" in the biomass reaction
 unlumped_biomass = biomass.unlump_biomass(bio_components, model)
+# Remove the biomass reaction's old metabolite dictionary
+model.reactions.get_by_id(BIOMASS_RXN).subtract_metabolites(model.reactions.get_by_id(BIOMASS_RXN).metabolites)
+# Use that dictionary to replace the old biomass reaction
+model.reactions.get_by_id(BIOMASS_RXN).add_metabolites(unlumped_biomass, combine=False)
 
 # Prepare the list of biomass components to process
 components_to_run = [
@@ -97,8 +101,20 @@ for component_index, (component, s_coeff) in enumerate(components_to_run, start=
             {component: perturbed_s_coeff}, combine=False
         )
 
-        # FIXME: Do I need to rebalance the biomass so the weight is still 1?
-        # But then the stoichiometric coefficients will be affected?
+        # Rebalance the stoichiometric coefficicents so the weight is still 1
+        # Get the weight with the new coefficient
+        new_weight = biomass.calculate_biomass_weight(
+            model, BIOMASS_RXN, lumped_biomass_components=None
+        )
+        if new_weight != 1.000:
+            biomass_reaction = model.reactions.get_by_id(BIOMASS_RXN)
+            biomass_reaction.add_metabolites(
+                {
+                    met: coef * (1 / new_weight)
+                    for met, coef in biomass_reaction.metabolites.items()
+                },
+                combine=False,
+            )
 
         # Run pFBA
         sol = cobra.flux_analysis.pfba(model)
