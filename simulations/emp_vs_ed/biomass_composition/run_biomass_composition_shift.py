@@ -33,7 +33,7 @@ BIOMASS_RXN = "bio1_biomass"
 CO2_EX_RXN = "EX_cpd00011_e0"
 GLC_EX_RXN = "EX_cpd00027_e0"
 GLC_N_C = 6
-ATP_ID = "cpd0002_c0"
+ATP_ID = "cpd00002_c0"
 
 # Define the amount of carbon in biomass
 # From scripts/results/iHS4156_biomass_composition_work_table.csv
