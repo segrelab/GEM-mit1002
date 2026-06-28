@@ -38,8 +38,6 @@ ed_rxn_id = "rxn01477_c0"
 emp_rxn_id = "rxn00558_c0"
 # Number of carbon atoms in glucose (to get the uptake in the carbon atom flux)
 GLC_N_C = 6
-# The ATP ID, to skip it in the analysis
-ATP_ID = "cpd00002_c0"
 
 # Define the amount of carbon in biomass
 # FIXME: Can't use the N_C_BIOMASS here, becuase it changes with the biomass composition
@@ -50,6 +48,12 @@ N_C_BIOMASS = 42.948  # mmol C
 # Use an odd number of levels to include the base value
 log_perturbation_levels = np.linspace(-1, 1, 101)  # ±1 in log10 scale (1/10 to 10x)
 
+# Define metabolites to skip from the biomass composition
+components_to_skip = [
+    "cpd00001_c0",  # H2O
+    "cpd00002_c0",  # ATP
+]
+
 # Get the biomass components dictionary
 bio_components = model.reactions.get_by_id(BIOMASS_RXN).metabolites
 
@@ -57,7 +61,9 @@ bio_components = model.reactions.get_by_id(BIOMASS_RXN).metabolites
 # So that there are no lumped components, like "protein" in the biomass reaction
 unlumped_biomass = biomass.unlump_biomass(bio_components, model)
 # Remove the biomass reaction's old metabolite dictionary
-model.reactions.get_by_id(BIOMASS_RXN).subtract_metabolites(model.reactions.get_by_id(BIOMASS_RXN).metabolites)
+model.reactions.get_by_id(BIOMASS_RXN).subtract_metabolites(
+    model.reactions.get_by_id(BIOMASS_RXN).metabolites
+)
 # Use that dictionary to replace the old biomass reaction
 model.reactions.get_by_id(BIOMASS_RXN).add_metabolites(unlumped_biomass, combine=False)
 
@@ -65,7 +71,7 @@ model.reactions.get_by_id(BIOMASS_RXN).add_metabolites(unlumped_biomass, combine
 components_to_run = [
     (component, s_coeff)
     for component, s_coeff in unlumped_biomass.items()
-    if s_coeff < 0 and component.id != ATP_ID
+    if s_coeff < 0 and component.id not in components_to_skip
 ]
 
 # Create a MultiIndex for the columns
@@ -104,7 +110,10 @@ for component_index, (component, s_coeff) in enumerate(components_to_run, start=
         # Rebalance the stoichiometric coefficicents so the weight is still 1
         # Get the weight with the new coefficient
         new_weight = biomass.calculate_biomass_weight(
-            model, BIOMASS_RXN, lumped_biomass_components=None
+            model,
+            BIOMASS_RXN,
+            mets_to_ignore=["cpd11416_c0"],
+            lumped_biomass_components=None,
         )
         if new_weight != 1.000:
             biomass_reaction = model.reactions.get_by_id(BIOMASS_RXN)
