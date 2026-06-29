@@ -12,7 +12,7 @@ OUT_PATH.mkdir(exist_ok=True)
 
 # Import plot_styles.py from the root of the repo
 sys.path.append(str(REPO_ROOT))
-from plot_styles import summer_colors
+from plot_styles import set_plot_style, summer_colors
 
 # Set some parameters for the plot
 width = 0.35
@@ -31,11 +31,12 @@ ed_vals = results_df["ed"].tolist()
 x = np.arange(len(substrates))
 
 # Plot the data
-fig, ax = plt.subplots(figsize=(10, 6))
+fig, ax = plt.subplots(figsize=(9, 6))
 bars_emp = ax.bar(x - width / 2, emp_vals, width, label="EMP", color=emp_colors)
 bars_ed = ax.bar(x + width / 2, ed_vals, width, label="ED", color=ed_colors)
 
 # Plot style
+set_plot_style(ax)
 ax.set_xlabel("Substrate")
 ax.set_ylabel("Growth rate (h$^{-1}$)")
 ax.set_title("Growth rate under forced pathway routing")
