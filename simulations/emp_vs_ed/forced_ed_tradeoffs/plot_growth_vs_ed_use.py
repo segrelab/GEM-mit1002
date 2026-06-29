@@ -21,7 +21,7 @@ sys.path.append(str(REPO_ROOT))
 from plot_styles import set_plot_style, summer_colors  # noqa: E402
 
 # Color each O2 level with a summer-palette color
-O2_COLORS = {20: summer_colors["teal"], 1000: summer_colors["pink"]}
+O2_COLORS = {20: summer_colors["teal"], 1000: summer_colors["yellow"]}
 
 
 def plot_metric(df, metric, ylabel, title, filename, ylim=None):
@@ -52,24 +52,42 @@ def main():
 
     # Growth rate (the headline tradeoff): default autoscaled + a 0-anchored view
     plot_metric(
-        df, "growth_rate", "Growth Rate (h$^{-1}$)", "Growth Rate vs ED Use",
+        df,
+        "growth_rate",
+        "Growth Rate (h$^{-1}$)",
+        "Growth Rate vs ED Use",
         "growth_rate_vs_ed_use.png",
     )
     plot_metric(
-        df, "growth_rate", "Growth Rate (h$^{-1}$)", "Growth Rate vs ED Use",
-        "growth_rate_vs_ed_use_full_range.png", ylim=(0, 0.85),
+        df,
+        "growth_rate",
+        "Growth Rate (h$^{-1}$)",
+        "Growth Rate vs ED Use",
+        "growth_rate_vs_ed_use_full_range.png",
+        ylim=(0, 0.85),
     )
     plot_metric(
-        df, "cue", "Carbon Use Efficiency", "CUE vs ED Use",
-        "cue_vs_ed_use.png", ylim=(0, 1),
+        df,
+        "cue",
+        "Carbon Use Efficiency",
+        "CUE vs ED Use",
+        "cue_vs_ed_use.png",
+        ylim=(0, 1),
     )
     plot_metric(
-        df, "bge", "Bacterial Growth Efficiency (G / G+R)", "BGE vs ED Use",
-        "bge_vs_ed_use.png", ylim=(0, 1),
+        df,
+        "bge",
+        "Bacterial Growth Efficiency (G / G+R)",
+        "BGE vs ED Use",
+        "bge_vs_ed_use.png",
+        ylim=(0, 1),
     )
     plot_metric(
-        df, "acetate_secretion", "Acetate Secretion (mmol/gDW/hr)",
-        "Acetate Secretion vs ED Use", "acetate_secretion_vs_ed_use.png",
+        df,
+        "acetate_secretion",
+        "Acetate Secretion (mmol/gDW/hr)",
+        "Acetate Secretion vs ED Use",
+        "acetate_secretion_vs_ed_use.png",
     )
     print("Saved figures to", OUT_PATH)
 
