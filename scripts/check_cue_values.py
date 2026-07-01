@@ -176,3 +176,14 @@ g_clean.set_xticklabels(
 )
 plt.tight_layout()
 plt.savefig(os.path.join(OUT_DIR, "glc_ace_mixes_carbon_fates_norm_real_o2_only.png"))
+
+# Subset the results to only include the pFBA on infinite O2
+clean_data = data_norm[data_norm.index.str.contains("inf_o2_pfba")]
+g_clean = carbon_fates_bar(clean_data)
+# Relabel the x tick labels
+g_clean.set_xticklabels(
+    ["Glucose", "Acetate", "Heavy Glucose Mix", "Heavy Acetate Mix"]
+)
+plt.tight_layout()
+plt.savefig(os.path.join(OUT_DIR, "glc_ace_mixes_carbon_fates_norm_inf_o2_only.png"))
+
