@@ -122,7 +122,7 @@ for key, fba_result in cobra_results.items():
     gge = 1 - (co2 + organic_c) / uptake
 
     # Calculat BGE from the c fates (not using my function)
-    bge = biomass + (biomass + co2)
+    bge = biomass / (biomass + co2)
 
     results_list.append(
         {
