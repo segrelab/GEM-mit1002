@@ -26,10 +26,12 @@ REPO_ROOT = FILE_PATH.parents[1]
 IN_PATH = FILE_PATH / "results"
 OUT_PATH = FILE_PATH / "figures"
 OUT_PATH.mkdir(exist_ok=True)
+FATES_OUT_PATH = OUT_PATH / "carbon_fates"
+FATES_OUT_PATH.mkdir(exist_ok=True)
 
 # Import plot_styles.py from the root of the repo
 sys.path.append(str(REPO_ROOT))
-from plot_styles import summer_colors
+from plot_styles import carbon_fates_bar, summer_colors
 
 # Anchor colours drawn from the "Summer I Turned Pretty" palette (plus a muted
 # mauve), ordered to flow as a gradient. build_palette() uses these directly
@@ -110,6 +112,73 @@ def main():
     # Plot the bar charts of growth rate and CUE, coloured by entry point into central metabolism
     # Only for the "anchor level" (unlimited O2)
     plot_growth_cue(anchor_df, OUT_PATH, "growth_and_cue")
+
+    # Make carbon fate plots for each substrate
+    for met in pre_set_df["substrate"].unique():
+        # Subset the data for the current substrate
+        met_df = pre_set_df[pre_set_df["substrate"] == met]
+        # Set the index to be the o2_bound column
+        met_df = met_df.set_index("o2_bound")
+        # Rename the carbon fates columns to be what the plotting function expects
+        met_df.rename(
+            columns={
+                "biomass_c": "biomass",
+                "co2_flux": "co2",
+                "organic_c_flux": "organic_c",
+            },
+            inplace=True,
+        )
+        # Subset the columns needed for the plot
+        met_df = met_df[["biomass", "co2", "organic_c"]]
+        # Make the plot
+        g = carbon_fates_bar(met_df)
+        # Set the title to be something specific to the metabolite
+        g.set_title(f"Carbon Fates for {met}")
+        # Set the x axis label to be more descriptive
+        g.set_xlabel("Oxygen Uptake Bound")
+        # Set the y axis label
+        g.set_ylabel("Carbon Flux (mmol C/gDW/h)")
+        # Save the plot
+        plt.tight_layout()
+        plt.savefig(
+            FATES_OUT_PATH / f"carbon_fates_{met}_set_o2_bounds.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
+    # Do the same for the percentile O2 data
+    for met in percentile_df["substrate"].unique():
+        # Subset the data for the current substrate
+        met_df = percentile_df[percentile_df["substrate"] == met]
+        # Set the index to be the o2_percent column
+        met_df = met_df.set_index("o2_percent")
+        # Order to be in descenting o2_percent
+        met_df = met_df.sort_index(ascending=False)
+        # Rename the carbon fates columns to be what the plotting function expects
+        met_df.rename(
+            columns={
+                "biomass_c": "biomass",
+                "co2_flux": "co2",
+                "organic_c_flux": "organic_c",
+            },
+            inplace=True,
+        )
+        # Subset the columns needed for the plot
+        met_df = met_df[["biomass", "co2", "organic_c"]]
+        # Make the plot
+        g = carbon_fates_bar(met_df)
+        # Set the title to be something specific to the metabolite
+        g.set_title(f"Carbon Fates for {met}")
+        # Set the x axis label to be more descriptive
+        g.set_xlabel("Percent Oxygen Saturation")
+        # Set the y axis label
+        g.set_ylabel("Carbon Flux (mmol C/gDW/h)")
+        # Save the plot
+        plt.tight_layout()
+        plt.savefig(
+            FATES_OUT_PATH / f"carbon_fates_{met}_o2_percentiles.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
 
     # Plot the correlation between growth rate and CUE for the anchor level
     plot_growth_cue_correlation(

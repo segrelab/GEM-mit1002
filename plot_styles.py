@@ -42,6 +42,8 @@ def set_plot_style(g):
 
 
 def carbon_fates_bar(data):
+    # TODO: Make the colors setable as an argument
+    # TODO: Make the column names setable as an argumet
     # Check that the column names are correct
     assert set(data.columns) == set(["co2", "organic_c", "biomass"])
     # Set the column order
@@ -51,9 +53,9 @@ def carbon_fates_bar(data):
         kind="bar",
         stacked=True,
         color=[
-            ccomp_colors["dark_blue"],
-            ccomp_colors["light_blue"],
-            ccomp_colors["light_orange"],
+            summer_colors["teal"],
+            summer_colors["light_blue"],
+            summer_colors["yellow"],
         ],
     )
     # Move the legend outside of the plot

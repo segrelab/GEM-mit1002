@@ -83,7 +83,13 @@ def run_pfba(
     Returns (summary_df, ex_records) where summary_df holds growth + CUE and
     ex_records maps {substrate: {exchange_rxn_id: flux}} (non-zero fluxes only).
     """
-    ex_rxn_ids = [r.id for r in model.reactions if r.id.startswith("EX_")]
+    # Make a dciontary of all the exchange reactions in the model and the
+    # number of carbon atoms they exchange
+    ex_rxn_ids = {
+        r.id: next(iter(r.metabolites)).elements.get("C", 0)
+        for r in model.reactions
+        if r.id.startswith("EX_")
+    }
     rows = []
     ex_records = {}
     for _, row in substrate_df.iterrows():
@@ -127,6 +133,10 @@ def run_pfba(
                             f"  WARN (near-zero growth)  : {name} (O2 = {o2_level}) mu={growth:.5f}"
                         )
                         continue
+                    # Convert the growth rate to mmol C / gDW / h
+                    biomass_c = growth * N_C_BIOMASS
+                    # Extract the CO2 release rate
+                    # Don't need to convert it since there is only 1 C in CO2
                     co2 = sol.fluxes.get(CO2_EX_RXN, 0.0)
                     # Get the uptake flux for the exchange ID
                     # Absolute value since uptake is negative
@@ -134,22 +144,36 @@ def run_pfba(
                     # Convert the uptake to mmol C / gDW / h
                     uptake_c = uptake * row["n_c"]
 
-                    # Calculate the CUE/BGE
-                    # TODO: Use the helper function
-                    cue = 1.0 - (co2 / uptake_c)
-                    # Calculate the BGE (Bacterial Growth Efficiency)
-                    # TODO: Use the helper function
-                    bge = (N_C_BIOMASS * growth) / ((N_C_BIOMASS * growth) + co2)
-                    # Calculate the GGE
-                    # TODO: Use the helper function
-                    gge = (N_C_BIOMASS * growth) / uptake_c
-
                     # Extract the exchange fluxes
                     ex_records[name] = {
                         rid: sol.fluxes[rid]
                         for rid in ex_rxn_ids
                         if abs(sol.fluxes[rid]) > 1e-9
                     }
+
+                    # Calculate the exudation C flux
+                    exudation_c = 0
+                    for key, value in ex_records[name].items():
+                        if value > 0:
+                            if key == CO2_EX_RXN:
+                                continue
+                            exudation_c += value * ex_rxn_ids[key]
+                    # Check that all of the carbon fates add up to the uptake
+                    # With a little bit of wiggle room on the uptake for rounding errors
+                    if (biomass_c + exudation_c + co2) > (uptake_c + 0.5):
+                        print(
+                            f"  WARN (carbon imbalance)  : {name} (O2 = {o2_level})  uptake={uptake_c:.4f}  carbon_fates={biomass_c + exudation_c + co2:.4f}"
+                        )
+
+                    # Calculate the CUE
+                    # TODO: Use the helper function
+                    cue = 1.0 - (co2 / uptake_c)
+                    # Calculate the BGE
+                    # TODO: Use the helper function
+                    bge = biomass_c / (biomass_c + co2)
+                    # Calculate the GGE
+                    # TODO: Use the helper function
+                    gge = biomass_c / uptake_c
 
                     # Add the substrate results to the full results
                     rows.append(
@@ -160,7 +184,9 @@ def run_pfba(
                             "o2_percent": o2_percent,
                             "o2_flux": sol.fluxes["EX_cpd00007_e0"],
                             "growth_rate": growth,
+                            "biomass_c": biomass_c,
                             "co2_flux": co2,
+                            "organic_c_flux": exudation_c,
                             "cue": cue,
                             "bge": bge,
                             "gge": gge,
