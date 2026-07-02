@@ -140,6 +140,9 @@ def run_pfba(
                     # Calculate the BGE (Bacterial Growth Efficiency)
                     # TODO: Use the helper function
                     bge = (N_C_BIOMASS * growth) / ((N_C_BIOMASS * growth) + co2)
+                    # Calculate the GGE
+                    # TODO: Use the helper function
+                    gge = (N_C_BIOMASS * growth) / uptake_c
 
                     # Extract the exchange fluxes
                     ex_records[name] = {
@@ -160,6 +163,7 @@ def run_pfba(
                             "co2_flux": co2,
                             "cue": cue,
                             "bge": bge,
+                            "gge": gge,
                         }
                     )
                     # Print a status message

@@ -119,6 +119,10 @@ def main():
     plot_growth_cue_correlation(
         anchor_df, OUT_PATH, "growth_vs_bge_scatter_anchor", metric="bge"
     )
+    # Plot the correlation between growth rate and GGE for the anchor level
+    plot_growth_cue_correlation(
+        anchor_df, OUT_PATH, "growth_vs_gge_scatter_anchor", metric="gge"
+    )
 
     # Plot the correlations across all pre-set oxygen levels
     # CUE, colored by entry point
@@ -145,6 +149,18 @@ def main():
         metric="bge",
         color_by="substrate",
     )
+    # GGE, colored by entry point
+    plot_growth_cue_correlation(
+        pre_set_df, OUT_PATH, "growth_vs_gge_scatter", metric="gge"
+    )
+    # GGE, coloured by substrate instead of entry point
+    plot_growth_cue_correlation(
+        pre_set_df,
+        OUT_PATH,
+        "growth_vs_gge_scatter_by_substrate",
+        metric="gge",
+        color_by="substrate",
+    )
 
     # Plot the correlations across all percentile oxygen levels
     # CUE, coloured by substrate
@@ -162,6 +178,15 @@ def main():
         OUT_PATH,
         "growth_vs_bge_scatter_by_substrate_percentiles",
         metric="bge",
+        o2_level_col="o2_percent",
+        color_by="substrate",
+    )
+    # GGE, coloured by substrate
+    plot_growth_cue_correlation(
+        percentile_df,
+        OUT_PATH,
+        "growth_vs_gge_scatter_by_substrate_percentiles",
+        metric="gge",
         o2_level_col="o2_percent",
         color_by="substrate",
     )
@@ -233,6 +258,8 @@ def plot_growth_cue_correlation(
         y_label = "Carbon Use Efficiency"
     elif metric == "bge":
         y_label = "Bacterial Growth Efficiency"
+    elif metric == "gge":
+        y_label = "Gross Growth Efficiency"
     else:
         y_label = metric
 
