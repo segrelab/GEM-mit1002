@@ -41,25 +41,56 @@ def set_plot_style(g):
             text.set_color("gray")
 
 
-def carbon_fates_bar(data):
-    # TODO: Make the colors setable as an argument
-    # TODO: Make the column names setable as an argumet
-    # Check that the column names are correct
-    assert set(data.columns) == set(["co2", "organic_c", "biomass"])
-    # Set the column order
-    data = data[["biomass", "organic_c", "co2"]]
+def carbon_fates_bar(data, byproduct_colors=None):
+    """Stacked bar plot of the fate of carbon: biomass, organic byproducts, CO2.
+
+    By default `data` must have exactly the columns "biomass", "organic_c",
+    and "co2", and the organic byproducts are shown as a single lumped bar.
+
+    Pass `byproduct_colors` (an ordered {column_name: color} dict, e.g. from
+    `build_byproduct_palette`) to instead split that bar into one segment per
+    organic byproduct. `data` must then have a "biomass" and "co2" column
+    plus one column per byproduct named in `byproduct_colors` (any columns
+    named in `byproduct_colors` but absent from `data` are simply skipped, so
+    the same palette can be reused across substrates that release different
+    byproducts). Passing the same `byproduct_colors` dict across multiple
+    calls keeps a given byproduct's color consistent across figures.
+    """
+    if byproduct_colors is not None:
+        # Check that the required columns are present
+        assert "biomass" in data.columns and "co2" in data.columns
+        byproduct_cols = [c for c in byproduct_colors if c in data.columns]
+        # Check that there aren't any unexpected byproduct columns
+        extra_cols = set(data.columns) - set(byproduct_cols) - {"biomass", "co2"}
+        assert not extra_cols, (
+            f"Columns not found in byproduct_colors palette: {extra_cols}"
+        )
+        # Set the column order
+        data = data[["biomass"] + byproduct_cols + ["co2"]]
+        colors = (
+            [summer_colors["teal"]]
+            + [byproduct_colors[c] for c in byproduct_cols]
+            + [summer_colors["yellow"]]
+        )
+        custom_labels = ["Biomass"] + byproduct_cols + ["CO2"]
+    else:
+        # Check that the column names are correct
+        assert set(data.columns) == set(["co2", "organic_c", "biomass"])
+        # Set the column order
+        data = data[["biomass", "organic_c", "co2"]]
+        colors = [
+            summer_colors["teal"],
+            summer_colors["light_blue"],
+            summer_colors["yellow"],
+        ]
+        custom_labels = ["Biomass", "Organic C", "CO2"]
     # Plot the stacked bar plot
     g = data.plot(
         kind="bar",
         stacked=True,
-        color=[
-            summer_colors["teal"],
-            summer_colors["light_blue"],
-            summer_colors["yellow"],
-        ],
+        color=colors,
     )
     # Move the legend outside of the plot
-    custom_labels = ["Biomass", "Organic C", "CO2"]
     lgd = plt.legend(
         bbox_to_anchor=(1.25, 0.5),
         loc="center right",

@@ -1,6 +1,9 @@
+import ast
+import re
 import sys
 from pathlib import Path
 
+import cobra
 import matplotlib
 
 matplotlib.use("Agg")
@@ -28,10 +31,16 @@ OUT_PATH = FILE_PATH / "figures"
 OUT_PATH.mkdir(exist_ok=True)
 FATES_OUT_PATH = OUT_PATH / "carbon_fates"
 FATES_OUT_PATH.mkdir(exist_ok=True)
+MODEL_PATH = REPO_ROOT / "model.xml"
+
+# Organic byproducts whose max carbon flux (mmol C/gDW/h) across the *whole*
+# dataset is below this are lumped into a single grey "Other" segment in the
+# carbon fates bars, keeping trace byproducts out of the legend/palette.
+BYPRODUCT_FLUX_THRESHOLD = 1.0
 
 # Import plot_styles.py from the root of the repo
 sys.path.append(str(REPO_ROOT))
-from plot_styles import carbon_fates_bar, summer_colors
+from plot_styles import carbon_fates_bar, ccomp_colors, summer_colors
 
 # Anchor colours drawn from the "Summer I Turned Pretty" palette (plus a muted
 # mauve), ordered to flow as a gradient. build_palette() uses these directly
@@ -49,8 +58,8 @@ PALETTE_ANCHORS = [
 ]
 
 
-def build_palette(categories) -> dict:
-    """Map an ordered list of categories to colours from the summer palette.
+def build_palette(categories, anchors=PALETTE_ANCHORS) -> dict:
+    """Map an ordered list of categories to colours from a palette.
 
     With no more categories than anchor colours, the anchors are used directly;
     with more, colours are interpolated along the palette so every category
@@ -59,10 +68,10 @@ def build_palette(categories) -> dict:
     n = len(cats)
     if n == 0:
         return {}
-    if n <= len(PALETTE_ANCHORS):
-        cols = PALETTE_ANCHORS[:n]
+    if n <= len(anchors):
+        cols = anchors[:n]
     else:
-        cmap = LinearSegmentedColormap.from_list("summer", PALETTE_ANCHORS)
+        cmap = LinearSegmentedColormap.from_list("palette", anchors)
         cols = [cmap(i / (n - 1)) for i in range(n)]
     return dict(zip(cats, cols))
 
@@ -79,6 +88,102 @@ ENTRY_POINT_ORDER = [
 ]
 ENTRY_POINT_COLORS = build_palette(ENTRY_POINT_ORDER)
 
+# Anchors for the organic-byproduct palette, deliberately excluding
+# summer_colors["teal"] and summer_colors["yellow"] since carbon_fates_bar
+# hard-codes those for the "Biomass" and "CO2" segments.
+BYPRODUCT_PALETTE_ANCHORS = [
+    summer_colors["light_blue"],
+    summer_colors["green"],
+    summer_colors["pink"],
+    summer_colors["dark_pink"],
+    "#9B6A9E",  # muted mauve
+    summer_colors["dark_tan"],
+    ccomp_colors["orange"],
+    ccomp_colors["dark_blue"],
+]
+OTHER_BYPRODUCT_COLOR = "#B0B0B0"
+
+
+def build_ex_name_map(model) -> dict:
+    """Map exchange reaction id -> readable metabolite name.
+
+    Mirrors the renaming done in run_growth_cue.build_exchange_df, so
+    byproducts are labelled the same way here as in exchange_fluxes.csv."""
+    names = {}
+    for r in model.reactions:
+        if not r.id.startswith("EX_"):
+            continue
+        met_name = next(iter(r.metabolites)).name
+        suffix = " [e0]"
+        if met_name.endswith(suffix):
+            met_name = met_name[: -len(suffix)]
+        names[r.id] = met_name
+    return names
+
+
+def parse_c_ex_fluxes(raw) -> dict:
+    """Parse the "c_ex_fluxes" column back into a {rxn_id: flux} dict.
+
+    It's written by run_growth_cue.py as the repr() of a dict whose values
+    are np.float64(...), which isn't valid for ast.literal_eval on its own,
+    so strip the np.float64(...) wrapper first."""
+    if pd.isna(raw):
+        return {}
+    cleaned = re.sub(r"np\.float64\(([^)]+)\)", r"\1", raw)
+    return ast.literal_eval(cleaned)
+
+
+def byproduct_flux_df(df: pd.DataFrame, ex_name_map: dict) -> pd.DataFrame:
+    """Expand the "c_ex_fluxes" column into one column per byproduct name.
+
+    Values are carbon flux (mmol C/gDW/h); rows/index match `df`."""
+    rows = []
+    for raw in df["c_ex_fluxes"]:
+        named = {}
+        for rxn_id, flux in parse_c_ex_fluxes(raw).items():
+            name = ex_name_map.get(rxn_id, rxn_id)
+            named[name] = named.get(name, 0.0) + flux
+        rows.append(named)
+    return pd.DataFrame(rows, index=df.index).fillna(0.0)
+
+
+def build_byproduct_palette(
+    summary_df: pd.DataFrame, ex_name_map: dict, threshold=BYPRODUCT_FLUX_THRESHOLD
+) -> dict:
+    """Build a {byproduct_name: color} palette covering the whole dataset.
+
+    Byproducts are ranked by their max carbon flux across every substrate and
+    O2 level so the most prominent ones get distinct colors; used everywhere
+    a carbon fates plot is made so a given byproduct (e.g. Acetate) always
+    gets the same color, no matter which substrate's plot it appears in.
+    Byproducts that never exceed `threshold` share a single grey "Other"
+    color instead of eating into the distinct-color budget."""
+    all_byproducts = byproduct_flux_df(summary_df, ex_name_map)
+    max_flux = all_byproducts.abs().max().sort_values(ascending=False)
+    major = max_flux[max_flux >= threshold].index.tolist()
+    palette = build_palette(major, anchors=BYPRODUCT_PALETTE_ANCHORS)
+    palette["Other"] = OTHER_BYPRODUCT_COLOR
+    return palette
+
+
+def carbon_fates_byproduct_columns(
+    sub_df: pd.DataFrame, ex_name_map: dict, palette: dict
+) -> pd.DataFrame:
+    """Per-byproduct carbon flux columns for one substrate's carbon fates bar.
+
+    Byproducts with their own entry in `palette` keep their own column;
+    anything else is lumped into "Other". All-zero columns are dropped so
+    the legend only lists byproducts this substrate actually releases."""
+    byp_df = byproduct_flux_df(sub_df, ex_name_map)
+    # Order by rank in the (already flux-ranked) palette, not by first-seen
+    # order in the data, so segment order matches across every substrate
+    named_cols = [c for c in palette if c != "Other" and c in byp_df.columns]
+    other_cols = [c for c in byp_df.columns if c not in palette]
+    out = byp_df[named_cols].copy()
+    if other_cols:
+        out["Other"] = byp_df[other_cols].sum(axis=1)
+    return out.loc[:, out.abs().sum(axis=0) > 1e-9]
+
 
 def main():
     # Load the substrate panel
@@ -91,6 +196,15 @@ def main():
     merged_df = pd.merge(summary_df, substrate_df, on="met_id")
     # Round the O2 percent values to 2 decimal places
     merged_df["o2_percent"] = merged_df["o2_percent"].round(2)
+
+    # Load the model (needed to turn exchange reaction ids in "c_ex_fluxes"
+    # into readable metabolite names) and build a palette for the organic
+    # byproducts, shared across every carbon fates plot so a given byproduct
+    # (e.g. Acetate) is always the same color
+    print("Loading model for byproduct names...")
+    model = cobra.io.read_sbml_model(str(MODEL_PATH))
+    ex_name_map = build_ex_name_map(model)
+    byproduct_palette = build_byproduct_palette(merged_df, ex_name_map)
 
     # Extract only the data for the anchor level
     anchor_level = sorted(merged_df["o2_bound"].unique(), reverse=True)[0]
@@ -119,19 +233,20 @@ def main():
         met_df = pre_set_df[pre_set_df["substrate"] == met]
         # Set the index to be the o2_bound column
         met_df = met_df.set_index("o2_bound")
+        # Expand the organic byproducts into one column per compound
+        byp_df = carbon_fates_byproduct_columns(met_df, ex_name_map, byproduct_palette)
         # Rename the carbon fates columns to be what the plotting function expects
         met_df.rename(
             columns={
                 "biomass_c": "biomass",
                 "co2_flux": "co2",
-                "organic_c_flux": "organic_c",
             },
             inplace=True,
         )
         # Subset the columns needed for the plot
-        met_df = met_df[["biomass", "co2", "organic_c"]]
+        met_df = pd.concat([met_df[["biomass"]], byp_df, met_df[["co2"]]], axis=1)
         # Make the plot
-        g = carbon_fates_bar(met_df)
+        g = carbon_fates_bar(met_df, byproduct_colors=byproduct_palette)
         # Set the title to be something specific to the metabolite
         g.set_title(f"Carbon Fates for {met}")
         # Set the x axis label to be more descriptive
@@ -153,19 +268,20 @@ def main():
         met_df = met_df.set_index("o2_percent")
         # Order to be in descenting o2_percent
         met_df = met_df.sort_index(ascending=False)
+        # Expand the organic byproducts into one column per compound
+        byp_df = carbon_fates_byproduct_columns(met_df, ex_name_map, byproduct_palette)
         # Rename the carbon fates columns to be what the plotting function expects
         met_df.rename(
             columns={
                 "biomass_c": "biomass",
                 "co2_flux": "co2",
-                "organic_c_flux": "organic_c",
             },
             inplace=True,
         )
         # Subset the columns needed for the plot
-        met_df = met_df[["biomass", "co2", "organic_c"]]
+        met_df = pd.concat([met_df[["biomass"]], byp_df, met_df[["co2"]]], axis=1)
         # Make the plot
-        g = carbon_fates_bar(met_df)
+        g = carbon_fates_bar(met_df, byproduct_colors=byproduct_palette)
         # Set the title to be something specific to the metabolite
         g.set_title(f"Carbon Fates for {met}")
         # Set the x axis label to be more descriptive

@@ -153,11 +153,22 @@ def run_pfba(
 
                     # Calculate the exudation C flux
                     exudation_c = 0
-                    for key, value in ex_records[name].items():
-                        if value > 0:
-                            if key == CO2_EX_RXN:
+                    # Make a dictionary to hold the indivdiual metabolite carbon fluxes
+                    c_ex_fluxes = {}
+                    for rxn_id, rxn_flux in ex_records[name].items():
+                        if rxn_flux > 0:
+                            # Do not count CO2
+                            if rxn_id == CO2_EX_RXN:
                                 continue
-                            exudation_c += value * ex_rxn_ids[key]
+                            # Check if there is carbon in molecule
+                            if ex_rxn_ids[rxn_id] > 0:
+                                # Calculate the flux in carbon atoms
+                                c_rxn_flux = rxn_flux * ex_rxn_ids[rxn_id]
+                                # Add it to the total exudation flux
+                                exudation_c += c_rxn_flux
+                                # Add the carbon flux to the dictionary
+                                c_ex_fluxes[rxn_id] = c_rxn_flux
+
                     # Check that all of the carbon fates add up to the uptake
                     # With a little bit of wiggle room on the uptake for rounding errors
                     if (biomass_c + exudation_c + co2) > (uptake_c + 0.5):
@@ -187,6 +198,7 @@ def run_pfba(
                             "biomass_c": biomass_c,
                             "co2_flux": co2,
                             "organic_c_flux": exudation_c,
+                            "c_ex_fluxes": c_ex_fluxes,
                             "cue": cue,
                             "bge": bge,
                             "gge": gge,
