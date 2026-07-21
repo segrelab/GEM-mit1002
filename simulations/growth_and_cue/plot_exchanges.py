@@ -1,14 +1,14 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from matplotlib.lines import Line2D
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.lines import Line2D
 
 matplotlib.rcParams.update(
     {
@@ -69,6 +69,31 @@ def main():
 
     # Plot
     plot_exchange_stacks(ex_df, carbon_source_names, OUT_PATH)
+
+    # Separate out uptake from the exchange df
+    # This is a duplicate of what is done in `plot_exchange_stacks`
+    # TODO: Either move this into `plot_exchange_stacks` or move everything to main?
+    uptake = -ex_df.clip(upper=0)  # negative fluxes -> positive uptake
+    # Make a bar chart of the carbon uptake for each substrate in mmol C / gDW / hr
+    # For each column convert the flux to mmol C / gDW / hr
+    # Multiple the value by the number of carbon atoms in the substrate
+    uptake_c = uptake.copy()
+    for col in uptake_c.columns:
+        if col in carbon_source_names:
+            uptake_c[col] *= substrate_df[substrate_df["name_in_model"] == col][
+                "n_c"
+            ].iloc[0]
+    # Keep only the carbon_source_names
+    uptake_c = uptake_c[carbon_source_names]
+    # Check that each row only has one non-zero value (i.e. only one carbon source is being used)
+    assert (
+        (uptake_c != 0).sum(axis=1).eq(1).all()
+    ), "Each row must have exactly one non-zero value"
+    # Merge all substrate carbon sources into one column in the uptake chart
+    # So they don't have unique colours and the chart is less busy
+    uptake_c = _merge_carbon_sources(uptake_c, carbon_source_names)
+    # Print the merged uptake chart
+    print(uptake_c.to_markdown())
 
 
 def plot_exchange_stacks(ex_df, carbon_source_names, out_dir):

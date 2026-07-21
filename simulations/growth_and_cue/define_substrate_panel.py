@@ -1,11 +1,11 @@
 import json
+import pickle as pkl
 from pathlib import Path
 from typing import Optional
-import pickle as pkl
 
 import cobra
-from gem_utilities import media as media_utils
 import pandas as pd
+from gem_utilities import media as media_utils
 
 FILE_PATH = Path(__file__).resolve().parent
 REPO_ROOT = FILE_PATH.parents[1]
@@ -35,6 +35,8 @@ ENTRY_POINT = {
     "cpd00123": "TCA — Succinyl-CoA",  # KIC          → succinyl-CoA
     "cpd00069": "Aromatic catabolism",  # Tyrosine     → fumarate + AcAcCoA
     "cpd00127": "Aromatic catabolism",  # Phenol       → succinyl-CoA + AcCoA
+    "cpd01384": "ED - KDPG",  # D-Mannuronate → KDPG
+    "cpd00280": "ED - KDPG",  # D-Galacturonate → KDPG
 }
 
 # Define the biomass precurosors and their weights in the pool reaction
@@ -74,62 +76,36 @@ def main():
     # Load the model
     model = cobra.io.read_sbml_model(REPO_ROOT / "model.xml")
 
-    # Edit the model
-    # Block the biomass reaction
-    model.reactions.get_by_id(BIOMASS_RXN).bounds = (0, 0)
-    # Turn off the ATP maintenance reaction
-    model.reactions.get_by_id(ATPM).bounds = (0, 0)
-    # Add a reaction to drain the biomass precursors at a constant rate
-    # Forces the model to produce them
-    pool = cobra.Reaction("DM_pool")
-    # Add all the precurors as substrates to the pool reaction
-    # Their stoichiometric coefficients are the negative of their weights in the pool
-    pool_mets = {model.metabolites.get_by_id(m): -w for m, w in PRECURSORS.items()}
-    # Add CoA as a product of the pool reaction since it is recycled from acetyl-CoA and succinyl-CoA
-    # Its stoichiometric coefficient equal to the sum of the weights of the thioester precursors
-    pool_mets[model.metabolites.get_by_id(COA)] = sum(
-        w for m, w in PRECURSORS.items() if m in THIOESTERS
-    )
-    pool.add_metabolites(pool_mets)
-    pool.bounds = (POOL_RATE, POOL_RATE)  # force the conversion
-    model.add_reactions([pool])
-
     # Load the media definitions
     with open(TEST_FILE_DIR / "media" / "media_definitions.pkl", "rb") as f:
         media_defs = pkl.load(f)
 
-    # Load the known growth phenotypes table
+    # Load the known growth phenotypes table with predicted results
     df = pd.read_csv(TEST_FILE_DIR / "known_growth_phenotypes.tsv", sep="\t")
 
-    # Fill in the Prochlorococcus exometabolite column
-    if "pro_exomet" in df.columns:
-        df["pro_exomet"] = df["pro_exomet"].fillna("No")
-    else:
-        df["pro_exomet"] = "No"
-
     # Filter the growth phenotypes to keep:
-    # substrates that support growth
+    # substrates where growth is observed
+    df = df[df["growth"] == "Yes"]
     # substrates that don't have a comma in the met_id (those are cases where multiple substrates were added together)
-    df = df[df["growth"] == "Yes"].copy()
     df = df[~df["met_id"].astype(str).str.contains(",", na=True)].copy()
 
-    # Keep the Prochlorococcus exometabolite-annotated row when a substrate appears in
-    # multiple media contexts (stable sort puts "Yes" first, then dedup).
-    df = (
-        df.sort_values(
-            "pro_exomet",
-            key=lambda s: s.map({"Yes": 0}).fillna(1),
-            ascending=True,
-            kind="stable",
-        )
-        .drop_duplicates(subset="met_id", keep="first")
-        .copy()
-    )
+    # Drop rows with duplicate met_id values
+    df = df.drop_duplicates(subset=["met_id"], keep="first")
 
+    # Drop the unnecessary columns
+    # Keep only "c_source" and "met_id"
+    df = df.drop(df.columns.difference(["c_source", "met_id"]), axis=1)
+
+    # Add pyruvate to the substrate panel
+    # Franzi tested it in conjunction with other substrates, but not alone
     # Add aspartate and glycine to the substrate panel
     # They were measured in the Prochlorococcus exometabolome, but not tested for Amac growth
     # Only add if they aren't already there
-    for name, met_id in [("Aspartate", "cpd00041"), ("Glycine", "cpd00033")]:
+    for name, met_id in [
+        ("Pyruvate", "cpd00020"),
+        ("Aspartate", "cpd00041"),
+        ("Glycine", "cpd00033"),
+    ]:
         if met_id not in df["met_id"].values:
             df = pd.concat(
                 [
@@ -174,15 +150,22 @@ def main():
         model_name = met.name[:-5]  # drop " [e0]" suffix
 
         # Build the media (minimal + substrate)
-        media = media_utils.clean_media(model, media_defs[row["minimal_media"]])
+        media = media_utils.clean_media(model, media_defs["minimal"])
         # Set the substrate uptake to be the total uptake divided by the number of carbons
         # So that every substrate has the same amount of carbon available
         media[ex_id] = TOTAL_UPTAKE / n_c
+        # Make the oxygen level unlimited
+        media["EX_cpd00007_e0"] = 1000
         # Set the media for the model
         model.medium = media
 
         # Calculate the NOSC
         nosc = calculate_nosc(met.elements, met.charge)
+
+        # Run pFBA
+        sol = cobra.flux_analysis.pfba(model)
+        # Get the oxygen uptake rate
+        o2_uptake = abs(sol.fluxes.get("EX_cpd00007_e0", 0.0))
 
         # Calculate the ATP cost of using this substrate
         print(f"Running the ATP Cost calculation for {c_source} ({met_id})...")
@@ -195,10 +178,10 @@ def main():
                 "name_in_model": model_name,
                 "met_id": met_id,
                 "exchange_id": ex_id,
-                "media_key": media_key,
                 "n_c": n_c,
                 "entry_point": ENTRY_POINT.get(met_id, "Other"),
                 "nosc": nosc,
+                "o2_saturation": o2_uptake,
                 "atp_cost": atp_cost,
             }
         )
