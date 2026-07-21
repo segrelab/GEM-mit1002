@@ -58,3 +58,5 @@ mbm	Mannuronic Acid	cpd01384			Yes		"grows within 1 day, technically this ID is 
 mbm	Glucuronic Acid	cpd00164			No		"technically this ID is for ""Glucuronate"""
 mbm	Galacturonic Acid	cpd00280			Yes		"grows within 2 days, technically this ID is for ""D-Galacturonate"""
 mbm	Alginate	cpd11949			No		
+mbm	Phosphoenolpyruvate	cpd00061			Yes		From Mary Ann (slack on 01/14/2026). Not actually sure on the medium, so guessing mbm.
+mbm	6-Phosphogluconate	cpd00284			Yes		From Mary Ann (slack on 01/14/2026). Not actually sure on the medium, so guessing mbm.
