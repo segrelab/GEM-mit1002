@@ -21715,7 +21715,7 @@
           </rdf:RDF>
         </annotation>
       </species>
-      <species id="M_cpd00127_e0" name="Phenol (external)" compartment="e0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false" fbc:charge="0" fbc:chemicalFormula="C6H6O"/>
+      <species id="M_cpd00127_e0" name="Phenol [e0]" compartment="e0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false" fbc:charge="0" fbc:chemicalFormula="C6H6O"/>
       <species metaid="meta_M_cpd01644_c0" id="M_cpd01644_c0" name="2-Hydroxymuconate" compartment="c0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false" fbc:charge="-2" fbc:chemicalFormula="C6H4O5">
         <annotation>
           <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
@@ -21804,6 +21804,62 @@
                   <rdf:li rdf:resource="https://identifiers.org/metacyc.compound/CPD-650"/>
                   <rdf:li rdf:resource="https://identifiers.org/inchikey/QHHKKMYHDBRONY-WZZMXTMRSA-J"/>
                   <rdf:li rdf:resource="https://identifiers.org/seed.compound/cpd03043"/>
+                </rdf:Bag>
+              </bqbiol:is>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+      </species>
+      <species metaid="meta_M_cpd01384_c0" sboTerm="SBO:0000247" id="M_cpd01384_c0" name="D-Mannuronate [c0]" compartment="c0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false" fbc:charge="-1" fbc:chemicalFormula="C6H9O7">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+            <rdf:Description rdf:about="#meta_M_cpd01384_c0">
+              <bqbiol:is>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="https://identifiers.org/seed.compound/cpd01384"/>
+                  <rdf:li rdf:resource="https://identifiers.org/kegg.compound/C02024"/>
+                  <rdf:li rdf:resource="https://identifiers.org/metanetx.chemical/MNXM114059"/>
+                  <rdf:li rdf:resource="https://identifiers.org/metanetx.chemical/MNXM2513"/>
+                  <rdf:li rdf:resource="https://identifiers.org/inchikey/AEMOLEFTQBMNLQ-VANFPWTGSA-M"/>
+                </rdf:Bag>
+              </bqbiol:is>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+      </species>
+      <species metaid="meta_M_cpd01384_e0" sboTerm="SBO:0000247" id="M_cpd01384_e0" name="D-Mannuronate [e0]" compartment="e0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false" fbc:charge="-1" fbc:chemicalFormula="C6H9O7">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+            <rdf:Description rdf:about="#meta_M_cpd01384_e0">
+              <bqbiol:is>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="https://identifiers.org/seed.compound/cpd01384"/>
+                  <rdf:li rdf:resource="https://identifiers.org/kegg.compound/C02024"/>
+                  <rdf:li rdf:resource="https://identifiers.org/metanetx.chemical/MNXM114059"/>
+                  <rdf:li rdf:resource="https://identifiers.org/metanetx.chemical/MNXM2513"/>
+                  <rdf:li rdf:resource="https://identifiers.org/inchikey/AEMOLEFTQBMNLQ-VANFPWTGSA-M"/>
+                </rdf:Bag>
+              </bqbiol:is>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+      </species>
+      <species metaid="meta_M_cpd00280_e0" sboTerm="SBO:0000247" id="M_cpd00280_e0" name="D-Galacturonate [e0]" compartment="e0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false" fbc:charge="-1" fbc:chemicalFormula="C6H9O7">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+            <rdf:Description rdf:about="#meta_M_cpd00280_e0">
+              <bqbiol:is>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="https://identifiers.org/bigg.metabolite/galur"/>
+                  <rdf:li rdf:resource="https://identifiers.org/biocyc/META:CPD-15633"/>
+                  <rdf:li rdf:resource="https://identifiers.org/biocyc/META:D-GALACTURONATE"/>
+                  <rdf:li rdf:resource="https://identifiers.org/biocyc/META:D-Galactopyranuronate"/>
+                  <rdf:li rdf:resource="https://identifiers.org/inchi/InChI=1S/C6H10O7/c7-1-2(8)4(5(10)11)13-6(12)3(1)9/h1-4,6-9,12H,(H,10,11)/p-1/t1-,2+,3+,4-,6?/m0/s1"/>
+                  <rdf:li rdf:resource="https://identifiers.org/inchikey/AEMOLEFTQBMNLQ-YMDCURPLSA-M"/>
+                  <rdf:li rdf:resource="https://identifiers.org/kegg.compound/C00333"/>
+                  <rdf:li rdf:resource="https://identifiers.org/metanetx.chemical/MNXM693"/>
+                  <rdf:li rdf:resource="https://identifiers.org/metanetx.chemical/MNXM48464"/>
+                  <rdf:li rdf:resource="https://identifiers.org/seed.compound/cpd00280"/>
                 </rdf:Bag>
               </bqbiol:is>
             </rdf:Description>
@@ -65957,7 +66013,7 @@
           <speciesReference species="M_cpd00085_e0" stoichiometry="1" constant="true"/>
         </listOfReactants>
       </reaction>
-      <reaction metaid="meta_R_EX_cpd00039_e0" sboTerm="SBO:0000627" id="R_EX_cpd00039_e0" name="Exchange of L-Lysine [e0]" reversible="true" fast="false" fbc:lowerFluxBound="cobra_0_bound" fbc:upperFluxBound="cobra_default_ub">
+      <reaction metaid="meta_R_EX_cpd00039_e0" sboTerm="SBO:0000627" id="R_EX_cpd00039_e0" name="Exchange of L-Lysine [e0]" reversible="false" fast="false" fbc:lowerFluxBound="cobra_0_bound" fbc:upperFluxBound="cobra_default_ub">
         <listOfReactants>
           <speciesReference species="M_cpd00039_e0" stoichiometry="1" constant="true"/>
         </listOfReactants>
@@ -66302,6 +66358,80 @@
           <speciesReference species="M_cpd00005_c0" stoichiometry="1" constant="true"/>
           <speciesReference species="M_cpd00067_c0" stoichiometry="1" constant="true"/>
           <speciesReference species="M_cpd00279_c0" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+      </reaction>
+      <reaction metaid="meta_R_EX_cpd01384_e0" sboTerm="SBO:0000627" id="R_EX_cpd01384_e0" name="Exchange for D-Mannuronate" reversible="false" fast="false" fbc:lowerFluxBound="cobra_0_bound" fbc:upperFluxBound="cobra_default_ub">
+        <listOfReactants>
+          <speciesReference species="M_cpd01384_e0" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+      </reaction>
+      <reaction metaid="meta_R_EX_cpd00280_e0" sboTerm="SBO:0000627" id="R_EX_cpd00280_e0" name="Exchange for D-Galacturonate" reversible="false" fast="false" fbc:lowerFluxBound="cobra_0_bound" fbc:upperFluxBound="cobra_default_ub">
+        <listOfReactants>
+          <speciesReference species="M_cpd00280_e0" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+      </reaction>
+      <reaction metaid="meta_R_rxn_cpd01384_symport_c0" sboTerm="SBO:0000185" id="R_rxn_cpd01384_symport_c0" name="D-Mannuronate transport in via proton symport [c0]" reversible="true" fast="false" fbc:lowerFluxBound="cobra_default_lb" fbc:upperFluxBound="cobra_default_ub">
+        <listOfReactants>
+          <speciesReference species="M_cpd00067_e0" stoichiometry="1" constant="true"/>
+          <speciesReference species="M_cpd01384_e0" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="M_cpd00067_c0" stoichiometry="1" constant="true"/>
+          <speciesReference species="M_cpd01384_c0" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+      </reaction>
+      <reaction metaid="meta_R_rxn_cpd00280_symport_c0" sboTerm="SBO:0000185" id="R_rxn_cpd00280_symport_c0" name="D-Galacturonate transport in via proton symport [c0]" reversible="true" fast="false" fbc:lowerFluxBound="cobra_default_lb" fbc:upperFluxBound="cobra_default_ub">
+        <listOfReactants>
+          <speciesReference species="M_cpd00067_e0" stoichiometry="1" constant="true"/>
+          <speciesReference species="M_cpd00280_e0" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="M_cpd00067_c0" stoichiometry="1" constant="true"/>
+          <speciesReference species="M_cpd00280_c0" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+      </reaction>
+      <reaction metaid="meta_R_rxn01776_c0" sboTerm="SBO:0000176" id="R_rxn01776_c0" name="D-Mannonate:NAD+ 6-oxidoreductase" reversible="true" fast="false" fbc:lowerFluxBound="cobra_default_lb" fbc:upperFluxBound="cobra_default_ub">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+            <rdf:Description rdf:about="#meta_R_rxn01776_c0">
+              <bqbiol:is>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="https://identifiers.org/seed.reaction/rxn01776"/>
+                </rdf:Bag>
+              </bqbiol:is>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="M_cpd00003_c0" stoichiometry="1" constant="true"/>
+          <speciesReference species="M_cpd00403_c0" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="M_cpd00004_c0" stoichiometry="1" constant="true"/>
+          <speciesReference species="M_cpd00067_c0" stoichiometry="1" constant="true"/>
+          <speciesReference species="M_cpd01384_c0" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+      </reaction>
+      <reaction metaid="meta_R_rxn01777_c0" sboTerm="SBO:0000176" id="R_rxn01777_c0" name="D-Mannonate:NADP+ 6-oxidoreductase" reversible="true" fast="false" fbc:lowerFluxBound="cobra_default_lb" fbc:upperFluxBound="cobra_default_ub">
+        <annotation>
+          <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
+            <rdf:Description rdf:about="#meta_R_rxn01777_c0">
+              <bqbiol:is>
+                <rdf:Bag>
+                  <rdf:li rdf:resource="https://identifiers.org/seed.reaction/rxn01777"/>
+                </rdf:Bag>
+              </bqbiol:is>
+            </rdf:Description>
+          </rdf:RDF>
+        </annotation>
+        <listOfReactants>
+          <speciesReference species="M_cpd00006_c0" stoichiometry="1" constant="true"/>
+          <speciesReference species="M_cpd00403_c0" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="M_cpd00005_c0" stoichiometry="1" constant="true"/>
+          <speciesReference species="M_cpd00067_c0" stoichiometry="1" constant="true"/>
+          <speciesReference species="M_cpd01384_c0" stoichiometry="1" constant="true"/>
         </listOfProducts>
       </reaction>
     </listOfReactions>

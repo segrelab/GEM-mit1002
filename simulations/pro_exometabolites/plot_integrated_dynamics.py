@@ -33,6 +33,7 @@ secretion). Starts from 0 nM (BASAL has NH3 removed in the simulation).
 """
 
 from pathlib import Path
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,10 +42,15 @@ import pandas as pd
 # ── Paths and parameters ────────────────────────────────────────────────────────
 
 SCRIPT_DIR = Path(__file__).parent
+REPO_ROOT = SCRIPT_DIR.parents[1]
 RESULTS_DIR = SCRIPT_DIR / "results"
 DATA_DIR = SCRIPT_DIR / "data"
 FIG_DIR = SCRIPT_DIR / "figs"
 FIG_DIR.mkdir(exist_ok=True)
+
+# Import plot_styles.py from the root of the repo
+sys.path.append(str(REPO_ROOT))
+from plot_styles import summer_colors
 
 F_PLOT = 10.0
 ALT_DW_G = 2.5e-13  # g/cell
@@ -62,7 +68,7 @@ NH3_EX = "EX_cpd00013_e0"
 
 def shade_dark(ax, alpha: float = 0.15) -> None:
     for d0, d1 in DARK_PERIODS:
-        ax.axvspan(d0, d1, color="gray", alpha=alpha, zorder=0)
+        ax.axvspan(d0, d1, color=summer_colors["dark_tan"], alpha=alpha, zorder=0)
 
 
 def main() -> None:
@@ -159,20 +165,23 @@ def main() -> None:
     )
 
     # ── Plot ────────────────────────────────────────────────────────────────────
-    fig, ax1 = plt.subplots(figsize=(11.5, 5.2))
+    fig, ax1 = plt.subplots(figsize=(7, 5.2))
     ax2 = ax1.twinx()  # Pro density (×10⁶ cells/mL)
     ax3 = ax1.twinx()  # Amac biomass (μg/L)
     ax3.spines["right"].set_position(("outward", 60))
 
-    shade_dark(ax1)
+    # Background shading for dark periods
+    shade_dark(ax1, alpha=0.4)
     ax1.axhline(0, color="black", lw=0.5, zorder=1)
 
-    c_glu_exp = "#1f78b4"  # blue (experimental)
-    c_glu_sim = "#a6cee3"  # light blue (simulated)
-    c_nh4 = "#e31a1c"  # red (NH4)
-    c_pro = "#7570b3"  # purple (Pro)
-    c_amac = "#33a02c"  # green (Amac)
+    # Defnine colors for each line
+    c_glu_exp = summer_colors["dark_pink"]
+    c_glu_sim = summer_colors["pink"]
+    c_nh4 = summer_colors["yellow"]
+    c_pro = summer_colors["green"]
+    c_amac = summer_colors["teal"]
 
+    # Plot glutamte concentrations
     ax1.plot(
         times,
         glu_exp_at_times,
@@ -180,7 +189,7 @@ def main() -> None:
         color=c_glu_exp,
         lw=2,
         ms=5,
-        label="Glu — experimental (smoothed)",
+        label="Glutamate (Experimental)",
         zorder=4,
     )
     ax1.plot(
@@ -190,14 +199,18 @@ def main() -> None:
         color=c_glu_sim,
         lw=2,
         ms=4,
-        label="Glu — simulated (exp − Amac uptake)",
+        label="Glutamate (Simulated)",
         zorder=4,
     )
 
     ax1.set_xlabel("Time (h)", fontsize=11)
     ax1.set_ylabel("Concentration (nM)", fontsize=11)
-    ax1.set_xlim(0, 46)
-    ax1.set_xticks(range(0, 47, 4))
+    # Subset the x-axis (time) to the first diel cycle
+    ax1.set_xlim(0, 22)
+    ax1.set_xticks(range(0, 23, 4))
+    # Subset the y-axis to only show positive concentrations
+    # The simulated glutamate can go negative when Pro starts reabsorbing it
+    ax1.set_ylim(bottom=0)
 
     # Pro density (right inner)
     ax2.plot(
@@ -216,25 +229,31 @@ def main() -> None:
             color=c_pro,
             alpha=0.10,
         )
-    ax2.set_ylabel("Pro density (×10⁶ cells mL⁻¹)", color=c_pro, fontsize=10)
+    # Set the y-axis limits so that the first day's value take up most of the space (the second day is just a repeat of the first)
+    ax2.set_ylim(0, 130)
+    ax2.set_ylabel(
+        "Prochlorococcus density (×10⁶ cells mL⁻¹)", color=c_pro, fontsize=10
+    )
     ax2.tick_params(axis="y", labelcolor=c_pro)
 
     # Amac biomass (right outer)
     ax3.plot(times, X_ugL, "-", color=c_amac, lw=2.6, label="Amac biomass")
-    ax3.set_ylabel("Amac biomass (μg DW L⁻¹)", color=c_amac, fontsize=10)
+    ax3.set_ylabel("A. macleodii biomass (μg DW L⁻¹)", color=c_amac, fontsize=10)
     ax3.tick_params(axis="y", labelcolor=c_amac)
 
     # Combined legend
     h1, l1 = ax1.get_legend_handles_labels()
     h2, l2 = ax2.get_legend_handles_labels()
     h3, l3 = ax3.get_legend_handles_labels()
-    dark_patch = plt.Rectangle((0, 0), 1, 1, fc="gray", alpha=0.3, label="Dark period")
+    dark_patch = plt.Rectangle(
+        (0, 0), 1, 1, fc=summer_colors["dark_tan"], label="Dark period"
+    )
     ax1.legend(
         handles=h1 + h2 + h3 + [dark_patch],
         labels=l1 + l2 + l3 + ["Dark period"],
         fontsize=8,
-        loc="upper right",
-        ncol=2,
+        loc="upper left",
+        ncol=1,
         framealpha=0.85,
     )
 

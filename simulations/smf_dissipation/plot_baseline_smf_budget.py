@@ -28,7 +28,9 @@ The story:
 
 import warnings
 from collections import defaultdict
+import os
 from pathlib import Path
+import sys
 
 import cobra
 import cobra.flux_analysis
@@ -38,6 +40,12 @@ import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
 import pickle as pkl
+
+# Import plot_styles.py from the root of the repo
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+)
+from plot_styles import summer_colors
 
 matplotlib.rcParams.update(
     {
@@ -107,13 +115,13 @@ def category(rxn_id):
 
 # Palette (antiporter is the bold accent and shared across both panels)
 COLORS = {
-    ATPSYN: "#803E25",  # bold dark brick
-    CYTO: "#E38D6B",  # salmon
-    ANTIPORT: "#EBB309",  # gold
-    NANQR: "#5B8C8F",  # teal
-    AASYM: "#BBD5E9",  # light blue
-    "other (produce)": "#BDBDBD",
-    "other (consume)": "#9E9E9E",
+    ATPSYN: summer_colors["dark_pink"],
+    CYTO: summer_colors["pink"],
+    ANTIPORT: summer_colors["yellow"],
+    NANQR: summer_colors["teal"],
+    AASYM: summer_colors["light_blue"],
+    "other (produce)": summer_colors["dark_tan"],
+    "other (consume)": summer_colors["dark_tan"],
 }
 
 # Bottom-to-top stacking order (antiporter at the base, aligned across panels)
