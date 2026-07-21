@@ -1,0 +1,16 @@
+pathway,name,reaction_id,in_model,GPR
+EMP,Glucose-6-phosphate isomerase,rxn00558_c0,Yes,WP_049586025.1
+EMP,Phosphofructokinase,rxn00545_c0,Yes,WP_049586246.1
+EMP,Fructose diphosphate aldolase,rxn00786_c0,Yes,WP_049586194.1
+EMP,Triose-phosphate isomerase,rxn00747_c0,Yes,WP_080986462.1
+EMP,Glyceraldehyde-3-phosphate dehydrogenase,rxn00781_c0,Yes,WP_014976817.1 or WP_049587602.1
+EMP,3-phosphoglycerate kinase,rxn01100_c0,Yes,WP_049586192.1
+EMP,Phosphoglycerate mutase,rxn01106_c0,Yes,WP_014947970.1 or WP_014947970.1
+EMP,Enolase,rxn00459_c0,Yes,WP_049585952.1
+EMP,Pyruvate kinase,rxn00148_c0,Yes,WP_014949855.1
+ED,D-glucose-6-phosphate:NADP+ 1-oxidoreductase,rxn00604_c0,Yes,WP_049587589.1
+ED,6-Phospho-D-glucono-1-5-lactone lactonohydrolase,rxn01476_c0,Yes,WP_014979596.1 or WP_014979596.1
+ED,6-phosphogluconate dehydratase,rxn01477_c0,Yes,WP_014998717.1
+ED,2-keto-3-deoxy-6-phosphogluconate aldolase,rxn03884_c0,Yes,WP_014949849.1 and WP_014979614.1
+Glyoxylate Shunt,Isocitrate lyase,rxn00336_c0,Yes,WP_049587992.1
+Glyoxylate Shunt,Malate synthase,rxn00330_c0,Yes,WP_049587987.1
