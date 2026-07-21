@@ -21866,6 +21866,7 @@
           </rdf:RDF>
         </annotation>
       </species>
+      <species id="M_cpd00053_e0" name="L-Glutamine [e0]" compartment="e0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false" fbc:charge="0" fbc:chemicalFormula="C5H10N2O3"/>
     </listOfSpecies>
     <listOfParameters>
       <parameter sboTerm="SBO:0000626" id="cobra_default_lb" value="-1000" constant="true"/>
@@ -66433,6 +66434,21 @@
           <speciesReference species="M_cpd00067_c0" stoichiometry="1" constant="true"/>
           <speciesReference species="M_cpd01384_c0" stoichiometry="1" constant="true"/>
         </listOfProducts>
+      </reaction>
+      <reaction id="R_rxn05216_c0" name="Na+/glutamine symport [c0]" reversible="true" fast="false" fbc:lowerFluxBound="cobra_default_lb" fbc:upperFluxBound="cobra_default_ub">
+        <listOfReactants>
+          <speciesReference species="M_cpd00053_e0" stoichiometry="1" constant="true"/>
+          <speciesReference species="M_cpd00971_e0" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="M_cpd00053_c0" stoichiometry="1" constant="true"/>
+          <speciesReference species="M_cpd00971_c0" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+      </reaction>
+      <reaction metaid="meta_R_EX_cpd00053_e0" sboTerm="SBO:0000627" id="R_EX_cpd00053_e0" name="L-Glutamine [e0] exchange" reversible="false" fast="false" fbc:lowerFluxBound="cobra_0_bound" fbc:upperFluxBound="cobra_default_ub">
+        <listOfReactants>
+          <speciesReference species="M_cpd00053_e0" stoichiometry="1" constant="true"/>
+        </listOfReactants>
       </reaction>
     </listOfReactions>
     <fbc:listOfObjectives fbc:activeObjective="obj">
