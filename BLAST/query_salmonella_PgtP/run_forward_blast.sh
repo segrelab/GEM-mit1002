@@ -1,0 +1,2 @@
+# Run BLASTp of PG1 dut sequence against the MIT1002 database
+blastp -query query_salmonella_PgtP/PgtP_seq.fa -db dbs/amac_db  -outfmt 6 -max_target_seqs 10 >> query_salmonella_PgtP/results/forward_blast_hits.tsv
