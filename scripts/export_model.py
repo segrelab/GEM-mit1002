@@ -21,6 +21,7 @@ gene_df = pd.DataFrame(model_json["genes"])
 
 
 # Write a function to go from the stoichiometry dictionary to a string of the reaction with human-friendly metabolite names
+# TODO: Use COBRApy's built in function for this
 def build_reaction_string(stoichiometry_dict):
     reactants_side = " + ".join(
         [
