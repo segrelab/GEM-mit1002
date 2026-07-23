@@ -8,6 +8,22 @@ import cobra
 import pandas as pd
 from gem_utilities import media
 
+# ---- CONFIG: edit these, then run `python run_tests_on_prs.py` ----
+# Range of merged PRs to evaluate. PR_END = None goes up to the latest PR.
+# For the initial model construction to growing on everything use 89 - 212
+# To highlight the acetate/leucine/isoleucine fixes use 273 - 293
+# For initial to after fixing the TCA cycle fluxes use 89 - 344
+PR_START = 89
+PR_END = None
+# Flux magnitude above which a reaction is considered problematically unbounded
+UNBOUNDED_FLUX_LIMIT = 100
+# Reaction ID for the biomass reaction
+BIOMASS_RXN_ID = "bio1_biomass"
+# False = incremental (only new PRs, plus any that previously errored).
+# True = re-run every PR in the range, overwriting existing results
+# (e.g. when the test itself has changed).
+FORCE_RERUN = False
+
 # FILE PATHS
 FILE_PATH = os.path.dirname(os.path.abspath(__file__))
 REPO_PATH = os.path.dirname(FILE_PATH)
@@ -25,16 +41,48 @@ growth_phenotypes = pd.read_csv(
 )
 
 
-def run_tests_on_prs(pr_start=89, pr_end=None, unbounded_flux_limit: int = 999, biomass_rxn_id="bio1_biomass"):
+def run_tests_on_prs(
+    pr_start=89,
+    pr_end=None,
+    unbounded_flux_limit: int = 999,
+    biomass_rxn_id="bio1_biomass",
+    force_rerun: bool = False,
+    prs_to_skip=[],
+):
+    """Run the growth tests on merged PRs and save a summary CSV.
+
+    By default this is incremental: PRs that already have a (non-ERROR) row in
+    growth_match_summary.csv are skipped, so only new PRs (and any that
+    previously errored) are evaluated. Existing results are preserved and the
+    new ones are merged in.
+
+    Set ``force_rerun=True`` to re-evaluate every PR in the range, overwriting
+    the existing rows for those PRs (useful when the test itself has changed).
+    Results for PRs outside the requested range are always preserved.
+    """
+    # Load any existing results so we can run incrementally. Keyed by PR number.
+    summary_file = os.path.join(FILE_PATH, "growth_match_summary.csv")
+    existing_results = {}
+    if os.path.exists(summary_file):
+        existing_df = pd.read_csv(summary_file)
+        existing_results = {
+            int(row["PR Number"]): row.to_dict() for _, row in existing_df.iterrows()
+        }
+    # PRs we already have a successful (non-ERROR) result for. Unless
+    # force_rerun is set, these are skipped. PRs whose stored result is ERROR
+    # are always re-attempted.
+    already_done = {
+        pr_number
+        for pr_number, row in existing_results.items()
+        if str(row.get("Matches")) != "ERROR"
+    }
+
     # Get a list of PRs merged into the dev branch (could change to main, by
     # providing target_branch="main")
     # By only looking at dev we miss a few PRs that were merged into main,
     # (89-117) but this is easier to automate and still captures the majority
     # of changes to the model
     all_pr_entries = get_prs_by_target()
-    # Hardcode PRs to skip because the diff is too large
-    # TODO: Instead of hardcoding, change is_model_changed_in_pr to use API
-    prs_to_skip = [327]  # Checked manually that the model file was not changed
     # Filter PRs for a specific range of interest
     # For the initial model construction to growing on everything use PRs 89 - 212
     # To highlight the acetate/leucine/isolecuine fixes use PRs 273-293
@@ -47,6 +95,8 @@ def run_tests_on_prs(pr_start=89, pr_end=None, unbounded_flux_limit: int = 999, 
         for pr_entry in all_pr_entries
         if pr_start <= pr_entry["number"] <= pr_end
         and pr_entry["number"] not in prs_to_skip
+        # Incremental: skip PRs we already have results for (unless forcing)
+        and (force_rerun or pr_entry["number"] not in already_done)
     ]
     # Filter PRs to those that changed the model.xml file
     pull_requests = [
@@ -55,8 +105,13 @@ def run_tests_on_prs(pr_start=89, pr_end=None, unbounded_flux_limit: int = 999, 
         if is_model_changed_in_pr(pr_entry["number"])
     ]
 
-    # Prepare results as a list of dicts
-    results_list = []
+    if not pull_requests:
+        print("No new PRs to evaluate; existing results are up to date.")
+    else:
+        print(f"Evaluating {len(pull_requests)} PR(s)...")
+
+    # Start from the existing results and update them with anything we (re)run
+    results_by_pr = dict(existing_results)
 
     for pr in pull_requests:
         print(f"\n--- Evaluating PR #{pr['number']} ---")
@@ -75,52 +130,49 @@ def run_tests_on_prs(pr_start=89, pr_end=None, unbounded_flux_limit: int = 999, 
             )
 
             # Run test_growth
-            results = run_test_growth(unbounded_flux_limit=unbounded_flux_limit, biomass_rxn_id=biomass_rxn_id)
-
-            # Append results to list
-            results_list.append(
-                {
-                    "PR Number": pr["number"],
-                    "Date Opened": pr["createdAt"],
-                    "Date Merged": pr["mergedAt"],
-                    "Reactions": results.get("num_reactions"),
-                    "Metabolites": results.get("num_metabolites"),
-                    "Genes": results.get("num_genes"),
-                    "Matches": results.get("matches"),
-                    "Total": results.get("total"),
-                    "% Match": round(
-                        100
-                        * results.get("matches", 0)
-                        / max(results.get("total", 1), 1),
-                        2,
-                    ),
-                    "Unbounded Flux Reactions": results.get("num_unbounded_rxns"),
-                }
+            results = run_test_growth(
+                unbounded_flux_limit=unbounded_flux_limit, biomass_rxn_id=biomass_rxn_id
             )
+
+            # Store results (overwrites any existing row for this PR)
+            results_by_pr[pr["number"]] = {
+                "PR Number": pr["number"],
+                "Date Opened": pr["createdAt"],
+                "Date Merged": pr["mergedAt"],
+                "Reactions": results.get("num_reactions"),
+                "Metabolites": results.get("num_metabolites"),
+                "Genes": results.get("num_genes"),
+                "Matches": results.get("matches"),
+                "Total": results.get("total"),
+                "% Match": round(
+                    100 * results.get("matches", 0) / max(results.get("total", 1), 1),
+                    2,
+                ),
+                "Unbounded Flux Reactions": results.get("num_unbounded_rxns"),
+            }
 
         except Exception as e:
             print(f"Error with PR #{pr['number']}: {e}")
-            results_list.append(
-                {
-                    "PR Number": pr["number"],
-                    "Date Opened": pr["createdAt"],
-                    "Date Merged": pr["mergedAt"],
-                    "Reactions": "ERROR",
-                    "Metabolites": "ERROR",
-                    "Genes": "ERROR",
-                    "Matches": "ERROR",
-                    "Total": "ERROR",
-                    "% Match": "ERROR",
-                    "Unbounded Flux Reactions": "ERROR",
-                }
-            )
+            results_by_pr[pr["number"]] = {
+                "PR Number": pr["number"],
+                "Date Opened": pr["createdAt"],
+                "Date Merged": pr["mergedAt"],
+                "Reactions": "ERROR",
+                "Metabolites": "ERROR",
+                "Genes": "ERROR",
+                "Matches": "ERROR",
+                "Total": "ERROR",
+                "% Match": "ERROR",
+                "Unbounded Flux Reactions": "ERROR",
+            }
 
     # Delete the temporary model file
     if os.path.exists("temp_model.xml"):
         os.remove("temp_model.xml")
 
-    # Write results to CSV ONCE, after all PRs are processed
-    summary_file = os.path.join(FILE_PATH, "growth_match_summary.csv")
+    # Write results to CSV ONCE, after all PRs are processed. Sort by PR number
+    # so newly added PRs land in order alongside the existing ones.
+    results_list = [results_by_pr[num] for num in sorted(results_by_pr)]
     df = pd.DataFrame(results_list)
     df.to_csv(summary_file, index=False)
 
@@ -179,9 +231,7 @@ def run_test_growth(unbounded_flux_limit: int = 999, biomass_rxn_id="bio1_biomas
         for met_id in row["met_id"]:
             # Check that there is an exchange reaction for the metabolite in the model
             if "EX_" + met_id + "_e0" not in [r.id for r in model.reactions]:
-                warnings.warn(
-                    f"Model does not have an exchange reaction for {met_id}."
-                )
+                warnings.warn(f"Model does not have an exchange reaction for {met_id}.")
                 continue
             # Get the metabolite object
             met = model.metabolites.get_by_id(met_id + "_e0")
@@ -195,22 +245,29 @@ def run_test_growth(unbounded_flux_limit: int = 999, biomass_rxn_id="bio1_biomas
                 minimal_media["EX_" + met_id + "_e0"] = 60 / n_carbons
         # Set the media
         model.medium = media.clean_media(model, minimal_media)
-        # Run pFBA on the model
-        sol = cobra.flux_analysis.pfba(model)
+        # Run pFBA on the model.
+        # Since the model has a non-zero maintenance requirement (a forced
+        # lower bound on ATP hydrolysis), a medium that cannot supply that
+        # energy makes the LP infeasible and pfba raises. Biologically that
+        # just means the organism can't sustain itself, i.e. no growth, so we
+        # catch it and treat it as such rather than letting it error out the
+        # whole PR.
+        try:
+            sol = cobra.flux_analysis.pfba(model)
+        except (cobra.exceptions.Infeasible, cobra.exceptions.OptimizationError):
+            sol = None
         # Check if the model grows
-        if sol.fluxes[biomass_rxn_id] > 1e-3:
+        if sol is not None and sol.fluxes[biomass_rxn_id] > 1e-3:
             # If it does, set to Yes
             pred_growth = "Yes"
             # Get the number of reactions in the solution with a flux above the unbounded_flux_limit
             rxns_with_unbounded_flux = [
-                r
-                for r, flux in sol.fluxes.items()
-                if abs(flux) > unbounded_flux_limit
+                r for r, flux in sol.fluxes.items() if abs(flux) > unbounded_flux_limit
             ]
             # Add the unique reactions with unbounded fluxes to the set
             unique_rxns_with_unbounded_flux.update(rxns_with_unbounded_flux)
         else:
-            # If it doesn't, set to No
+            # If it doesn't (or the problem was infeasible), set to No
             pred_growth = "No"
 
         if pred_growth == expected_growth:
@@ -247,19 +304,42 @@ def get_prs_by_target(target_branch="dev"):
 
 
 def is_model_changed_in_pr(pr_number):
-    # Get the list of files changed in the PR
-    # Note: The diff has a maximum limit of 3000 files, but since most of the
-    # PRs only change a few files, this should be sufficient. If there are more
-    # than 300 files changed, we may need to use the GitHub API to get the
-    # list of changed files instead.
-    cmd = ["gh", "pr", "diff", str(pr_number), "--name-only"]
-    output = subprocess.check_output(cmd, text=True)
+    # Get the list of files changed in the PR.
+    # We use the GitHub API (paginated) rather than `gh pr diff --name-only`
+    # because `gh pr diff` fetches the full patch and fails on PRs with very
+    # large diffs (returning a non-zero exit / "stream CANCEL"). The API's
+    # pulls/{number}/files endpoint just lists filenames and paginates, so it
+    # handles large PRs gracefully.
+    cmd = [
+        "gh",
+        "api",
+        f"repos/:owner/:repo/pulls/{pr_number}/files",
+        "--paginate",
+        "--jq",
+        ".[].filename",
+    ]
+    try:
+        output = subprocess.check_output(cmd, text=True)
+    except subprocess.CalledProcessError as e:
+        # Don't let one problematic PR crash the whole run; warn and treat it
+        # as "not changed" so it is skipped.
+        warnings.warn(
+            f"Could not fetch changed files for PR #{pr_number} "
+            f"(exit {e.returncode}); skipping it."
+        )
+        return False
     changed_files = output.splitlines()
     # Check if 'model.xml' is in the list of changed files
     return "model.xml" in changed_files
 
 
 if __name__ == "__main__":
-    run_tests_on_prs(pr_start=89, unbounded_flux_limit=100)
+    run_tests_on_prs(
+        pr_start=PR_START,
+        pr_end=PR_END,
+        unbounded_flux_limit=UNBOUNDED_FLUX_LIMIT,
+        biomass_rxn_id=BIOMASS_RXN_ID,
+        force_rerun=FORCE_RERUN,
+    )
     print("Test results saved to growth_match_summary.csv")
     print("You can plot the results using the provided plotting script.")
