@@ -2,8 +2,8 @@ import os
 import sys
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
 import pandas as pd
+from matplotlib.ticker import MaxNLocator
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
@@ -11,7 +11,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 # Add the project root to the system path to import my plot_styles file
 sys.path.append(PROJECT_ROOT)
 # Import the plot style from the plot_styles.py file
-from plot_styles import summer_colors, set_plot_style
+from plot_styles import set_plot_style, summer_colors
 
 # Load the data
 data = pd.read_csv(os.path.join(FILE_DIR, "growth_match_summary.csv"))
@@ -22,7 +22,7 @@ data = data[data["% Match"] != "ERROR"]
 # Convert columns to numeric type
 # TODO: Do I need any other columns numerical? Are there any that can't be?
 cols_to_fix = ["Matches", "% Match", "PR Number", "Unbounded Flux Reactions"]
-data[cols_to_fix] = data[cols_to_fix].apply(pd.to_numeric, errors='coerce')
+data[cols_to_fix] = data[cols_to_fix].apply(pd.to_numeric, errors="coerce")
 
 # Sort the data by PR number and reset the index
 data = data.sort_values("PR Number").reset_index(drop=True)
@@ -70,7 +70,7 @@ set_plot_style(ax1)
 ax1.set_title("Model Performance Over Time")
 ax1.set_xlabel("Pull Request Number")
 ax1.set_ylabel("Growth Phenotypes Matching Experimental Data")
-ax1.set_ylim(0, 50)  # See the full range
+ax1.set_ylim(0, 55)  # See the full range
 ax2.set_ylabel("Unique Reactions with Flux > 100 (Log Scale)")
 
 # Thin out the x-tick labels: with ~120 points, labeling every PR is unreadable,
