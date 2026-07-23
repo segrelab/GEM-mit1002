@@ -48,7 +48,7 @@ matches_color = summer_colors["teal"]
 flux_color = summer_colors["pink"]
 
 # Create a figure with twin y axes
-fig, ax1 = plt.subplots(figsize=(10, 6))
+fig, ax1 = plt.subplots(figsize=(8, 5))
 ax2 = ax1.twinx()
 # Scale the unbounded flux axis to show detail near zero
 ax2.set_yscale("symlog", linthresh=1)
