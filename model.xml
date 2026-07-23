@@ -21868,6 +21868,7 @@
       </species>
       <species id="M_cpd00053_e0" name="L-Glutamine [e0]" compartment="e0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false" fbc:charge="0" fbc:chemicalFormula="C5H10N2O3"/>
       <species id="M_cpd00061_e0" name="Phosphoenolpyruvate" compartment="e0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false" fbc:charge="-3" fbc:chemicalFormula="C3H2O6P"/>
+      <species id="M_cpd00284_e0" name="6-Phospho-D-gluconate" compartment="e0" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false" fbc:charge="-3" fbc:chemicalFormula="C6H10O10P"/>
     </listOfSpecies>
     <listOfParameters>
       <parameter sboTerm="SBO:0000626" id="cobra_default_lb" value="-1000" constant="true"/>
@@ -66464,6 +66465,21 @@
       <reaction metaid="meta_R_EX_cpd00061_e0" sboTerm="SBO:0000627" id="R_EX_cpd00061_e0" name="Phosphoenolpyruvate exchange" reversible="false" fast="false" fbc:lowerFluxBound="cobra_0_bound" fbc:upperFluxBound="cobra_default_ub">
         <listOfReactants>
           <speciesReference species="M_cpd00061_e0" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+      </reaction>
+      <reaction id="R_rxn05482_c0" name="6-Phospho-D-gluconate transport via proton symport" reversible="true" fast="false" fbc:lowerFluxBound="cobra_default_lb" fbc:upperFluxBound="cobra_default_ub">
+        <listOfReactants>
+          <speciesReference species="M_cpd00067_c0" stoichiometry="1" constant="true"/>
+          <speciesReference species="M_cpd00284_c0" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="M_cpd00067_e0" stoichiometry="1" constant="true"/>
+          <speciesReference species="M_cpd00284_e0" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+      </reaction>
+      <reaction metaid="meta_R_EX_cpd00284_e0" sboTerm="SBO:0000627" id="R_EX_cpd00284_e0" name="6-Phospho-D-gluconate exchange" reversible="false" fast="false" fbc:lowerFluxBound="cobra_0_bound" fbc:upperFluxBound="cobra_default_ub">
+        <listOfReactants>
+          <speciesReference species="M_cpd00284_e0" stoichiometry="1" constant="true"/>
         </listOfReactants>
       </reaction>
     </listOfReactions>
