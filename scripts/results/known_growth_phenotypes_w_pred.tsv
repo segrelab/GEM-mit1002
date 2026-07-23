@@ -32,7 +32,7 @@ Marine Broth (No Nitrogen)		Urea+Pyruvate		No	(Kratzl, 2026)	-0.032
 Marine Broth (No Nitrogen)		Urea, Glucose		Yes	(Kratzl, 2026)	-0.032
 Marine Broth (No Nitrogen)		Urea, Succinate		No	(Kratzl, 2026)	-0.032
 Minimal Basal Medium (Moran Lab)	NH3	3-hydroxybutyrate		Yes		0.55
-Minimal Basal Medium (Moran Lab)	NH3	6-Phosphogluconate		Yes		-0.032
+Minimal Basal Medium (Moran Lab)	NH3	6-Phosphogluconate		Yes		0.778
 Minimal Basal Medium (Moran Lab)	NH3	Acetate		Yes		0.385
 Minimal Basal Medium (Moran Lab)	NH3	Alanine		Unsure		0.585
 Minimal Basal Medium (Moran Lab)	NH3	Alginate		No		-0.032
