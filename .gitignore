@@ -1,6 +1,15 @@
 .vscode
 .venv
-*/__pycache__
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
 *.fa
 genome/RefSeq_genome_from_KBase/*.gff
 genome/RefSeq_genome_from_KBase/KBase_object_details_hgsco_narrative_1741199302047_Alteromonas_macleodii_v1.json
