@@ -20,7 +20,6 @@ from plot_styles import set_plot_style, summer_colors
 GROWTH_HIGHLIGHT_PRS = {
     160: "Coneect dead-ends to glyoxylate",
     192: "Removed duplicate thiamine reaction",
-    274: "Balanced cytochrome-c oxidase (caused no growth on acetate + nitrate)",
     281: "Standardize amino acid transporters (no longer grows on leucine and isoleucine)",
     309: "Add Na+ symporters for leucine and isoleucine",
 }
