@@ -59,7 +59,7 @@ package name because it shadows a standard-library module.
 ## Removing reactions and metabolites
 
 Reactions and metabolites that have been removed from the model are recorded in
-[`data/deprecatedIdentifiers/`](data/deprecatedIdentifiers/). Removal is a
+[`data/deprecated_identifiers/`](data/deprecated_identifiers/). Removal is a
 curation decision with as much information content as an addition, and recording
 it stops the same identifier being re-added or hunted for by someone who found it
 in an older figure or script.
@@ -74,7 +74,7 @@ python -m tools.deprecate reaction rxn00196_c0 \
 
 Drop `--dry-run` to actually apply it. `--reason` takes a fixed vocabulary
 documented in
-[`data/deprecatedIdentifiers/README.md`](data/deprecatedIdentifiers/README.md);
+[`data/deprecated_identifiers/README.md`](data/deprecated_identifiers/README.md);
 the full reasoning still belongs in the pull request description, which the list
 links back to.
 

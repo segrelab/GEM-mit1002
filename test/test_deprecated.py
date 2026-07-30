@@ -1,4 +1,4 @@
-"""Tests for the deprecated-identifier lists in data/deprecatedIdentifiers/.
+"""Tests for the deprecated-identifier lists in data/deprecated_identifiers/.
 
 The test that matters most is :meth:`TestDeprecatedNotInModel` -- it is what
 stops a curator re-adding something the project already decided to remove, and
@@ -32,7 +32,7 @@ from tools.deprecate import (
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEPRECATED_README = os.path.join(
-    REPO_ROOT, "data", "deprecatedIdentifiers", "README.md"
+    REPO_ROOT, "data", "deprecated_identifiers", "README.md"
 )
 
 
@@ -345,7 +345,7 @@ class TestNotesMirror(unittest.TestCase):
                     msg=(
                         f"{key} did not survive a COBRApy write/read cycle. If "
                         f"COBRApy changed how it handles model notes, the mirroring "
-                        f"strategy in data/deprecatedIdentifiers/README.md needs "
+                        f"strategy in data/deprecated_identifiers/README.md needs "
                         f"revisiting."
                     ),
                 )
@@ -374,13 +374,13 @@ class TestStampPrNumber(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             rxns = self._tsv(
                 tmp,
-                "deprecatedReactions.tsv",
+                "deprecated_reactions.tsv",
                 [
                     ("rxnAAA_c0", "blank", "dead_end", "", "", "2026-01-01", ""),
                     ("rxnBBB_c0", "issue", "dead_end", "", "#316", "2026-01-01", ""),
                 ],
             )
-            mets = self._tsv(tmp, "deprecatedMetabolites.tsv", [])
+            mets = self._tsv(tmp, "deprecated_metabolites.tsv", [])
             stamped = stamp_pr_number("317", reactions_tsv=rxns, metabolites_tsv=mets)
 
             self.assertEqual({rxns: ["rxnAAA_c0"]}, stamped)
@@ -398,10 +398,10 @@ class TestStampPrNumber(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             rxns = self._tsv(
                 tmp,
-                "deprecatedReactions.tsv",
+                "deprecated_reactions.tsv",
                 [("rxnAAA_c0", "blank", "dead_end", "", "", "2026-01-01", "")],
             )
-            mets = self._tsv(tmp, "deprecatedMetabolites.tsv", [])
+            mets = self._tsv(tmp, "deprecated_metabolites.tsv", [])
             stamp_pr_number("317", reactions_tsv=rxns, metabolites_tsv=mets)
             first = open(rxns, encoding="utf-8").read()
             self.assertEqual(
@@ -417,8 +417,8 @@ class TestStampPrNumber(unittest.TestCase):
         import tempfile
 
         with tempfile.TemporaryDirectory() as tmp:
-            rxns = self._tsv(tmp, "deprecatedReactions.tsv", [])
-            mets = self._tsv(tmp, "deprecatedMetabolites.tsv", [])
+            rxns = self._tsv(tmp, "deprecated_reactions.tsv", [])
+            mets = self._tsv(tmp, "deprecated_metabolites.tsv", [])
             for bad in ("", "not-a-number", "#abc"):
                 with self.subTest(value=bad):
                     with self.assertRaises(DeprecationError):
@@ -441,7 +441,7 @@ class TestVocabularyDocumented(unittest.TestCase):
             undocumented,
             msg=(
                 f"these reason values are allowed by tools/deprecate.py but not "
-                f"documented in data/deprecatedIdentifiers/README.md: "
+                f"documented in data/deprecated_identifiers/README.md: "
                 f"{undocumented}. A vocabulary nobody can look up is not a "
                 f"vocabulary."
             ),

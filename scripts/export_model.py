@@ -22,7 +22,7 @@ from tools.deprecate import (  # noqa: E402
 # parses SBO terms and RDF/MIRIAM CV terms out of annotations, so a
 # foreign-namespace block would be silently dropped the first time the model was
 # written back out -- including by this very script. Notes round-trip cleanly.
-# See data/deprecatedIdentifiers/README.md for the full reasoning.
+# See data/deprecated_identifiers/README.md for the full reasoning.
 notes = sync_model_notes()
 if notes:
     print(f"Synced deprecated identifier mirror into model notes: {', '.join(notes)}")

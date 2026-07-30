@@ -85,7 +85,7 @@ jobs:
         with:
           commit_user_name: action-bot
           commit_message: "chore: add custom-CI test result"
-          file_pattern: scripts/results/* data/deprecatedIdentifiers/*.tsv
+          file_pattern: scripts/results/* data/deprecated_identifiers/*.tsv
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number }}

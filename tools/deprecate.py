@@ -1,7 +1,7 @@
 """Remove entities from the MIT1002 model and record them, in one step.
 
 The point of this module is that removing a reaction from the model and logging
-it in ``data/deprecatedIdentifiers/`` are the same operation. Doing them
+it in ``data/deprecated_identifiers/`` are the same operation. Doing them
 separately is how a deprecated-identifier list rots.
 
 Typical use, from the repo root::
@@ -57,14 +57,14 @@ except ImportError as exc:  # pragma: no cover
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_PATH = os.path.join(REPO_ROOT, "model.xml")
-DEPRECATED_DIR = os.path.join(REPO_ROOT, "data", "deprecatedIdentifiers")
-REACTIONS_TSV = os.path.join(DEPRECATED_DIR, "deprecatedReactions.tsv")
-METABOLITES_TSV = os.path.join(DEPRECATED_DIR, "deprecatedMetabolites.tsv")
+DEPRECATED_DIR = os.path.join(REPO_ROOT, "data", "deprecated_identifiers")
+REACTIONS_TSV = os.path.join(DEPRECATED_DIR, "deprecated_reactions.tsv")
+METABOLITES_TSV = os.path.join(DEPRECATED_DIR, "deprecated_metabolites.tsv")
 
 COLUMNS = ["id", "name", "reason", "replaced_by", "pr", "date", "notes"]
 
 #: Closed vocabulary for the ``reason`` column. Keep in sync with the table in
-#: ``data/deprecatedIdentifiers/README.md``; ``test_deprecated.py`` enforces it.
+#: ``data/deprecated_identifiers/README.md``; ``test_deprecated.py`` enforces it.
 REASONS = (
     "duplicate",
     "id_changed",
@@ -550,7 +550,7 @@ NOTES_INFO_KEY = "DEPRECATED_INFO"
 NOTES_INFO_VALUE = (
     "reactions and metabolites listed above were deliberately removed during "
     "curation; full table with reasons at "
-    "https://github.com/C-CoMP-STC/GEM-mit1002/tree/main/data/deprecatedIdentifiers"
+    "https://github.com/C-CoMP-STC/GEM-mit1002/tree/main/data/deprecated_identifiers"
 )
 
 
@@ -625,7 +625,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         prog="python -m tools.deprecate",
         description=(
             "Remove reactions or metabolites from model.xml and record them in "
-            "data/deprecatedIdentifiers/ in one step."
+            "data/deprecated_identifiers/ in one step."
         ),
     )
     sub = parser.add_subparsers(dest="kind", required=True)

@@ -11,7 +11,7 @@ e.g. This PR improves/fixes # by ...
 - [ ] Made my edits to the model on the XML file
 - [ ] Tested my code on my own computer for running the model
 - [ ] Selected `dev` as a target branch
-- [ ] Removed any reactions/metabolites using `python -m tools.deprecate`, so they are recorded in `data/deprecatedIdentifiers/` (see the [README](../data/deprecatedIdentifiers/README.md) there). Nothing to remove in this PR? Check the box.
+- [ ] Removed any reactions/metabolites using `python -m tools.deprecate`, so they are recorded in `data/deprecated_identifiers/` (see the [README](../data/deprecated_identifiers/README.md) there). Nothing to remove in this PR? Check the box.
 
 <!-- The deprecate helper removes the entity and logs it in one step, and cleans
 up metabolites/genes the removal orphaned. Doing it by hand is how the list goes

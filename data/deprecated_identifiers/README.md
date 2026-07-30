@@ -13,8 +13,8 @@ more durable than a pull request thread.
 
 | File | Contents |
 | --- | --- |
-| `deprecatedReactions.tsv` | Reactions removed from the model |
-| `deprecatedMetabolites.tsv` | Metabolites (SBML species) removed from the model |
+| `deprecated_reactions.tsv` | Reactions removed from the model |
+| `deprecated_metabolites.tsv` | Metabolites (SBML species) removed from the model |
 
 ## Schema
 
@@ -106,7 +106,7 @@ SBML model's `<notes>` element, as:
   <html xmlns="http://www.w3.org/1999/xhtml">
     <p>DEPRECATED_REACTIONS: rxn00196_c0; rxn01032_c0; ...</p>
     <p>DEPRECATED_METABOLITES: cpd00225_c0; ...</p>
-    <p>DEPRECATED_INFO: full table with reasons at https://github.com/C-CoMP-STC/GEM-mit1002/tree/main/data/deprecatedIdentifiers</p>
+    <p>DEPRECATED_INFO: full table with reasons at https://github.com/C-CoMP-STC/GEM-mit1002/tree/main/data/deprecated_identifiers</p>
   </html>
 </notes>
 ```
