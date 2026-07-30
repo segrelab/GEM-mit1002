@@ -13,7 +13,7 @@ import unittest
 
 import cobra
 
-from scripts.deprecate import (
+from tools.deprecate import (
     COLUMNS,
     METABOLITES_TSV,
     MODEL_PATH,
@@ -133,7 +133,7 @@ class TestDeprecatedSchema(unittest.TestCase):
                         f"reason values outside the controlled vocabulary in "
                         f"{os.path.basename(path)}: {bad}. Allowed: "
                         f"{', '.join(REASONS)}. To add a category, update REASONS "
-                        f"in scripts/deprecate.py and the table in the README."
+                        f"in tools/deprecate.py and the table in the README."
                     ),
                 )
 
@@ -302,7 +302,7 @@ class TestNotesMirror(unittest.TestCase):
                         f"model notes {key} disagrees with the TSV. Missing from "
                         f"the model: {sorted(expected - actual)}; unexpectedly "
                         f"present: {sorted(actual - expected)}. Run "
-                        f"`python -m scripts.deprecate sync-notes` to regenerate."
+                        f"`python -m tools.deprecate sync-notes` to regenerate."
                     ),
                 )
 
@@ -315,7 +315,7 @@ class TestNotesMirror(unittest.TestCase):
             msg=(
                 "the model notes should point at the full table, so someone with "
                 "only model.xml can find the reasons. Run "
-                "`python -m scripts.deprecate sync-notes`."
+                "`python -m tools.deprecate sync-notes`."
             ),
         )
 
@@ -440,7 +440,7 @@ class TestVocabularyDocumented(unittest.TestCase):
             [],
             undocumented,
             msg=(
-                f"these reason values are allowed by scripts/deprecate.py but not "
+                f"these reason values are allowed by tools/deprecate.py but not "
                 f"documented in data/deprecatedIdentifiers/README.md: "
                 f"{undocumented}. A vocabulary nobody can look up is not a "
                 f"vocabulary."

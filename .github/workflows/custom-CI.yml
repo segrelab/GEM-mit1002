@@ -77,7 +77,7 @@ jobs:
       - name: Stamp PR# into deprecated identifier lists
         env:
           PR_NUMBER: ${{ github.event.number }}
-        run: python -m scripts.deprecate stamp-pr "$PR_NUMBER"
+        run: python -m tools.deprecate stamp-pr "$PR_NUMBER"
 
       # Auto-commit the changes directly without stashing
       - name: Auto-commit results

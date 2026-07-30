@@ -24,6 +24,31 @@ To run MACAW use:
 python run_macaw.py
 ```
 
+## Repository layout
+
+Three directories hold code, and the distinction between them is about *what the
+code does*, not what it is about. Please put new code in the matching one.
+
+| Directory | Contains | How it runs |
+| --- | --- | --- |
+| `test/` | Checks that assert something about the model and pass or fail | Automatically, via `pytest` in CI. A failure blocks the PR |
+| `scripts/` | Code that generates an artifact for a person to look at — a table, a plot, an exported file. No pass/fail | Automatically in CI, writing to `scripts/results/` |
+| `tools/` | Importable functions, and command-line utilities a curator runs deliberately to *change* the model | By hand, or imported by the above |
+
+`tools/deprecate.py` is the current example of the third kind: you invoke it
+yourself when you remove something, and `scripts/export_model.py` and
+`test/test_deprecated.py` both import from it.
+
+Two other directories hold code that is neither of these: `curation_process/`
+analyses the history of the curation effort itself across past PRs, and
+`biomass/`, `genome/`, `escher/` and similar hold the exploratory work behind
+particular parts of the model.
+
+Note that [standard-GEM](https://github.com/MetabolicAtlas/standard-GEM), which
+yeast-GEM and Human-GEM follow, asks for a single `code/` directory instead. The
+split above is a deliberate refinement of that; `code/` is also a poor Python
+package name because it shadows a standard-library module.
+
 ## To contribute to the model
 1. Make a GitHub account
 2. Make a fork/branch of this repo
@@ -43,7 +68,7 @@ Remove things with the helper, which edits the model and updates the list in one
 step, and cleans up any metabolite or gene the removal orphaned:
 
 ```
-python -m scripts.deprecate reaction rxn00196_c0 \
+python -m tools.deprecate reaction rxn00196_c0 \
     --reason no_genomic_evidence --dry-run
 ```
 

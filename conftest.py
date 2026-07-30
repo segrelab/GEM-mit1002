@@ -1,7 +1,7 @@
 """Pytest configuration for the MIT1002 model repo.
 
 This file exists so that tests can import repo modules, e.g.
-``from scripts.deprecate import read_records``. Pytest prepends the directory
+``from tools.deprecate import read_records``. Pytest prepends the directory
 containing the rootdir ``conftest.py`` to ``sys.path``, which makes ``scripts``
 and ``test`` importable as packages regardless of where pytest is invoked from.
 

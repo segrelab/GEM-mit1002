@@ -7,7 +7,7 @@ import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from scripts.deprecate import (  # noqa: E402
+from tools.deprecate import (  # noqa: E402
     METABOLITES_TSV,
     REACTIONS_TSV,
     read_records,

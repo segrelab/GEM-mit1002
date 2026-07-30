@@ -57,7 +57,7 @@ Do not hand-edit these files and do not hand-edit `model.xml` to delete an
 entity. Use the helper, which does both halves in one step:
 
 ```python
-from scripts.deprecate import deprecate_reactions
+from tools.deprecate import deprecate_reactions
 
 deprecate_reactions(
     ["rxn00196_c0"],
@@ -71,7 +71,7 @@ deprecate_reactions(
 Note the absence of a `pr` argument above. You remove things on your branch
 *before* you open the pull request, so the number does not exist yet. Leave it
 blank and CI fills it in: the `Custom-CI` workflow runs
-`python -m scripts.deprecate stamp-pr "$PR_NUMBER"` on every pull request and
+`python -m tools.deprecate stamp-pr "$PR_NUMBER"` on every pull request and
 commits the result, exactly as it already stamps the PR number into
 `scripts/results/README.md`.
 
@@ -92,7 +92,7 @@ metabolites and genes, so a removal that does not cascade breaks CI.
 Run `--help` on the module for the metabolite equivalent and for a dry-run flag:
 
 ```bash
-python -m scripts.deprecate --help
+python -m tools.deprecate --help
 ```
 
 ## Why the model file also carries this information

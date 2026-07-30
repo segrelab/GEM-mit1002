@@ -6,7 +6,7 @@ separately is how a deprecated-identifier list rots.
 
 Typical use, from the repo root::
 
-    from scripts.deprecate import deprecate_reactions
+    from tools.deprecate import deprecate_reactions
 
     deprecate_reactions(
         ["rxn00196_c0"],
@@ -20,7 +20,7 @@ it in -- see :func:`stamp_pr_number`.
 
 or from the command line::
 
-    python -m scripts.deprecate reaction rxn00196_c0 \
+    python -m tools.deprecate reaction rxn00196_c0 \
         --reason no_genomic_evidence --dry-run
 
 Both entry points cascade: metabolites and genes left with no reactions after a
@@ -622,7 +622,7 @@ def _escape(text: str) -> str:
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="python -m scripts.deprecate",
+        prog="python -m tools.deprecate",
         description=(
             "Remove reactions or metabolites from model.xml and record them in "
             "data/deprecatedIdentifiers/ in one step."
