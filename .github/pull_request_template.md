@@ -18,8 +18,9 @@ up metabolites/genes the removal orphaned. Doing it by hand is how the list goes
 stale, and test_deprecated.py will fail if the model and the list disagree.
 
     python -m scripts.deprecate reaction rxn00196_c0 \
-        --reason no_genomic_evidence --pr '#317' --dry-run
+        --reason no_genomic_evidence --dry-run
 
-Use the PR description above for the full reasoning -- the TSV only records a
-one-word reason category and a link back here. -->
+You do not need to pass a PR number -- you do not have one yet. CI fills it in
+once this PR exists. Use the description above for the full reasoning; the TSV
+only records a one-word reason category and a link back here. -->
 

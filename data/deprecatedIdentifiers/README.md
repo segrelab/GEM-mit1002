@@ -26,7 +26,7 @@ Both files share the same columns.
 | `name` | no | The `name` attribute the entity had when it was removed. Purely for human readability. |
 | `reason` | yes | One value from the controlled vocabulary below. |
 | `replaced_by` | no | The identifier that now serves this function, if any. Semicolon-separated if more than one. Empty means nothing replaced it. |
-| `pr` | no | Pull request number that removed it, as `#123`. The PR remains the long-form record of the reasoning. |
+| `pr` | no | Pull request number that removed it, as `#123`. The PR remains the long-form record of the reasoning. **Leave this blank** — CI fills it in, see below. |
 | `date` | no | `YYYY-MM-DD` the removal landed. |
 | `notes` | no | At most one short line. Anything longer belongs in the PR. |
 
@@ -62,9 +62,25 @@ from scripts.deprecate import deprecate_reactions
 deprecate_reactions(
     ["rxn00196_c0"],
     reason="no_genomic_evidence",
-    pr="#317",
     notes="no candidate gene in the MIT1002 genome",
 )
+```
+
+### You do not need to know your PR number
+
+Note the absence of a `pr` argument above. You remove things on your branch
+*before* you open the pull request, so the number does not exist yet. Leave it
+blank and CI fills it in: the `Custom-CI` workflow runs
+`python -m scripts.deprecate stamp-pr "$PR_NUMBER"` on every pull request and
+commits the result, exactly as it already stamps the PR number into
+`scripts/results/README.md`.
+
+Stamping only fills **blank** cells. If you already know the relevant number —
+usually because the removal closes an issue — pass it and CI will leave it
+alone:
+
+```python
+deprecate_reactions(["rxn08703_c0"], reason="no_genomic_evidence", pr="#316")
 ```
 
 The helper removes the reaction from `model.xml`, appends a row here, and

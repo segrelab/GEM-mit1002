@@ -44,7 +44,7 @@ step, and cleans up any metabolite or gene the removal orphaned:
 
 ```
 python -m scripts.deprecate reaction rxn00196_c0 \
-    --reason no_genomic_evidence --pr '#317' --dry-run
+    --reason no_genomic_evidence --dry-run
 ```
 
 Drop `--dry-run` to actually apply it. `--reason` takes a fixed vocabulary
@@ -52,6 +52,10 @@ documented in
 [`data/deprecatedIdentifiers/README.md`](data/deprecatedIdentifiers/README.md);
 the full reasoning still belongs in the pull request description, which the list
 links back to.
+
+You do not need to pass a PR number — you do not have one yet when you are
+working on your branch. CI fills it in on every pull request and commits the
+result, the same way it stamps the PR number into `scripts/results/README.md`.
 
 The identifier lists are also mirrored into the SBML model's `<notes>`, so a
 person who downloads only `model.xml` can still tell that those identifiers were

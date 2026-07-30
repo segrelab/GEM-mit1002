@@ -23,8 +23,10 @@ from scripts.deprecate import (
     REACTIONS_TSV,
     REASONS,
     REASONS_REQUIRING_REPLACEMENT,
+    DeprecationError,
     build_notes_dict,
     read_records,
+    stamp_pr_number,
     strip_sbml_prefix,
 )
 
@@ -347,6 +349,82 @@ class TestNotesMirror(unittest.TestCase):
                         f"revisiting."
                     ),
                 )
+
+
+class TestStampPrNumber(unittest.TestCase):
+    """CI fills in the pr column, because you cannot know it in advance.
+
+    The property that matters is that stamping only fills blank cells: a row
+    deliberately pointing at a different PR, or at an issue, must survive.
+    """
+
+    HEADER = "\t".join(COLUMNS) + "\n"
+
+    def _tsv(self, tmp, name, rows):
+        path = os.path.join(tmp, name)
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write(self.HEADER)
+            for row in rows:
+                handle.write("\t".join(row) + "\n")
+        return path
+
+    def test_fills_blanks_and_preserves_existing(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            rxns = self._tsv(
+                tmp,
+                "deprecatedReactions.tsv",
+                [
+                    ("rxnAAA_c0", "blank", "dead_end", "", "", "2026-01-01", ""),
+                    ("rxnBBB_c0", "issue", "dead_end", "", "#316", "2026-01-01", ""),
+                ],
+            )
+            mets = self._tsv(tmp, "deprecatedMetabolites.tsv", [])
+            stamped = stamp_pr_number("317", reactions_tsv=rxns, metabolites_tsv=mets)
+
+            self.assertEqual({rxns: ["rxnAAA_c0"]}, stamped)
+            by_id = {r.id: r for r in read_records(rxns)}
+            self.assertEqual("#317", by_id["rxnAAA_c0"].pr)
+            self.assertEqual(
+                "#316",
+                by_id["rxnBBB_c0"].pr,
+                msg="stamping must not overwrite a row already attributed elsewhere",
+            )
+
+    def test_is_idempotent(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            rxns = self._tsv(
+                tmp,
+                "deprecatedReactions.tsv",
+                [("rxnAAA_c0", "blank", "dead_end", "", "", "2026-01-01", "")],
+            )
+            mets = self._tsv(tmp, "deprecatedMetabolites.tsv", [])
+            stamp_pr_number("317", reactions_tsv=rxns, metabolites_tsv=mets)
+            first = open(rxns, encoding="utf-8").read()
+            self.assertEqual(
+                {}, stamp_pr_number("999", reactions_tsv=rxns, metabolites_tsv=mets)
+            )
+            self.assertEqual(
+                first,
+                open(rxns, encoding="utf-8").read(),
+                msg="a second CI run must not change anything",
+            )
+
+    def test_rejects_non_numeric(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            rxns = self._tsv(tmp, "deprecatedReactions.tsv", [])
+            mets = self._tsv(tmp, "deprecatedMetabolites.tsv", [])
+            for bad in ("", "not-a-number", "#abc"):
+                with self.subTest(value=bad):
+                    with self.assertRaises(DeprecationError):
+                        stamp_pr_number(
+                            bad, reactions_tsv=rxns, metabolites_tsv=mets
+                        )
 
 
 class TestVocabularyDocumented(unittest.TestCase):

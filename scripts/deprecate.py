@@ -11,14 +11,17 @@ Typical use, from the repo root::
     deprecate_reactions(
         ["rxn00196_c0"],
         reason="no_genomic_evidence",
-        pr="#317",
         notes="no candidate gene in the MIT1002 genome",
     )
+
+There is deliberately no ``pr`` argument in that example. You remove things on
+your branch before the pull request exists, so leave it blank and let CI stamp
+it in -- see :func:`stamp_pr_number`.
 
 or from the command line::
 
     python -m scripts.deprecate reaction rxn00196_c0 \
-        --reason no_genomic_evidence --pr '#317' --dry-run
+        --reason no_genomic_evidence --dry-run
 
 Both entry points cascade: metabolites and genes left with no reactions after a
 removal are cleaned up too, and the orphaned metabolites are logged with
@@ -496,6 +499,48 @@ def deprecate_metabolites(
 
 
 # --------------------------------------------------------------------------
+# Stamping the PR number after the fact
+# --------------------------------------------------------------------------
+
+
+def stamp_pr_number(
+    number: str,
+    reactions_tsv: str = REACTIONS_TSV,
+    metabolites_tsv: str = METABOLITES_TSV,
+) -> dict[str, list[str]]:
+    """Fill in the ``pr`` column for rows that do not have one yet.
+
+    You cannot know your pull request number before you open the pull request,
+    so ``--pr`` is optional when you deprecate something. CI closes the loop:
+    the ``Custom-CI`` workflow runs this on every pull request and commits the
+    result, the same way it already stamps the PR number into
+    ``scripts/results/README.md``.
+
+    Only blank cells are filled, so re-running is safe and a row that was
+    deliberately attributed to a different PR or issue is never overwritten.
+
+    Returns a mapping of file path to the ids that were stamped.
+    """
+    if not number:
+        raise DeprecationError("no PR number given")
+    pr = "#" + str(number).lstrip("#")
+    if not re.fullmatch(r"#\d+", pr):
+        raise DeprecationError(f"{number!r} does not look like a PR number")
+
+    stamped: dict[str, list[str]] = {}
+    for path in (reactions_tsv, metabolites_tsv):
+        records = read_records(path)
+        touched = [r for r in records if not r.pr]
+        if not touched:
+            continue
+        for record in touched:
+            record.pr = pr
+        write_records(path, records)
+        stamped[path] = [r.id for r in touched]
+    return stamped
+
+
+# --------------------------------------------------------------------------
 # Notes mirror (shared with scripts/export_model.py)
 # --------------------------------------------------------------------------
 
@@ -597,7 +642,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             default="",
             help="identifier(s) that supersede these, semicolon-separated",
         )
-        p.add_argument("--pr", default="", help="pull request number, e.g. '#317'")
+        p.add_argument(
+            "--pr",
+            default="",
+            help=(
+                "pull request number, e.g. '#317'. Usually omit this: CI stamps "
+                "it in once the PR exists. Pass it only if you already know the "
+                "relevant number, e.g. an issue this closes."
+            ),
+        )
         p.add_argument("--notes", default="", help="one short line; prose goes in the PR")
         p.add_argument("--date", default="", help="YYYY-MM-DD, defaults to today")
         p.add_argument("--model", default=MODEL_PATH)
@@ -618,12 +671,25 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     sync.add_argument("--model", default=MODEL_PATH)
 
+    stamp = sub.add_parser(
+        "stamp-pr",
+        help="fill in blank pr cells with a PR number (CI runs this for you)",
+    )
+    stamp.add_argument("number", help="pull request number, with or without '#'")
+
     args = parser.parse_args(argv)
 
     try:
         if args.kind == "sync-notes":
             notes = sync_model_notes(model_path=args.model)
             print(f"Model notes now carry {len(notes)} key(s): {', '.join(notes)}")
+            return 0
+        if args.kind == "stamp-pr":
+            stamped = stamp_pr_number(args.number)
+            if not stamped:
+                print("No blank pr cells to fill.")
+            for path, ids in stamped.items():
+                print(f"Stamped {len(ids)} row(s) in {os.path.basename(path)}: {', '.join(ids)}")
             return 0
         if args.kind == "reaction":
             result = deprecate_reactions(

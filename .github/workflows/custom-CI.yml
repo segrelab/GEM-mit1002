@@ -69,13 +69,23 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
         run: sed -i -e "s/[[:digit:]]\{3,4\}\*\* (CUSTOM-CI)/$PR_NUMBER\*\* (CUSTOM-CI)/" scripts/results/README.md
 
+      # You cannot know your PR number before opening the PR, so `--pr` is
+      # optional when deprecating something. Fill in the blanks here, the same
+      # way the step above stamps the PR number into scripts/results/README.md.
+      # Only empty cells are touched, so rows attributed to a different PR or
+      # to an issue are left alone.
+      - name: Stamp PR# into deprecated identifier lists
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: python -m scripts.deprecate stamp-pr "$PR_NUMBER"
+
       # Auto-commit the changes directly without stashing
       - name: Auto-commit results
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_user_name: action-bot
           commit_message: "chore: add custom-CI test result"
-          file_pattern: scripts/results/*
+          file_pattern: scripts/results/* data/deprecatedIdentifiers/*.tsv
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number }}
