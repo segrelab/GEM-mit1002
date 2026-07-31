@@ -176,7 +176,9 @@ def read_records(path: str) -> list[DeprecationRecord]:
 
 def write_records(path: str, records: Iterable[DeprecationRecord]) -> None:
     """Write records sorted by id, so the file diffs cleanly in review."""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    parent = os.path.dirname(path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
     rows = sorted((r.as_row() for r in records), key=lambda r: r["id"])
     with open(path, "w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(
