@@ -8,22 +8,22 @@ EX_cpd03453_e0	Exchange for Enterobactin [e0]	unknown		#290	2025-10-16	fix: remo
 EX_cpd03726_e0	Exchange for Fe-enterochlin [e0]	unknown		#290	2025-10-16	fix: remove EX_cpd03726_e0	f6a2a21	none
 EX_cpd04097_e0	Exchange for Pb [e0]	no_genomic_evidence		#303	2025-10-23	fix: GPRs of copper transport reactions and remove unsupported/unnecessary heavy metal transport reactions	4e6ca8a	high
 EX_cpd11574_e0	Exchange for Molybdate [e0]	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway	7544274	high
-rxn00154_c0	pyruvate:NAD+ 2-oxidoreductase (CoA-acetylating) [c0]	duplicate		#107	2025-03-11	fix: removed rxn00154_c0 for being a duplicate of rxn00011_c0 + rxn02342_c0 + rxn01871_c0	f764bcc	high
+rxn00154_c0	pyruvate:NAD+ 2-oxidoreductase (CoA-acetylating) [c0]	duplicate	rxn00011_c0; rxn02342_c0; rxn01871_c0; rxn01241_c0	#107	2025-03-11	fix: removed rxn00154_c0 for being a duplicate of rxn00011_c0 + rxn02342_c0 + rxn01871_c0	f764bcc	high
 rxn00196_c0	"2,5-dioxopentanoate:NADP+ 5-oxidoreductase [c0]"	unknown		#316	2025-10-31	"fix: remove rxn00196, rxn01032, rxn01033, rxn08703, rxn37372, cpd00225, cpd00340, cpd02027"	c455699	none
 rxn00227_c0	Acetyl phosphate phosphohydrolase [c0]	unknown		#292	2025-10-21	"fix: remove rxn00227_c0, rxn01103_c0, and WP_015066019.1"	40060c0	none
 rxn00288_c0	Succinate:(acceptor) oxidoreductase [c0]	unknown		#392	2026-03-31	fix: remove rxn00288_c0 and rxn10126_c0 add rxn09272_c0	053f77f	none
-rxn00304_c0	GTP:pyruvate 2-O-phosphotransferase [c0]	duplicate		#341	2025-12-18	fix: remove duplicate pyks	68159b3	high
+rxn06377_c0	glycine:lipoylprotein oxidoreductase (decarboxylating and acceptor-aminomethylating) [c0]	id_changed	rxn09499_c0	#108	2025-03-11	fix: replaced lipoylprotein metabolites with lipoamide equivalents in glycine cleavage system reactions and adjusted reaction IDs accordingl	8214c5e	high
 rxn00309_c0	L-Lysine:NAD+ 6-oxidoreductase (deaminating) [c0]	unknown		#312	2025-10-29	fix: remove rxn00309_c0 and rxn01662_c0	93fb75e	none
 rxn00317_c0	L-Lysine:2-oxoglutarate 6-aminotransferase [c0]	unknown		#283	2025-10-06	fix: remove rxn00317_c0 and WP_197047972.1	0774907	none
-rxn00411_c0	CTP:pyruvate 2-O-phosphotransferase [c0]	duplicate		#341	2025-12-18	fix: remove duplicate pyks	68159b3	high
-rxn00460_c0	UTP:pyruvate 2-O-phosphotransferase [c0]	duplicate		#341	2025-12-18	fix: remove duplicate pyks	68159b3	high
+rxn06600_c0	S-aminomethyldihydrolipoylprotein:(6S)-tetrahydrofolate aminomethyltransferase (ammonia-forming) [c0]	id_changed	rxn09498_c0	#108	2025-03-11	fix: replaced lipoylprotein metabolites with lipoamide equivalents in glycine cleavage system reactions and adjusted reaction IDs accordingl	8214c5e	high
+rxn07979_c0	3-hydroxyacyl-[acyl-carrier-protein] dehydratase (n-C18:0) [c0]	duplicate	rxn05462_c0	#150	2025-03-27	"fix: removed duplicate dead-end reactions and metabolites rxn07979_c0, cpd15572_c0, cpd15371_c0"	f26baa4	high
 rxn00499_c0	(S)-Lactate:NAD+ oxidoreductase [c0]	unknown		#245	2025-09-15	"fix: correct GPRs for rxn00145_c0, rxn08792_c0, and rxn08793_c0 & remove rxn00499_c0"	64b156e	none
 rxn00551_c0	diphosphate:D-fructose-6-phosphate 1-phosphotransferase [c0]	unknown		#340	2025-12-18	fix: remove rxn00551_c0	94abc2c	none
 rxn00569_c0	Nitrite reductase (NAD(P)H) [c0]	unknown		#299	2025-10-22	fix: nitrate/nitrite redox reactions	a01d950	none
 rxn00656_c0	L-Alanine:3-oxopropanoate aminotransferase [c0]	unknown		#291	2025-10-21	"fix: remove rxn00656_c0, rxn24212_c0, and WP_197047972.1"	fc5e5f3	none
 rxn00668_c0	propanoyl-CoA:NADP+ 2-oxidoreductase [c0]	unknown		#286	2025-10-10	"fix: add rxn16586_c0 and WP_049586872.1, remove rxn00668_c0, cpd00663_c0, and WP_049586872.1"	ae4b7e9	none
 rxn00782_c0	D-glyceraldehyde-3-phosphate:NADP+ oxidoreductase (phosphorylating) [c0]	unknown		#344	2026-01-06	fix: remove rxn00782	85d3d9d	none
-rxn00840_c0	dATP:pyruvate 2-O-phosphotransferase [c0]	duplicate		#341	2025-12-18	fix: remove duplicate pyks	68159b3	high
+rxn17275_c0	"PAPS reductase, thioredoxin-dependent [c0]"	duplicate	rxn05239_c0	#181	2025-04-02	fix: remove duplicate thioredoxin metabolites and reactions	4d7cb96	high
 rxn01032_c0	Benzaldehyde:NAD+ oxidoreductase [c0]	unknown		#316	2025-10-31	"fix: remove rxn00196, rxn01032, rxn01033, rxn08703, rxn37372, cpd00225, cpd00340, cpd02027"	c455699	none
 rxn01084_c0	ATP:cob(I)alamin Co-beta-adenosyltransferase [c0]	dead_end		#146	2025-03-26	fix: remove dead-end cobalamin metabolism reactions and remove cobalamin metabolites from biomass reaction	d4e881f	high
 rxn01103_c0	3-Phospho-D-glyceroyl phosphate phosphohydrolase [c0]	unknown		#292	2025-10-21	"fix: remove rxn00227_c0, rxn01103_c0, and WP_015066019.1"	40060c0	none
@@ -32,15 +32,15 @@ rxn01109_c0	beta-D-Glucose:NADP+ 1-oxoreductase [c0]	out_of_scope		#211	2025-04-
 rxn01171_c0	D-glucose 1-epimerase [c0]	out_of_scope		#211	2025-04-21	fix: remove unnecessary anomer-specific glucose reactions and metabolites	9b37031	high
 rxn01203_c0	R01647 [c0]	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions	96e01e9	high
 rxn01285_c0	"(R,R)-tartrate carboxy-lyase (D-glycerate-forming) [c0]"	unknown		#305	2025-10-24	"fix: remove reactions rxn01285_c0, rxn01894_c0, rxn02788_c0 and associated metabolites & genes"	0cdf694	none
-rxn01354_c0	dGTP:pyruvate 2-O-phosphotransferase [c0]	duplicate		#341	2025-12-18	fix: remove duplicate pyks	68159b3	high
+rxn27318_c0	NADPH-thioredoxin reductase [c0]	duplicate	rxn05289_c0	#181	2025-04-02	fix: remove duplicate thioredoxin metabolites and reactions	4d7cb96	high
 rxn01621_c0	L-Rhamnulose-1-phosphate lactaldehyde-lyase [c0]	unknown		#288	2025-10-16	"fix several issues with GPRs of aldehyde/carboxylate redox reactions and remove rxn01621_c0, cpd00831_c0, & WP_049588490.1"	10d40d1	none
-rxn01644_c0	L-Aspartate-4-semialdehyde hydro-lyase (adding pyruvate and cyclizing) [c0]	id_changed		#186	2025-04-03	"fix: replace rxn01644_c0, rxn02929_c0, and cpd02120_c0 with rxn40037_c0, rxn39452_c0, and cpd21488_c0"	2beff13	high
+rxn01644_c0	L-Aspartate-4-semialdehyde hydro-lyase (adding pyruvate and cyclizing) [c0]	duplicate	rxn40037_c0	#186	2025-04-03	"fix: replace rxn01644_c0, rxn02929_c0, and cpd02120_c0 with rxn40037_c0, rxn39452_c0, and cpd21488_c0"	2beff13	high
 rxn01662_c0	"N6-(L-1,3-Dicarboxypropyl)-L-lysine:NAD+ oxidoreductase [c0]"	unknown		#312	2025-10-29	fix: remove rxn00309_c0 and rxn01662_c0	93fb75e	none
 rxn02021_c0	Hg:NADP+ oxidoreductase [c0]	no_genomic_evidence		#303	2025-10-23	fix: GPRs of copper transport reactions and remove unsupported/unnecessary heavy metal transport reactions	4e6ca8a	high
-rxn02200_c0	"2-amino-4-hydroxy-6-hydroxymethyl-7,8-dihydropteridine:4-aminobenzoate 2-amino-4-hydroxydihydropteridine-6-methenyltransferase [c0]"	duplicate		#206	2025-04-11	fix: removed rxn02200_c0 for being a less accurate duplicate of rxn02503_c0+rxn02201_c0	6577312	high
+rxn02929_c0	"2,3,4,5-Tetrahydrodipicolinate:NADP+ oxidoreductase [c0]"	duplicate	rxn39452_c0	#186	2025-04-03	"fix: replace rxn01644_c0, rxn02929_c0, and cpd02120_c0 with rxn40037_c0, rxn39452_c0, and cpd21488_c0"	2beff13	high
 rxn02222_c0	Indole-3-acetamide amidohydrolase [c0]	unknown		#293	2025-10-21	"fix: remove rxn02222, cpd00703, and cpd01747"	544f861	none
 rxn02305_c0	2-methyl-4-amino-5-hydroxymethylpyrimidine-diphosphate:4-methyl-5-(2-phosphoethyl)-thiazole 2-methyl-4-aminopyridine-5-methenyltransferase [c0]	dead_end		#144	2025-03-25	fix: add missing thiamine biosynthesis reactions and remove inaccurate/dead-end ones	17806c5	high
-rxn02929_c0	"2,3,4,5-Tetrahydrodipicolinate:NADP+ oxidoreductase [c0]"	id_changed		#186	2025-04-03	"fix: replace rxn01644_c0, rxn02929_c0, and cpd02120_c0 with rxn40037_c0, rxn39452_c0, and cpd21488_c0"	2beff13	high
+rxn02200_c0	"2-amino-4-hydroxy-6-hydroxymethyl-7,8-dihydropteridine:4-aminobenzoate 2-amino-4-hydroxydihydropteridine-6-methenyltransferase [c0]"	duplicate	rxn02503_c0; rxn02201_c0	#206	2025-04-11	fix: removed rxn02200_c0 for being a less accurate duplicate of rxn02503_c0+rxn02201_c0	6577312	high
 rxn03396_c0	R04989 [c0]	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions	9109722	high
 rxn05029_c0	ATP:cobinamide Cobeta-adenosyltransferase [c0]	dead_end		#146	2025-03-26	fix: remove dead-end cobalamin metabolism reactions and remove cobalamin metabolites from biomass reaction	d4e881f	high
 rxn05121_c0	R07412 [c0]	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions	9109722	high
@@ -56,32 +56,31 @@ rxn05517_c0	cadminum transport out via antiport [c0]	no_genomic_evidence		#303	2
 rxn05539_c0	oligopeptide-transporting ATPase [c0]	out_of_scope		#262	2025-09-23	fix: remove dipeptide uptake reactions and extracellular metabolites	0a93e6a	high
 rxn05619_c0	ATP phosphohydrolase (molybdate-importing) [c0]	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway	7544274	high
 rxn05669_c0	L-Valine:proton symport	out_of_scope		#281	2025-10-06	feat: standardize amino acid transport reactions	26647e8	high
-rxn06077_c0	L-methionine:oxidized-thioredoxin S-oxidoreductase [c0]	duplicate		#182	2025-04-02	fix: removed dead-end duplicate methionine S-oxide reactions and metabolites	f766310	high
+rxn06077_c0	L-methionine:oxidized-thioredoxin S-oxidoreductase [c0]	out_of_scope		#182	2025-04-02	fix: removed reactions representing cleaning up/recovering from oxidative damage from free radicals and hydrogen peroxide	f766310	high
 rxn06335_c0	(S)-2-methylbutanoyl-CoA:enzyme N6-(dihydrolipoyl)lysine S-(2-methylbutanoyl)transferase [c0]	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions	9109722	high
-rxn06377_c0	glycine:lipoylprotein oxidoreductase (decarboxylating and acceptor-aminomethylating) [c0]	id_changed		#108	2025-03-11	fix: replaced lipoylprotein metabolites with lipoamide equivalents in glycine cleavage system reactions and adjusted reaction IDs accordingl	8214c5e	high
+rxn08353_c0	5-demethylubiquinone-8 methyltransferase [c0]	duplicate	rxn11946_c0	#208	2025-04-14	"fix: removed rxn08353_c0 and cpd15360_c0 for effectively being duplicates of rxn11946_c0 and cpd03449_c0, respectively"	31284ad	high
 rxn06586_c0	3-methylbutanoyl-CoA:enzyme N6-(dihydrolipoyl)lysine S-(3-methylbutanoyl)transferase [c0]	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions	9109722	high
-rxn06600_c0	S-aminomethyldihydrolipoylprotein:(6S)-tetrahydrofolate aminomethyltransferase (ammonia-forming) [c0]	id_changed		#108	2025-03-11	fix: replaced lipoylprotein metabolites with lipoamide equivalents in glycine cleavage system reactions and adjusted reaction IDs accordingl	8214c5e	high
+rxn08527_c0	fumarate reductase [c0]	duplicate	rxn00288_c0; rxn10126_c0	#212	2025-04-21	fix: remove duplicate succinate dehydrogenase reactions	595bebc	high
 rxn07433_c0	R07602 [c0]	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions	9109722	high
 rxn07435_c0	R07604 [c0]	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions	9109722	high
 rxn07436_c0	7-aminomethyl-7-carbaguanine:NADP+ oxidoreductase [c0]	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions	9109722	high
-rxn07438_c0	peptide-methionine:thioredoxin-disulfide S-oxidoreductase [c0]	duplicate		#182	2025-04-02	fix: removed dead-end duplicate methionine S-oxide reactions and metabolites	f766310	high
-rxn07439_c0	L-methionine:thioredoxin-disulfide S-oxidoreductase [L-methionine (R)-S-oxide-forming] [c0]	duplicate		#182	2025-04-02	fix: removed dead-end duplicate methionine S-oxide reactions and metabolites	f766310	high
-rxn07979_c0	3-hydroxyacyl-[acyl-carrier-protein] dehydratase (n-C18:0) [c0]	duplicate		#150	2025-03-27	"fix: removed duplicate dead-end reactions and metabolites rxn07979_c0, cpd15572_c0, cpd15371_c0"	f26baa4	high
+rxn07438_c0	peptide-methionine:thioredoxin-disulfide S-oxidoreductase [c0]	out_of_scope		#182	2025-04-02	fix: removed reactions representing cleaning up/recovering from oxidative damage from free radicals and hydrogen peroxide	f766310	high
+rxn07439_c0	L-methionine:thioredoxin-disulfide S-oxidoreductase [L-methionine (R)-S-oxide-forming] [c0]	out_of_scope		#182	2025-04-02	fix: removed reactions representing cleaning up/recovering from oxidative damage from free radicals and hydrogen peroxide	f766310	high
+rxn08528_c0	fumarate reductase [c0]	duplicate	rxn00288_c0; rxn10126_c0	#212	2025-04-21	fix: remove duplicate succinate dehydrogenase reactions	595bebc	high
 rxn07981_c0	3-hydroxyacyl-[acyl-carrier-protein] dehydratase (n-C4:0) [c0]	unknown		#190	2025-04-03	fix: remove rxn07981_c0 and cpd11836_c0	825cbb8	none
 rxn08098_c0	D-alanyl-D-alanine (DalaDala) transport via ABC system (periplasm) [c0]	out_of_scope		#262	2025-09-23	fix: remove dipeptide uptake reactions and extracellular metabolites	0a93e6a	high
 rxn08131_c0	4-amino-2-methyl-5-phosphomethylpyrimidine synthetase [c0]	erroneous_annotation		#192	2025-04-04	fix: remove questionably real rxn08131_c0	1ffcde9	high
 rxn08192_c0	ABC-5-RXN.cp [c0]	dead_end		#146	2025-03-26	fix: remove dead-end cobalamin metabolism reactions and remove cobalamin metabolites from biomass reaction	d4e881f	high
 rxn08275_c0	copper transport out via proton antiport [c0]	no_genomic_evidence		#303	2025-10-23	fix: GPRs of copper transport reactions and remove unsupported/unnecessary heavy metal transport reactions	4e6ca8a	high
-rxn08353_c0	5-demethylubiquinone-8 methyltransferase [c0]	duplicate		#208	2025-04-14	"fix: removed rxn08353_c0 and cpd15360_c0 for effectively being duplicates of rxn11946_c0 and cpd03449_c0, respectively"	31284ad	high
+rxn20583_c0	phosphoglucose mutase [c0]	duplicate	rxn00704_c0	#213	2025-05-29	fix: removed rxn02583_c0 for being a duplicate of rxn00704_c0	46ea2ba	high
 rxn08502_e0	enterobactin Fe(III) binding (spontaneous) [e0]	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions	9109722	high
-rxn08527_c0	fumarate reductase [c0]	duplicate		#212	2025-04-21	fix: remove duplicate succinate dehydrogenase reactions	595bebc	high
-rxn08528_c0	fumarate reductase [c0]	duplicate		#212	2025-04-21	fix: remove duplicate succinate dehydrogenase reactions	595bebc	high
+rxn08808_c0	"Lysophospholipase L1 (2-acylglycerophosphoethanolamine, n-C18:0) (periplasm) [c0]"	duplicate	rxn08843_c0; rxn08851_c0	#279	2025-10-02	"fix: remove duplicate metabolite and reactions cpd15349_c0, rxn08808_c0, and rxn08809_c0"	33a5940	high
+rxn08809_c0	"Lysophospholipase L1 (2-acylglycerophosphoethanolamine, n-C18:1) (periplasm) [c0]"	duplicate	rxn08851_c0	#279	2025-10-02	"fix: remove duplicate metabolite and reactions cpd15349_c0, rxn08808_c0, and rxn08809_c0"	33a5940	high
 rxn08703_c0	S-methylmethionine homocysteine transmethylase [c0]	unknown		#315	2025-11-11	fix: remove rxn08703 per #316	2b9cfba	none
 rxn08715_c0	Mercury (Hg+2) ABC transporter (periplasm) [c0]	no_genomic_evidence		#303	2025-10-23	fix: GPRs of copper transport reactions and remove unsupported/unnecessary heavy metal transport reactions	4e6ca8a	high
 rxn08722_c0	TRANS-RXN-242.cp [c0]	out_of_scope		#281	2025-10-06	feat: standardize amino acid transport reactions	26647e8	high
-rxn08808_c0	"Lysophospholipase L1 (2-acylglycerophosphoethanolamine, n-C18:0) (periplasm) [c0]"	duplicate		#279	2025-10-02	"fix: remove duplicate metabolite and reactions cpd15349_c0, rxn08808_c0, and rxn08809_c0"	33a5940	high
-rxn08809_c0	"Lysophospholipase L1 (2-acylglycerophosphoethanolamine, n-C18:1) (periplasm) [c0]"	duplicate		#279	2025-10-02	"fix: remove duplicate metabolite and reactions cpd15349_c0, rxn08808_c0, and rxn08809_c0"	33a5940	high
-rxn08924_c0	Mg2+-importing ATPase [c0]	unknown		#87	2025-02-27	model file wholesale replaced by a new draft; original reason not recoverable	bcb2d9e	low
+rxn21859_c0	RXN-11478.c [c0]	id_changed	rxn46124_c0	#306	2025-10-24	fix: replace NADP with NAD in rxn21859 & rxn21863 and edit IDs and annotations accordingly	ed81784	high
+rxn21863_c0	RXN-11482.c [c0]	id_changed	rxn45550_c0	#306	2025-10-24	fix: replace NADP with NAD in rxn21859 & rxn21863 and edit IDs and annotations accordingly	ed81784	high
 rxn09001_c0	Nitrate reductase (Ubiquinol-8) (periplasm) [c0]	unknown		#299	2025-10-22	fix: nitrate/nitrite redox reactions	a01d950	none
 rxn09003_c0	Nitrate reductase (Menaquinol-8) (periplasm) [c0]	unknown		#275	2025-10-01	fix: nitrate reductase reactions	a72c5d3	none
 rxn09022_c0	O16 antigen polymerase (periplasm) [c0]	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions	96e01e9	high
@@ -136,12 +135,12 @@ rxn15337_c0	L-Rhamnose ketol-isomerase [c0]	out_of_scope		#268	2025-09-25	fix: r
 rxn15338_c0	L-Rhamnose ketol-isomerase [c0]	out_of_scope		#268	2025-09-25	fix: remove unnecessary rhamnose anomerization reactions and anomer metabolites	276bddd	high
 rxn16583_c0	adenylyl-molybdopterin:molybdate molybdate transferase (AMP-forming) [c0]	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway	7544274	high
 rxn16828_c0	R09982 [c0]	unknown		#280	2025-10-02	fix: change ID of rxn16828_c0 to rxn26398_c0	623a599	none
-rxn17275_c0	"PAPS reductase, thioredoxin-dependent [c0]"	duplicate		#181	2025-04-02	fix: remove duplicate thioredoxin metabolites and reactions	4d7cb96	high
+rxn00304_c0	GTP:pyruvate 2-O-phosphotransferase [c0]	duplicate	rxn00148_c0	#341	2025-12-18	fix: remove duplicate pyks	68159b3	high
 rxn17731_c0	biotin synthase [c0]	unknown		#277	2025-10-01	feat: fix several issues with biotin synthase reaction and add new 4Fe4S to 2Fe2S reaction	f94c10e	none
-rxn20583_c0	phosphoglucose mutase [c0]	duplicate		#213	2025-05-29	fix: removed rxn02583_c0 for being a duplicate of rxn00704_c0	46ea2ba	high
+rxn00411_c0	CTP:pyruvate 2-O-phosphotransferase [c0]	duplicate	rxn00148_c0	#341	2025-12-18	fix: remove duplicate pyks	68159b3	high
 rxn21729_c0	adenylyltransferase and sulfurtransferase MOCS3 [c0]	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway	7544274	high
-rxn21859_c0	RXN-11478.c [c0]	id_changed		#306	2025-10-24	fix: replace NADP with NAD in rxn21859 & rxn21863 and edit IDs and annotations accordingly	ed81784	high
-rxn21863_c0	RXN-11482.c [c0]	id_changed		#306	2025-10-24	fix: replace NADP with NAD in rxn21859 & rxn21863 and edit IDs and annotations accordingly	ed81784	high
+rxn00460_c0	UTP:pyruvate 2-O-phosphotransferase [c0]	duplicate	rxn00148_c0	#341	2025-12-18	fix: remove duplicate pyks	68159b3	high
+rxn00840_c0	dATP:pyruvate 2-O-phosphotransferase [c0]	duplicate	rxn00148_c0	#341	2025-12-18	fix: remove duplicate pyks	68159b3	high
 rxn23043_c0	thiamin phosphate synthase [c0]	dead_end		#144	2025-03-25	fix: add missing thiamine biosynthesis reactions and remove inaccurate/dead-end ones	17806c5	high
 rxn23336_c0	octanoyl:GcvH transferase [c0]	dead_end		#126	2025-03-14	fix: replace disconnected lipoic acid biosynthesis pathway with intact one	6143ade	high
 rxn24212_c0	4-aminobutyrate transaminase (pyruvate dependent) [c0]	unknown		#291	2025-10-21	"fix: remove rxn00656_c0, rxn24212_c0, and WP_197047972.1"	fc5e5f3	none
@@ -151,7 +150,7 @@ rxn26021_c0	MobA [c0]	erroneous_annotation		#278	2025-10-01	fix: remove broken m
 rxn26307_c0	RXN0-5306.c [c0]	out_of_scope		#268	2025-09-25	fix: remove unnecessary rhamnose anomerization reactions and anomer metabolites	276bddd	high
 rxn26361_c0	molybdenum cofactor cytidylyltransferase [c0]	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway	7544274	high
 rxn27289_c0	thiazole synthase [c0]	dead_end		#144	2025-03-25	fix: add missing thiamine biosynthesis reactions and remove inaccurate/dead-end ones	17806c5	high
-rxn27318_c0	NADPH-thioredoxin reductase [c0]	duplicate		#181	2025-04-02	fix: remove duplicate thioredoxin metabolites and reactions	4d7cb96	high
+rxn01354_c0	dGTP:pyruvate 2-O-phosphotransferase [c0]	duplicate	rxn00148_c0	#341	2025-12-18	fix: remove duplicate pyks	68159b3	high
 rxn39452_c0	"2,3,4,5-tetrahydrodipicolinate:NADP+ 4-oxidoreductase [c0]"	no_genomic_evidence		#339	2025-12-18	fix: remove unsupported differences with other strains' models	3dc1451	high
 rxn41683_c0	[c0]	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway	7544274	high
 rxn41896_c0	[c0]	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway	7544274	high
