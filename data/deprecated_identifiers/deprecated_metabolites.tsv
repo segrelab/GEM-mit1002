@@ -1,0 +1,134 @@
+id	name	reason	replaced_by	pr	date	notes
+cpd11830_c0	S-Aminomethyldihydrolipoylprotein [c0]	id_changed	cpd15217_c0	#108	2025-03-11	fix: replaced lipoylprotein metabolites with lipoamide equivalents in glycine cleavage system reactions and adjusted reaction IDs accordingl
+cpd12005_c0	Lipoylprotein [c0]	id_changed	cpd00213_c0	#108	2025-03-11	fix: replaced lipoylprotein metabolites with lipoamide equivalents in glycine cleavage system reactions and adjusted reaction IDs accordingl
+cpd12225_c0	Dihydrolipolprotein [c0]	id_changed	cpd00449_c0	#108	2025-03-11	fix: replaced lipoylprotein metabolites with lipoamide equivalents in glycine cleavage system reactions and adjusted reaction IDs accordingl
+cpd00213_c0	Lipoamide [c0]	dead_end		#126	2025-03-14	fix: replace disconnected lipoic acid biosynthesis pathway with intact one
+cpd00449_c0	Dihydrolipoamide [c0]	dead_end		#126	2025-03-14	fix: replace disconnected lipoic acid biosynthesis pathway with intact one
+cpd27144_c0	Gcv-H [c0]	dead_end		#126	2025-03-14	fix: replace disconnected lipoic acid biosynthesis pathway with intact one
+cpd27713_c0	Octanoylated-Gcv-H [c0]	dead_end		#126	2025-03-14	fix: replace disconnected lipoic acid biosynthesis pathway with intact one
+cpd14548_c0	C15812 [c0]	dead_end		#128	2025-03-14	fix: replaced disconnected iron-sulfur cluster biosynthesis pathway with intact version
+cpd28205_c0	Sulfur-Carrier-Proteins-ThiI [c0]	dead_end		#128	2025-03-14	fix: replaced disconnected iron-sulfur cluster biosynthesis pathway with intact version
+cpd15807_c0	"2,5-diamino-6-ribitylamino-4(3H)-pyrimidinone 5&apos;-phosphate [c0]"	unknown		#137	2025-03-21	fix: remove rxn10506_c0 and cpd15807_c0; fix incorrect name for cpd02882_c0
+cpd15359_c0	"2-Octaprenyl-6-methoxy-1,4-benzoquinol [c0]"	unknown		#139	2025-03-23	"fix: remove rxn09039_c0, cpd15359_c0, and cpd15361_c0"
+cpd15361_c0	"2-Octaprenyl3-methyl-6-methoxy- 1,4-benzoquinol [c0]"	unknown		#139	2025-03-23	"fix: remove rxn09039_c0, cpd15359_c0, and cpd15361_c0"
+cpd02654_c0	4-Methyl-5--2-phosphoethyl-thiazole [c0]	dead_end		#144	2025-03-25	fix: add missing thiamine biosynthesis reactions and remove inaccurate/dead-end ones
+cpd22312_c0	Adenylated-ThiS-Proteins [c0]	dead_end		#144	2025-03-25	fix: add missing thiamine biosynthesis reactions and remove inaccurate/dead-end ones
+cpd28259_c0	Thiocarboxyadenylated-ThiS-Proteins [c0]	dead_end		#144	2025-03-25	fix: add missing thiamine biosynthesis reactions and remove inaccurate/dead-end ones
+cpd00635_c0	Cbl [c0]	dead_end		#146	2025-03-26	fix: remove dead-end cobalamin metabolism reactions and remove cobalamin metabolites from biomass reaction
+cpd00635_e0	Cbl [e0]	dead_end		#146	2025-03-26	fix: remove dead-end cobalamin metabolism reactions and remove cobalamin metabolites from biomass reaction
+cpd01997_c0	Dimethylbenzimidazole [c0]	orphaned		#146	2025-03-26	fix: remove cpd03422_c0 and cpd01997_c0 from model as they were orphaned by previous changes
+cpd03422_c0	Cobinamide [c0]	orphaned		#146	2025-03-26	fix: remove cpd03422_c0 and cpd01997_c0 from model as they were orphaned by previous changes
+cpd03918_c0	Adenosyl cobinamide [c0]	dead_end		#146	2025-03-26	fix: remove dead-end cobalamin metabolism reactions and remove cobalamin metabolites from biomass reaction
+cpd27744_c0	Oxidized-Flavoproteins [c0]	dead_end		#146	2025-03-26	fix: remove dead-end cobalamin metabolism reactions and remove cobalamin metabolites from biomass reaction
+cpd28070_c0	Reduced-Flavoproteins [c0]	dead_end		#146	2025-03-26	fix: remove dead-end cobalamin metabolism reactions and remove cobalamin metabolites from biomass reaction
+cpd33817_c0	Cbi(II) [c0]	dead_end		#146	2025-03-26	fix: remove dead-end cobalamin metabolism reactions and remove cobalamin metabolites from biomass reaction
+cpd15277_c0	Palmitoyl-ACP [c0]	duplicate	cpd11476_c0	#147	2025-03-27	fix: remove duplicate hexadecanoyl-ACP metabolite
+cpd15371_c0	R-3-Hydroxyoctadecanoyl-acyl-carrierprotein- [c0]	duplicate	cpd11571_c0	#150	2025-03-27	"fix: removed duplicate dead-end reactions and metabolites rxn07979_c0, cpd15572_c0, cpd15371_c0"
+cpd15572_c0	trans-octadec-2-enoyl-[acyl-carrier protein] [c0]	duplicate	cpd11572_c0	#150	2025-03-27	"fix: removed duplicate dead-end reactions and metabolites rxn07979_c0, cpd15572_c0, cpd15371_c0"
+cpd27735_c0	Ox-Thioredoxin [c0]	duplicate	cpd11420_c0	#181	2025-04-02	fix: remove duplicate thioredoxin metabolites and reactions
+cpd28060_c0	Red-Thioredoxin [c0]	duplicate	cpd11421_c0	#181	2025-04-02	fix: remove duplicate thioredoxin metabolites and reactions
+cpd01914_c0	L-Methionine S-oxide [c0]	out_of_scope		#182	2025-04-02	fix: remove duplicate thioredoxin metabolites and reactions
+cpd12237_c0	Peptide-L-methionine [c0]	out_of_scope		#182	2025-04-02	fix: remove duplicate thioredoxin metabolites and reactions
+cpd14507_c0	Peptide-L-methionine (R)-S-oxide [c0]	out_of_scope		#182	2025-04-02	fix: remove duplicate thioredoxin metabolites and reactions
+cpd14720_c0	L-Methionine (R)-S-oxide [c0]	out_of_scope		#182	2025-04-02	fix: remove duplicate thioredoxin metabolites and reactions
+cpd02120_c0	Dihydrodipicolinate [c0]	id_changed	cpd21488_c0	#186	2025-04-03	"fix: replace rxn01644_c0, rxn02929_c0, and cpd02120_c0 with rxn40037_c0, rxn39452_c0, and cpd21488_c0"
+cpd11836_c0	(R)-3-Hydroxyacyl-[acyl-carrier protein] [c0]	unknown		#190	2025-04-03	fix: remove rxn07981_c0 and cpd11836_c0
+cpd15360_c0	"2-Octaprenyl-3-methyl-5-hydroxy-6-methoxy-1,4-benzoquinol [c0]"	duplicate	cpd03449_c0	#208	2025-04-14	"fix: removed rxn08353_c0 and cpd15360_c0 for effectively being duplicates of rxn11946_c0 and cpd03449_c0, respectively"
+cpd00190_c0	beta-D-Glucose [c0]	out_of_scope		#211	2025-04-21	fix: remove unnecessary anomer-specific glucose reactions and metabolites
+cpd19001_c0	alpha-D-Glucose [c0]	out_of_scope		#211	2025-04-21	fix: remove unnecessary anomer-specific glucose reactions and metabolites
+cpd19006_c0	alpha-D-Glucose 6-phosphate [c0]	out_of_scope		#211	2025-04-21	fix: remove unnecessary anomer-specific glucose reactions and metabolites
+cpd01046_c0	Allysine [c0]	unknown		#244	2025-09-15	model file wholesale replaced by a new draft; original reason not recoverable
+cpd05262_c0	galacturonate [c0]	unknown		#244	2025-09-15	model file wholesale replaced by a new draft; original reason not recoverable
+cpd00731_e0	Ala-Ala [e0]	out_of_scope		#262	2025-09-23	fix: remove dipeptide uptake reactions and extracellular metabolites
+cpd01017_e0	Cys-Gly [e0]	out_of_scope		#262	2025-09-23	fix: remove dipeptide uptake reactions and extracellular metabolites
+cpd01562_c0	beta-L-Rhamnose	out_of_scope		#268	2025-09-25	fix: remove unnecessary rhamnose anomerization reactions and anomer metabolites
+cpd01627_c0	alpha-L-Rhamnose	out_of_scope		#268	2025-09-25	fix: remove unnecessary rhamnose anomerization reactions and anomer metabolites
+cpd03520_c0	Molybdopterin	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway
+cpd11574_c0	Molybdate	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway
+cpd11574_e0	Molybdate [e0]	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway
+cpd19503_c0	Molybdoenzyme molybdenum cofactor	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway
+cpd19505_c0	Precursor Z	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway
+cpd21090_c0	Adenylated molybdopterin	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway
+cpd21167_c0	MGD	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway
+cpd21288_c0	Mast cell degranulating peptide	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway
+cpd28253_c0	Thi-S	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway
+cpd28260_c0	Thiocarboxylated-MPT-synthases	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway
+cpd33647_c0	bis(molybdenum cofactor)	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway
+cpd36025_c0	"(8S)-3&apos;,8-cyclo-7,8-dihydroguanosine 5&apos;-triphosphate"	erroneous_annotation		#278	2025-10-01	fix: remove broken molybdenum pathway
+cpd12547_c0	L-2-Lysophosphatidylethanolamine	duplicate	cpd15349_c0	#279	2025-10-02	"fix: remove duplicate metabolite and reactions cpd15349_c0, rxn08808_c0, and rxn08809_c0"
+cpd01029_c0	Base Q	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions
+cpd03453_e0	Enterobactin [e0]	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions
+cpd03726_e0	Fe-enterochlin [e0]	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions
+cpd11312_c0	hemeA	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions
+cpd14699_c0	S-(3-Methylbutanoyl)-dihydrolipoamide-E	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions
+cpd14703_c0	S-(2-Methylbutanoyl)-dihydrolipoamide-E	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions
+cpd27758_c0	Oxidized-flavodoxins	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions
+cpd28083_c0	Reduced-flavodoxins	mass_imbalance		#280	2025-10-02	fix: correct most of the mass- or charge-imbalanced reactions
+cpd00663_c0	Acrylyl-CoA	unknown		#286	2025-10-10	"fix: add rxn16586_c0 and WP_049586872.1, remove rxn00668_c0, cpd00663_c0, and WP_049586872.1"
+cpd00831_c0	L-Rhamnulose 1-phosphate	unknown		#288	2025-10-16	"fix several issues with GPRs of aldehyde/carboxylate redox reactions and remove rxn01621_c0, cpd00831_c0, & WP_049588490.1"
+cpd00703_c0	Indoleacetate	unknown		#293	2025-10-21	"fix: remove rxn02222, cpd00703, and cpd01747"
+cpd01747_c0	Indole-3-acetamide	unknown		#293	2025-10-21	"fix: remove rxn02222, cpd00703, and cpd01747"
+cpd35194_c0	Mo(Dtpp-mGDP)2	dead_end		#301	2025-10-22	fix: remove unnecessary dead-end reaction rxn44539_c0 and associated metabolite cpd35194_c0 and gene WP_049589095.1
+cpd00531_c0	Hg2+	no_genomic_evidence		#303	2025-10-23	fix: GPRs of copper transport reactions and remove unsupported/unnecessary heavy metal transport reactions
+cpd00531_e0	Hg2+ [e0]	no_genomic_evidence		#303	2025-10-23	fix: GPRs of copper transport reactions and remove unsupported/unnecessary heavy metal transport reactions
+cpd00965_c0	Hg	no_genomic_evidence		#303	2025-10-23	fix: GPRs of copper transport reactions and remove unsupported/unnecessary heavy metal transport reactions
+cpd01012_c0	Cd2+	no_genomic_evidence		#303	2025-10-23	fix: GPRs of copper transport reactions and remove unsupported/unnecessary heavy metal transport reactions
+cpd01012_e0	Cd2+ [e0]	no_genomic_evidence		#303	2025-10-23	fix: GPRs of copper transport reactions and remove unsupported/unnecessary heavy metal transport reactions
+cpd04097_c0	Pb	no_genomic_evidence		#303	2025-10-23	fix: GPRs of copper transport reactions and remove unsupported/unnecessary heavy metal transport reactions
+cpd04097_e0	Pb [e0]	no_genomic_evidence		#303	2025-10-23	fix: GPRs of copper transport reactions and remove unsupported/unnecessary heavy metal transport reactions
+cpd15793_c0	Stearoylcardiolipin (B. subtilis)	orphaned		#304	2025-10-23	fix: remove isolated genes and metabolites or add to appropriate reactions
+cpd26672_c0	Carboxyadenylated-MPT-synthases	orphaned		#304	2025-10-23	fix: remove isolated genes and metabolites or add to appropriate reactions
+cpd27484_c0	MPT-Synthases	orphaned		#304	2025-10-23	fix: remove isolated genes and metabolites or add to appropriate reactions
+cpd00666_c0	Tartrate	unknown		#305	2025-10-24	"fix: remove reactions rxn01285_c0, rxn01894_c0, rxn02788_c0 and associated metabolites & genes"
+cpd02967_c0	"N-Acetyl-beta-D-mannosaminyl-1,4-N-acetyl-D- glucosaminyldiphosphoundecaprenol"	unknown		#315	2025-11-11	"fix: remove rxn10192, cpd02967, cpd15561"
+cpd03708_c0	"2,4-Dihydroxyhept-2-enedioate"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15516_c0	(O16 antigen)x2 undecaprenyl diphosphate	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15520_c0	O16 antigen undecaprenyl diphosphate	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15728_c0	"1,2-dihexadecanoyl-3-O-glucopyranosyl(1-2)-O-glucopyranosyl-glycerol"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15729_c0	"1,2-ditetradecanoyl-3-O-glucopyranosyl(1-2)-O-glucopyranosyl-glycerol"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15730_c0	"1,2-dioctadecanoyl-3-O-glucopyranosyl(1-2)-O-glucopyranosyl-glycerol"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15731_c0	"1,2-di-15-methylhexadecanoyl-3-O-glucopyranosyl(1-2)-O-glucopyranosyl-glycerol"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15732_c0	"1,2-di-14-methylhexadecanoyl-3-O-glucopyranosyl(1-2)-O-glucopyranosyl-glycerol"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15733_c0	"1,2-di-12-methyltridecanoyl-3-O-glucopyranosyl(1-2)-O-glucopyranosyl-glycerol"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15734_c0	"1,2-di-13-methyltetradecanoyl-3-O-glucopyranosyl(1-2)-O-glucopyranosyl-glycerol"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15735_c0	"1,2-di-12-methyltetradecanoyl-3-O-glucopyranosyl(1-2)-O-glucopyranosyl-glycerol"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15736_c0	"1,2-di-14-methylpentadecanoyl-3-O-glucopyranosyl(1-2)-O-glucopyranosyl-glycerol"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15746_c0	"Palmitoyllipoteichoic acid (n=24), linked, unsubstituted"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15747_c0	"Myristoyllipoteichoic acid (n=24), linked, unsubstituted"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15748_c0	"Stearoyllipoteichoic acid (n=24), linked, unsubstituted"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15749_c0	"Isoheptadecanoyllipoteichoic acid (n=24), linked, unsubstituted"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15750_c0	"Anteisoheptadecanoyllipoteichoic acid (n=24), linked, unsubstituted"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15751_c0	"Isotetradecanoyllipoteichoic acid (n=24), linked, unsubstituted"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15752_c0	"Isopentadecanoyllipoteichoic acid (n=24), linked, unsubstituted"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15753_c0	"Anteisopentadecanoyllipoteichoic acid (n=24), linked, unsubstituted"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15754_c0	"Isohexadecanoyllipoteichoic acid (n=24), linked, unsubstituted"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15764_c0	"Palmitoyllipoteichoic acid (n=24), linked, N-acetyl-D-glucosamine"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15765_c0	"Myristoyllipoteichoic acid (n=24), linked, N-acetyl-D-glucosamine"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15766_c0	"Stearoyllipoteichoic acid (n=24), linked, N-acetyl-D-glucosamine"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15769_c0	"Isotetradecanoyllipoteichoic acid (n=24), linked, N-acetyl-D-glucosamine"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15770_c0	"Isopentadecanoyllipoteichoic acid (n=24), linked, N-acetyl-D-glucosamine"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15771_c0	"Anteisopentadecanoyllipoteichoic acid (n=24), linked, N-acetyl-D-glucosamine"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd15772_c0	"Isohexadecanoyllipoteichoic acid (n=24), linked, N-acetyl-D-glucosamine"	no_genomic_evidence		#315	2025-10-30	fix: remove reactions and metabolites associated with genes with no relevant annotated functions
+cpd00225_c0	Benzaldehyde [c0]	unknown		#316	2025-10-31	"fix: remove rxn00196, rxn01032, rxn01033, rxn08703, rxn37372, cpd00225, cpd00340, cpd02027"
+cpd00340_c0	"2,5-Dioxopentanoate [c0]"	unknown		#316	2025-10-31	"fix: remove rxn00196, rxn01032, rxn01033, rxn08703, rxn37372, cpd00225, cpd00340, cpd02027"
+cpd02027_c0	S-Methyl-L-methionine	unknown		#316	2025-10-31	"fix: remove rxn00196, rxn01032, rxn01033, rxn08703, rxn37372, cpd00225, cpd00340, cpd02027"
+cpd11580_c0	Gly-Gln	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd11581_c0	gly-asn-L	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd11582_c0	ala-L-Thr-L	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd11583_c0	Ala-Leu	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd11584_c0	Ala-His	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd11585_c0	L-alanylglycine	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd11586_c0	ala-L-glu-L	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd11587_c0	Ala-Gln	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd11588_c0	gly-pro-L	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd11589_c0	gly-asp-L	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd11590_c0	met-L-ala-L	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd11591_c0	Gly-Met	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd11592_c0	gly-glu-L	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd11593_c0	ala-L-asp-L	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd15603_c0	Gly-Cys	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd15604_c0	Gly-Leu	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd15605_c0	Gly-Phe	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd15606_c0	Gly-Tyr	out_of_scope		#319	2025-11-06	fix: remove unnecessary dipeptide reactions & metabolites
+cpd00402_c0	CDPglycerol	orphaned		#367	2026-02-03	fix: remove isolated mets
+cpd15661_c0	Prenol-45n teichoic acid	orphaned		#367	2026-02-03	fix: remove isolated mets
