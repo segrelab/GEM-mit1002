@@ -25,7 +25,7 @@ Both files share the same columns.
 | `id` | yes | The identifier as it appeared in the model, **without** the SBML `R_`/`M_` prefix (e.g. `rxn00196_c0`, `cpd00225_c0`). This matches what COBRApy reports. |
 | `name` | no | The `name` attribute the entity had when it was removed. Purely for human readability. |
 | `reason` | yes | One value from the controlled vocabulary below. |
-| `replaced_by` | no | The identifier that now serves this function, if any. Semicolon-separated if more than one. Empty means nothing replaced it. |
+| `replaced_by` | no | Where this function lives in the model now, if anywhere. Semicolon-separated if more than one. See the section below — the name is slightly misleading. |
 | `pr` | no | Pull request number that removed it, as `#123`. The PR remains the long-form record of the reasoning. **Leave this blank** — CI fills it in, see below. |
 | `date` | no | `YYYY-MM-DD` the removal landed. |
 | `notes` | no | At most one short line. Anything longer belongs in the PR. |
@@ -50,6 +50,87 @@ Both files share the same columns.
 testable, and it keeps prose in the PR where it belongs. `test_deprecated.py`
 fails on any value not in this list, so adding a category is a deliberate act
 that touches this README too.
+
+### What `replaced_by` actually means
+
+The name is imperfect and worth reading carefully, because in the most common
+case nothing was replaced.
+
+`replaced_by` does not describe an event that happened to the model. It answers a
+reader's question: **"I found this identifier somewhere — what should I look at
+now?"** Three quite different situations produce a value, and only one of them is
+a replacement in the ordinary sense:
+
+- **`duplicate`** — the surviving reaction *was already there*. Nothing was
+  substituted for anything. The model always represented this chemistry; it
+  simply did so twice, and now does so once. `replaced_by` points at the
+  survivor. Example: `rxn00154_c0` was removed as a duplicate of
+  `rxn00011_c0 + rxn02342_c0 + rxn01801_c0`, all of which predated the removal.
+- **`id_changed`** — a genuine rename. Same entity, new label. This is the only
+  case where "replaced by" reads naturally.
+- **One entity becomes several.** `rxn02200_c0` was removed for being a less
+  accurate duplicate of `rxn02503_c0` + `rxn02201_c0`. That is not an
+  equivalence; the function is now covered by a combination of reactions.
+
+What is consistent across all three is that the column records **where the
+biology lives now**, not what was done to the record. Read it as "use these
+instead" rather than "this was swapped out for that."
+
+#### Format
+
+Semicolon-separated bare identifiers. No commas, no plus signs, no brackets:
+
+```
+rxn00011_c0; rxn02342_c0; rxn01871_c0; rxn01241_c0
+```
+
+Semicolons because a comma is a hazard in tabular data, and because Human-GEM
+already uses semicolons for its own multi-value cells (`MNXR100067;MNXR100069`).
+No brackets because this is a TSV cell, not a Python literal.
+
+Reading and writing is forgiving, so you can paste a value straight out of a
+commit message — `rxn00011_c0 + rxn02342_c0`, `[a, b]`, or plain whitespace
+separation all parse, and `R_`/`M_` prefixes are stripped. Anything constructed
+through the helper is normalised to the canonical form on write. But a
+hand-edited file is checked strictly: `test_deprecated.py` fails on a cell
+containing a comma, plus sign or bracket. Without that check the failure mode is
+confusing, because a comma-separated cell parses as one long token and you get
+told the target does not resolve rather than that the separator is wrong.
+
+#### One reaction can be covered by several
+
+The list carries no notion of "all of these together" versus "any of these".
+`rxn00154_c0` was a single lumped reaction standing in for the entire pyruvate
+dehydrogenase complex, and was removed because the model already contained the
+four individual steps — so its `replaced_by` names all four, and the conjunction
+is implied. Encoding that distinction in the identifier list would make the
+column much harder to parse for very little benefit, so put the nuance in
+`notes` instead:
+
+| id | reason | replaced_by | notes |
+| --- | --- | --- | --- |
+| `rxn00154_c0` | `duplicate` | `rxn00011_c0; rxn02342_c0; rxn01871_c0; rxn01241_c0` | lumped reaction for the whole PDH complex; model already had the four individual steps |
+
+That makes the empty-versus-filled distinction the one that matters most to
+anyone using the model:
+
+| `replaced_by` | Meaning |
+| --- | --- |
+| empty | The model no longer represents this at all. It is gone, deliberately. |
+| filled | The model still represents this, under the listed identifier(s). Look there. |
+
+A downstream user who finds a missing identifier in an old script needs exactly
+that distinction, which is why `test_deprecated.py` requires the column for
+`duplicate` and `id_changed` (where a claim about another identifier is implied
+and useless without it) and checks that the targets actually resolve.
+
+For the record, neither Human-GEM nor `standard-GEM` has a column like this.
+Human-GEM's deprecated-identifier files are purely external-database
+cross-references (`metBiGGID`, `metKEGGID`, `rxnRheaID`, and so on) and record
+neither a reason nor a replacement; `standard-GEM` does not mention
+deprecated identifiers at all. So this column is local to this repo, and the
+name was kept only because renaming a column is churn — not because any standard
+requires it.
 
 ## How to remove something from the model
 
@@ -85,9 +166,10 @@ deprecate_reactions(["rxn08703_c0"], reason="no_genomic_evidence", pr="#316")
 
 The helper removes the reaction from `model.xml`, appends a row here, and
 cascades to any metabolite or gene that the removal orphaned — logging the
-orphaned metabolites with `reason="orphaned"` and `replaced_by` pointing back at
-nothing. This matters because `test/test_sbml.py` already fails on isolated
-metabolites and genes, so a removal that does not cascade breaks CI.
+orphaned metabolites with `reason="orphaned"` and an empty `replaced_by`, since
+the model genuinely no longer represents them. This matters because
+`test/test_sbml.py` already fails on isolated metabolites and genes, so a removal
+that does not cascade breaks CI.
 
 Run `--help` on the module for the metabolite equivalent and for a dry-run flag:
 

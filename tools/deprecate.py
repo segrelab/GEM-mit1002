@@ -111,6 +111,9 @@ class DeprecationRecord:
             self.date = _dt.date.today().isoformat()
         if self.pr and not self.pr.startswith("#"):
             self.pr = "#" + self.pr.lstrip("#")
+        # Forgiving on input, canonical on storage: accept commas, plus signs,
+        # brackets and bare whitespace, always store as "a; b; c".
+        self.replaced_by = normalize_identifier_list(self.replaced_by)
         # A single line only; the PR is the place for prose.
         self.notes = " ".join(self.notes.split())
 
@@ -123,6 +126,58 @@ class DeprecationRecord:
 # --------------------------------------------------------------------------
 
 _PREFIX_RE = re.compile(r"^(R_|M_|G_)")
+
+#: How multiple identifiers are joined in ``replaced_by`` when stored.
+#: Semicolons rather than commas: a comma is a hazard in tabular data, and
+#: semicolon is what Human-GEM already uses for its own multi-value cells
+#: (e.g. ``MNXR100067;MNXR100069``).
+REPLACED_BY_JOINER = "; "
+
+#: Anything that can plausibly be meant as a separator between identifiers.
+#: ``+`` is included so that a value can be pasted straight out of a commit
+#: message like "duplicate of rxn00011_c0 + rxn02342_c0 + rxn01871_c0".
+_SEPARATOR_RE = re.compile(r"[;,+]|\s+")
+
+#: Punctuation people reach for that carries no meaning here: Python-style list
+#: brackets, quotes, and trailing periods.
+_STRIP_CHARS = "[]{}()'\"` \t"
+
+#: A stored ``replaced_by`` token must look like a model identifier.
+_ID_TOKEN_RE = re.compile(r"^[A-Za-z0-9_.\-]+$")
+
+
+def split_identifier_list(value: str) -> list[str]:
+    """Parse a ``replaced_by`` cell into bare identifiers.
+
+    Deliberately forgiving, because these get typed and pasted by hand. All of
+    these give ``['rxn00011_c0', 'rxn02342_c0']``::
+
+        "rxn00011_c0; rxn02342_c0"
+        "rxn00011_c0, rxn02342_c0"
+        "rxn00011_c0 + rxn02342_c0"
+        "[rxn00011_c0, rxn02342_c0]"
+        "R_rxn00011_c0 R_rxn02342_c0"
+
+    Note this makes no distinction between "any of these" and "all of these
+    together". A single removed reaction is often covered by a combination --
+    ``rxn00154_c0`` represented the whole pyruvate dehydrogenase complex and was
+    dropped in favour of the four individual steps -- but encoding that
+    conjunction in the identifier list would make the column much harder to
+    parse for very little gain. Say it in ``notes`` instead.
+    """
+    if not value:
+        return []
+    out = []
+    for token in _SEPARATOR_RE.split(value):
+        token = token.strip(_STRIP_CHARS).rstrip(".")
+        if token:
+            out.append(strip_sbml_prefix(token))
+    return out
+
+
+def normalize_identifier_list(value: str) -> str:
+    """Canonical stored form of a ``replaced_by`` cell."""
+    return REPLACED_BY_JOINER.join(split_identifier_list(value))
 
 
 def strip_sbml_prefix(identifier: str) -> str:
@@ -327,8 +382,15 @@ def deprecate_reactions(
     reason
         One of :data:`REASONS`.
     replaced_by
-        Identifier(s) that now serve this function, semicolon-separated.
+        Where this function lives in the model now, semicolon-separated.
         Required when ``reason`` is ``duplicate`` or ``id_changed``.
+
+        Note the name is imperfect: for ``duplicate`` the surviving reaction was
+        already in the model, so nothing was substituted for anything. Read the
+        column as "use these instead" rather than "this was swapped out for
+        that". Empty means the model no longer represents this at all, which is
+        the distinction a downstream user actually cares about. See
+        ``data/deprecated_identifiers/README.md``.
     cascade
         Also remove metabolites and genes left with no reactions, logging the
         metabolites with ``reason="orphaned"``. Leave this on unless you have a
@@ -338,8 +400,9 @@ def deprecate_reactions(
     """
     if reason in REASONS_REQUIRING_REPLACEMENT and not replaced_by:
         raise DeprecationError(
-            f"reason={reason!r} requires replaced_by: say what supersedes these "
-            f"reactions, otherwise the entry cannot be acted on by a reader."
+            f"reason={reason!r} requires replaced_by: say where this function "
+            f"lives in the model now (for a duplicate, the identifier that was "
+            f"kept), otherwise the entry cannot be acted on by a reader."
         )
 
     doc, model = _load(model_path)
@@ -642,7 +705,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         p.add_argument(
             "--replaced-by",
             default="",
-            help="identifier(s) that supersede these, semicolon-separated",
+            help=(
+                "where this function lives in the model now, semicolon-separated. "
+                "For a duplicate, the identifier that was kept. Leave empty if "
+                "the model no longer represents this at all."
+            ),
         )
         p.add_argument(
             "--pr",

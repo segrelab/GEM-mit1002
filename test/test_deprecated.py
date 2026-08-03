@@ -25,7 +25,9 @@ from tools.deprecate import (
     REASONS_REQUIRING_REPLACEMENT,
     DeprecationError,
     build_notes_dict,
+    normalize_identifier_list,
     read_records,
+    split_identifier_list,
     stamp_pr_number,
     strip_sbml_prefix,
 )
@@ -207,7 +209,80 @@ class TestReplacedBy(unittest.TestCase):
 
     @staticmethod
     def _targets(record):
-        return [t.strip() for t in record.replaced_by.split(";") if t.strip()]
+        return split_identifier_list(record.replaced_by)
+
+    def test_separator_is_semicolon(self):
+        """Multiple identifiers are joined with '; ', not commas or plus signs.
+
+        Without this the failure mode is confusing: a comma-separated cell parses
+        as one long token, and you get told the target does not resolve rather
+        than that the separator is wrong.
+        """
+        for path in (REACTIONS_TSV, METABOLITES_TSV):
+            with self.subTest(path=os.path.basename(path)):
+                with open(path, newline="", encoding="utf-8") as handle:
+                    rows = list(csv.DictReader(handle, delimiter="\t"))
+                bad = sorted(
+                    (row["id"], row["replaced_by"])
+                    for row in rows
+                    if row.get("replaced_by")
+                    and re.search(r"[,+\[\]{}()'\"]", row["replaced_by"])
+                )
+                self.assertEqual(
+                    [],
+                    bad,
+                    msg=(
+                        f"replaced_by must be semicolon-separated bare identifiers, "
+                        f"e.g. 'rxn00011_c0; rxn02342_c0'. No commas, plus signs or "
+                        f"brackets. Offending rows in {os.path.basename(path)}: "
+                        f"{bad}"
+                    ),
+                )
+
+    def test_targets_look_like_identifiers(self):
+        """Catches stray prose or whitespace inside the cell."""
+        for path in (REACTIONS_TSV, METABOLITES_TSV):
+            with self.subTest(path=os.path.basename(path)):
+                bad = sorted(
+                    (r.id, t)
+                    for r in read_records(path)
+                    for t in self._targets(r)
+                    if not re.fullmatch(r"[A-Za-z0-9_.\-]+", t)
+                )
+                self.assertEqual(
+                    [],
+                    bad,
+                    msg=(
+                        f"replaced_by entries must be bare model identifiers: {bad}"
+                    ),
+                )
+
+    def test_no_sbml_prefix_on_targets(self):
+        for path in (REACTIONS_TSV, METABOLITES_TSV):
+            with self.subTest(path=os.path.basename(path)):
+                bad = sorted(
+                    (r.id, t)
+                    for r in read_records(path)
+                    for t in self._targets(r)
+                    if re.match(r"^(R_|M_|G_)", t)
+                )
+                self.assertEqual(
+                    [],
+                    bad,
+                    msg=f"store replaced_by targets bare, without R_/M_: {bad}",
+                )
+
+    def test_no_duplicate_targets(self):
+        for path in (REACTIONS_TSV, METABOLITES_TSV):
+            with self.subTest(path=os.path.basename(path)):
+                bad = []
+                for r in read_records(path):
+                    targets = self._targets(r)
+                    if len(targets) != len(set(targets)):
+                        bad.append((r.id, r.replaced_by))
+                self.assertEqual(
+                    [], sorted(bad), msg=f"repeated identifier in replaced_by: {bad}"
+                )
 
     def test_required_when_reason_is_relative(self):
         for path in (REACTIONS_TSV, METABOLITES_TSV):
@@ -425,6 +500,67 @@ class TestStampPrNumber(unittest.TestCase):
                         stamp_pr_number(
                             bad, reactions_tsv=rxns, metabolites_tsv=mets
                         )
+
+
+class TestIdentifierListParsing(unittest.TestCase):
+    """``replaced_by`` is forgiving on input and canonical on storage.
+
+    Curators type and paste these by hand, so anything reasonable is accepted;
+    what gets written to the file is always ``'a; b; c'``.
+    """
+
+    def test_accepts_common_separators(self):
+        expected = ["rxn00011_c0", "rxn02342_c0"]
+        for value in (
+            "rxn00011_c0; rxn02342_c0",
+            "rxn00011_c0;rxn02342_c0",
+            "rxn00011_c0, rxn02342_c0",
+            "rxn00011_c0 + rxn02342_c0",
+            "rxn00011_c0+rxn02342_c0",
+            "[rxn00011_c0, rxn02342_c0]",
+            "rxn00011_c0 rxn02342_c0",
+            "  rxn00011_c0 ,  rxn02342_c0  ",
+        ):
+            with self.subTest(value=value):
+                self.assertEqual(expected, split_identifier_list(value))
+
+    def test_strips_sbml_prefixes(self):
+        self.assertEqual(
+            ["rxn00011_c0", "cpd00001_c0"],
+            split_identifier_list("R_rxn00011_c0; M_cpd00001_c0"),
+        )
+
+    def test_empty_is_empty(self):
+        for value in ("", "   ", ";", " ; , + "):
+            with self.subTest(value=value):
+                self.assertEqual([], split_identifier_list(value))
+                self.assertEqual("", normalize_identifier_list(value))
+
+    def test_normalizes_to_semicolons(self):
+        self.assertEqual(
+            "rxn00011_c0; rxn02342_c0; rxn01871_c0",
+            normalize_identifier_list("rxn00011_c0 + rxn02342_c0 + rxn01871_c0"),
+        )
+
+    def test_record_normalizes_on_construction(self):
+        """A record built with commas is stored with semicolons."""
+        from tools.deprecate import DeprecationRecord
+
+        record = DeprecationRecord(
+            id="rxn00154_c0",
+            reason="duplicate",
+            replaced_by="rxn00011_c0, rxn02342_c0, rxn01871_c0, rxn01241_c0",
+        )
+        self.assertEqual(
+            "rxn00011_c0; rxn02342_c0; rxn01871_c0; rxn01241_c0",
+            record.replaced_by,
+        )
+
+    def test_preserves_gene_style_identifiers(self):
+        """Dots are legal in identifiers (gene locus tags), so keep them."""
+        self.assertEqual(
+            ["WP_039225570.1"], split_identifier_list("WP_039225570.1")
+        )
 
 
 class TestVocabularyDocumented(unittest.TestCase):
