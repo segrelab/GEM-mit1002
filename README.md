@@ -21,8 +21,9 @@ Upon every push, pull request, manual trigger:
 Note: MACAW is **not** run as part of the action due to the longer run time of the dilution test.
 To run MACAW use:
 ```
-python run_macaw.py
+python scripts/run_macaw.py
 ```
+Its results are written to `scripts/results/` with the other generated reports.
 
 ## Repository layout
 
