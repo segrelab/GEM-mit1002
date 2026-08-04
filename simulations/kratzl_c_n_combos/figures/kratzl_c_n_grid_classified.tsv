@@ -1,0 +1,10 @@
+minimal_media	c_source	pro_exomet	bigg_id	growth	reference	notes	missing_exchanges	evaluable	fba_growth_rate	predicted	category	discordant	near_threshold
+marine_broth_wo_yeast_and_peptone_no_n	Ammonium, Glucose			Yes	(Kratzl, 2026)			True	0.7502789322950274	Yes	true_positive	False	False
+marine_broth_wo_yeast_and_peptone_no_n	Nitrate, Glucose			Yes	(Kratzl, 2026)			True	0.6465946193491647	Yes	true_positive	False	False
+marine_broth_wo_yeast_and_peptone_no_n	Urea, Glucose			Yes	(Kratzl, 2026)		cpd00073	False	0.0		no_exchange	False	False
+marine_broth_wo_yeast_and_peptone_no_n	Ammonium, Pyruvate			Yes	(Kratzl, 2026)			True	0.5654453108155958	Yes	true_positive	False	False
+marine_broth_wo_yeast_and_peptone_no_n	Nitrate, Pyruvate			Yes	(Kratzl, 2026)			True	0.4862257044255793	Yes	true_positive	False	False
+marine_broth_wo_yeast_and_peptone_no_n	Urea+Pyruvate			No	(Kratzl, 2026)		cpd00073	False	1.0640782239705876e-15		no_exchange	False	True
+marine_broth_wo_yeast_and_peptone_no_n	Ammonium, Succinate			No	(Kratzl, 2026)			True	0.6404884844976015	Yes	false_positive	True	False
+marine_broth_wo_yeast_and_peptone_no_n	Nitrate, Succinate			No	(Kratzl, 2026)			True	0.5378201127900251	Yes	false_positive	True	False
+marine_broth_wo_yeast_and_peptone_no_n	Urea, Succinate			No	(Kratzl, 2026)		cpd00073	False	1.1436912502585218e-15		no_exchange	False	True

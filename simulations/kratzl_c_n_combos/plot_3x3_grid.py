@@ -1,37 +1,34 @@
-"""Manuscript figure: experimental vs. FBA-predicted growth phenotypes.
+"""Nitrogen source x carbon source grid: experiment vs. FBA prediction.
+
+The Kratzl nitrogen-source screen is the only genuine factorial block in
+``data/known_growth_phenotypes.tsv``: three nitrogen sources crossed with three
+carbon sources, all in ``marine_broth_wo_yeast_and_peptone_no_n``. That is the
+one place a 2D grid earns its keep, because conditions failing for a single
+shared reason line up as a whole row or column instead of scattering through a
+61-row list.
 
 Every cell is split on the diagonal. The upper-left triangle is the
-experiment, the lower-right triangle is the model, so a cell that reads as one
+experiment, the lower-right triangle is the model, so a cell reading as one
 solid block is an agreement and a two-tone cell is a mismatch. Mismatched
-cells additionally carry a heavy outline, because colour alone is doing enough
-work already and the discordant cells are the point of the figure.
-
-Three panels, one per experimental design, all sharing one encoding:
-
-A. Nitrogen source x carbon source (Kratzl). The only genuine factorial block
-   in the dataset, and the only layout where a 2D grid earns its keep: cells
-   that fail for one shared reason line up as a row or column.
-B. Amino acid with and without pyruvate (Kratzl), in a medium that already
-   contains ammonium and nitrate, so this is a carbon-source screen.
-C. Single-substrate carbon screens, as metabolite x medium. Using medium as
-   the second axis (rather than co-substrate) surfaces the cases where the
-   same metabolite was scored differently by different labs.
+cells also carry a heavy outline: colour is already carrying the data, so the
+annotation gets its own channel.
 
 Cells with no exchange reaction in the model are hatched rather than drawn as
-a no-growth prediction. That distinction matters for the argument the figure
-is making: a missing transporter is an incomplete reconstruction, not a
-limitation of constraint-based modelling, and the two should not share a
-colour.
+a no-growth prediction. The distinction matters for what this figure is
+arguing. A metabolite the model cannot import produces zero growth for a
+trivial reason, and scoring that as a correct "No" would inflate specificity
+and let a reconstruction gap masquerade as a limit of constraint-based
+modelling.
 
 Deliberately absent: any mapping of growth *rate* to colour. Against binary
 data the magnitude carries no validation signal and invites reading a
-precision that is not there. Marginal predictions (within 10x of the growth
-threshold) get a small dot instead, since those are the calls that will flip
-on an unrelated curation change.
+precision that is not there. Predictions within 10x of the growth threshold
+get a small dot instead, since those are the calls most likely to flip on an
+unrelated curation change.
 
 Run from the repository root::
 
-    python -m scripts.generate_phenotype_figure
+    python simulations/kratzl_c_n_combos/plot_3x3_grid.py
 """
 
 import os
@@ -41,7 +38,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.patches import Patch, Polygon, Rectangle
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 sys.path.insert(0, PROJECT_ROOT)
 
 from tools.phenotypes import (  # noqa: E402
@@ -50,45 +48,32 @@ from tools.phenotypes import (  # noqa: E402
     N_SOURCE_IDS,
     evaluate_phenotypes,
     format_summary,
+    load_phenotypes,
     summarise,
 )
-from tools.plot_styles import ccomp_colors  # noqa: E402
+from tools.plot_styles import summer_colors  # noqa: E402
 
-RESULTS_DIR = os.path.join(PROJECT_ROOT, "scripts", "results")
+FIGURES_DIR = os.path.join(SCRIPT_DIR, "figures")
 MODEL_PATH = os.path.join(PROJECT_ROOT, "model.xml")
 
-PYRUVATE = "cpd00020"
+#: The medium this screen was run in. Both the carbon and the nitrogen source
+#: come from the condition rather than the base medium.
 N_SCREEN_MEDIUM = "marine_broth_wo_yeast_and_peptone_no_n"
-C_SCREEN_MEDIUM = "marine_broth_wo_yeast_and_peptone"
 
-#: Media shown in panel C, in display order.
-SINGLE_SUBSTRATE_MEDIA = {
-    "mbm": "MBM",
-    "l1": "L1",
-    "promm_no_c": "ProMM",
-    "swm": "SWM",
-}
+#: Set to a letter (e.g. "A") when this grid is assembled into a multi-panel
+#: figure. Left off for the standalone version, where a lone panel letter with
+#: no siblings just raises questions.
+PANEL_LABEL = None
 
-#: Shorter labels for the handful of names that would dominate the axis.
-SHORT_NAMES = {
-    "DHPS (dihydroxypropanesulfonate)": "DHPS",
-    "3-methyl-2-oxobutanoic acid": "3-methyl-2-oxobutanoate",
-    "3-methyl-2-oxopentanoic acid": "3-methyl-2-oxopentanoate",
-    "4-methyl-2-oxopentanoic acid": "4-methyl-2-oxopentanoate",
-    "4-hydroxybenzoic acid": "4-hydroxybenzoate",
-    "Glycerol-3-phosphate": "Glycerol-3-P",
-}
-
-GROWTH_FILL = ccomp_colors["dark_blue"]
-NO_GROWTH_FILL = "#E8E6DF"
-HATCH_EDGE = "#8C8C8C"
-DISCORDANT_EDGE = ccomp_colors["orange"]
-CELL_EDGE = "#C9C6BC"
-
-#: Panel C has one row per metabolite, which is much taller than it is wide.
-#: Wrapping it into this many side-by-side blocks keeps the figure a usable
-#: shape for a journal page.
-PANEL_C_BLOCKS = 2
+GROWTH_FILL = summer_colors["teal"]
+#: Solid rather than the paler light_tan, so that "did not grow" and "hatched
+#: because the model has no exchange reaction" separate by fill as well as by
+#: texture. Three states need three clearly different values.
+NO_GROWTH_FILL = summer_colors["dark_tan"]
+CELL_EDGE = summer_colors["dark_tan"]
+HATCH_EDGE = summer_colors["dark_tan"]
+DISCORDANT_EDGE = summer_colors["dark_pink"]
+TEXT_COLOR = "#333333"
 
 CELL = 0.30
 PAD = 0.08
@@ -98,15 +83,11 @@ HEADER_SIZE = 8
 PANEL_SIZE = 9
 
 
-def short_name(name: str) -> str:
-    return SHORT_NAMES.get(name, name)
-
-
 def _axes_inches(fig, x, y, width, height):
     """Add an axes positioned in inches from the top-left of the figure.
 
-    Sizing the axes rather than letting the layout engine do it is what keeps
-    every cell in every panel exactly the same size.
+    Sizing the axes explicitly rather than letting the layout engine do it is
+    what keeps the cells square and identically sized.
     """
     fig_width, fig_height = fig.get_size_inches()
     return fig.add_axes(
@@ -123,13 +104,13 @@ def _half_style(state, representable=True):
     """Patch keywords for one triangle of a cell."""
     if not representable or state is None:
         return dict(
-            facecolor="white", hatch="////", edgecolor=HATCH_EDGE, linewidth=0.4
+            facecolor="white", hatch="////", edgecolor=HATCH_EDGE, linewidth=0.5
         )
     if state == "Yes":
         return dict(facecolor=GROWTH_FILL, edgecolor="none", linewidth=0.0)
     if state == "No":
-        return dict(facecolor=NO_GROWTH_FILL, edgecolor=CELL_EDGE, linewidth=0.4)
-    return dict(facecolor="white", hatch="....", edgecolor=HATCH_EDGE, linewidth=0.4)
+        return dict(facecolor=NO_GROWTH_FILL, edgecolor="none", linewidth=0.0)
+    return dict(facecolor="white", hatch="....", edgecolor=HATCH_EDGE, linewidth=0.5)
 
 
 def _draw_cell(ax, col, row, record):
@@ -174,25 +155,28 @@ def _draw_cell(ax, col, row, record):
         )
 
     if record["near_threshold"]:
+        # Outlined rather than filled, so it stays visible on either fill.
         ax.plot(
             [x + 0.72],
             [y + 0.72],
             marker="o",
-            markersize=2.2,
-            color="white",
+            markersize=2.6,
+            markerfacecolor="white",
+            markeredgecolor=CELL_EDGE,
+            markeredgewidth=0.5,
             zorder=5,
         )
 
 
-def _draw_matrix(ax, cells, row_labels, col_labels, rotate_columns=False):
-    """Draw a matrix of split cells. ``cells`` maps (row, col) -> record."""
+def _draw_matrix(ax, cells, row_labels, col_labels):
+    """Draw the matrix of split cells. ``cells`` maps (row, col) -> record."""
     n_rows, n_cols = len(row_labels), len(col_labels)
 
     for (row, col), record in cells.items():
         _draw_cell(ax, col, row, record)
 
-    # Cells with no experiment at all stay empty, but get a hairline so the
-    # reader can tell "not tested" from "tested and no growth".
+    # Untested combinations stay empty but keep a hairline, so "not tested" is
+    # distinguishable from "tested and did not grow".
     for row in range(n_rows):
         for col in range(n_cols):
             if (row, col) not in cells:
@@ -202,7 +186,7 @@ def _draw_matrix(ax, cells, row_labels, col_labels, rotate_columns=False):
                         1 - 2 * PAD,
                         1 - 2 * PAD,
                         fill=False,
-                        edgecolor="#E0DED7",
+                        edgecolor=CELL_EDGE,
                         linewidth=0.4,
                         linestyle=(0, (1, 1.6)),
                         zorder=1,
@@ -214,175 +198,59 @@ def _draw_matrix(ax, cells, row_labels, col_labels, rotate_columns=False):
     ax.invert_yaxis()
     ax.set_xticks([c + 0.5 for c in range(n_cols)])
     ax.set_yticks([r + 0.5 for r in range(n_rows)])
-    ax.set_yticklabels(row_labels, fontsize=LABEL_SIZE, color="#333333")
+    ax.set_yticklabels(row_labels, fontsize=LABEL_SIZE, color=TEXT_COLOR)
     ax.xaxis.set_ticks_position("top")
-    if rotate_columns:
-        ax.set_xticklabels(
-            col_labels,
-            fontsize=HEADER_SIZE,
-            color="#333333",
-            rotation=40,
-            ha="left",
-            rotation_mode="anchor",
-        )
-    else:
-        ax.set_xticklabels(col_labels, fontsize=HEADER_SIZE, color="#333333")
+    ax.set_xticklabels(
+        col_labels,
+        fontsize=HEADER_SIZE,
+        color=TEXT_COLOR,
+        rotation=40,
+        ha="left",
+        rotation_mode="anchor",
+    )
     ax.tick_params(length=0, pad=3)
     for spine in ax.spines.values():
         spine.set_visible(False)
 
 
-def _figure_label(fig, x, y, text):
-    """Panel letter, positioned in inches from the top-left of the figure.
-
-    Placed on the figure rather than the axes so it clears the column headers,
-    which sit above the axes and vary in height between panels.
-    """
-    fig_width, fig_height = fig.get_size_inches()
-    fig.text(
-        x / fig_width,
-        1 - y / fig_height,
-        text,
-        fontsize=PANEL_SIZE,
-        fontweight="bold",
-        va="top",
-        ha="left",
-        color="#333333",
-    )
-
-
-def _split_blocks(cells, row_labels, n_blocks):
-    """Break a tall matrix into side-by-side blocks of rows.
-
-    Panel C has one row per metabolite, which is far taller than it is wide.
-    Wrapping it into blocks keeps the figure a usable shape without changing
-    what is plotted.
-    """
-    if n_blocks < 2:
-        return [(cells, row_labels)]
-
-    chunk = -(-len(row_labels) // n_blocks)
-    blocks = []
-    for index in range(n_blocks):
-        offset = index * chunk
-        rows = row_labels[offset : offset + chunk]
-        if not rows:
-            continue
-        blocks.append(
-            (
-                {
-                    (row - offset, col): record
-                    for (row, col), record in cells.items()
-                    if offset <= row < offset + len(rows)
-                },
-                rows,
-            )
-        )
-    return blocks
-
-
-def build_nitrogen_carbon_panel(results):
-    """Panel A: nitrogen source x carbon source."""
+def build_grid(results):
+    """Map the nitrogen-source screen onto a nitrogen x carbon grid."""
     rows = list(N_SOURCE_IDS)
     cols = list(C_SOURCE_IDS)
-    subset = results[results["minimal_media"] == N_SCREEN_MEDIUM]
 
     cells = {}
-    for _, record in subset.iterrows():
+    for _, record in results.iterrows():
         met_ids = set(record["met_id"])
         for row_index, n_id in enumerate(rows):
             for col_index, c_id in enumerate(cols):
                 if met_ids == {n_id, c_id}:
                     cells[(row_index, col_index)] = record
+
     return cells, [N_SOURCE_IDS[n] for n in rows], [C_SOURCE_IDS[c] for c in cols]
-
-
-def build_pyruvate_panel(results):
-    """Panel B: amino acid alone vs. amino acid plus pyruvate."""
-    subset = results[results["minimal_media"] == C_SCREEN_MEDIUM]
-
-    records = {}
-    for _, record in subset.iterrows():
-        met_ids = list(record["met_id"])
-        base = [m for m in met_ids if m != PYRUVATE]
-        if len(base) != 1:
-            continue
-        name = short_name(record["c_source"].split(",")[0].strip())
-        column = 1 if PYRUVATE in met_ids else 0
-        records[(name, column)] = record
-
-    row_labels = sorted({name for name, _ in records})
-    cells = {
-        (row_labels.index(name), column): record
-        for (name, column), record in records.items()
-    }
-    return cells, row_labels, ["alone", "+ pyruvate"]
-
-
-def build_medium_panel(results):
-    """Panel C: single-substrate carbon screens, metabolite x medium."""
-    subset = results[
-        results["minimal_media"].isin(SINGLE_SUBSTRATE_MEDIA)
-        & (results["met_id"].apply(len) == 1)
-    ]
-
-    records = {}
-    for _, record in subset.iterrows():
-        name = short_name(record["c_source"])
-        records[(name, record["minimal_media"])] = record
-
-    # Group by experimental outcome, then alphabetical within group. Sorting
-    # discordant cells to the top would make the figure look arranged.
-    def group(name):
-        calls = {
-            record["growth"]
-            for (metabolite, _), record in records.items()
-            if metabolite == name
-        }
-        if "Yes" in calls:
-            return 0
-        if "No" in calls:
-            return 1
-        return 2
-
-    names = sorted({name for name, _ in records})
-    row_labels = sorted(names, key=lambda name: (group(name), name.lower()))
-    col_keys = list(SINGLE_SUBSTRATE_MEDIA)
-
-    cells = {
-        (row_labels.index(metabolite), col_keys.index(medium)): record
-        for (metabolite, medium), record in records.items()
-    }
-    return cells, row_labels, [SINGLE_SUBSTRATE_MEDIA[k] for k in col_keys]
 
 
 def _draw_key(ax):
     """A single annotated split cell explaining which half is which."""
-    ax.set_xlim(0, 3.4)
+    ax.set_xlim(0, 4.0)
     ax.set_ylim(0, 1)
     ax.invert_yaxis()
     ax.axis("off")
 
-    x, y = 0.9, 0.05
-    size = 0.9
-    upper_left = [
-        (x, y),
-        (x + size - GAP, y),
-        (x, y + size - GAP),
-    ]
-    lower_right = [
-        (x + size, y + GAP),
-        (x + size, y + size),
-        (x + GAP, y + size),
-    ]
-    ax.add_patch(Polygon(upper_left, closed=True, facecolor=GROWTH_FILL, zorder=2))
+    x, y, size = 1.55, 0.05, 0.9
     ax.add_patch(
         Polygon(
-            lower_right,
+            [(x, y), (x + size - GAP, y), (x, y + size - GAP)],
+            closed=True,
+            facecolor=GROWTH_FILL,
+            zorder=2,
+        )
+    )
+    ax.add_patch(
+        Polygon(
+            [(x + size, y + GAP), (x + size, y + size), (x + GAP, y + size)],
             closed=True,
             facecolor=NO_GROWTH_FILL,
-            edgecolor=CELL_EDGE,
-            linewidth=0.4,
+            edgecolor="none",
             zorder=2,
         )
     )
@@ -400,55 +268,87 @@ def _draw_key(ax):
     ax.annotate(
         "experiment",
         xy=(x + 0.18, y + 0.16),
-        xytext=(x - 0.25, y - 0.02),
+        xytext=(x - 0.28, y - 0.02),
         fontsize=LABEL_SIZE,
-        color="#333333",
+        color=TEXT_COLOR,
         ha="right",
         va="center",
-        arrowprops=dict(arrowstyle="-", lw=0.6, color="#8C8C8C"),
+        arrowprops=dict(arrowstyle="-", lw=0.6, color=CELL_EDGE),
     )
     ax.annotate(
         "model",
         xy=(x + size - 0.18, y + size - 0.16),
-        xytext=(x + size + 0.25, y + size + 0.02),
+        xytext=(x + size + 0.28, y + size + 0.02),
         fontsize=LABEL_SIZE,
-        color="#333333",
+        color=TEXT_COLOR,
         ha="left",
         va="center",
-        arrowprops=dict(arrowstyle="-", lw=0.6, color="#8C8C8C"),
+        arrowprops=dict(arrowstyle="-", lw=0.6, color=CELL_EDGE),
     )
 
 
-def _draw_legend(ax):
-    ax.axis("off")
-    handles = [
-        Patch(facecolor=GROWTH_FILL, label="Growth"),
-        Patch(facecolor=NO_GROWTH_FILL, edgecolor=CELL_EDGE, label="No growth"),
-        Patch(
-            facecolor="white",
-            hatch="....",
-            edgecolor=HATCH_EDGE,
-            label="Growth uncertain (experiment)",
+def _legend_entries(cells):
+    """Legend handles for the states that actually occur in the panel.
+
+    Built from the data rather than hard-coded so the legend never explains a
+    symbol the reader cannot find. With only the nitrogen screen plotted, that
+    drops the "uncertain" and "not tested" entries.
+    """
+    experimental = {record["growth"] for record in cells.values()}
+    predicted = {record["predicted"] for record in cells.values()}
+    n_slots = len(N_SOURCE_IDS) * len(C_SOURCE_IDS)
+
+    entries = [
+        (
+            "Yes" in experimental or "Yes" in predicted,
+            Patch(facecolor=GROWTH_FILL, label="Growth"),
         ),
-        Patch(
-            facecolor="white",
-            hatch="////",
-            edgecolor=HATCH_EDGE,
-            label="No exchange reaction in model",
+        (
+            "No" in experimental or "No" in predicted,
+            Patch(facecolor=NO_GROWTH_FILL, label="No growth"),
         ),
-        Patch(
-            facecolor="none",
-            edgecolor=DISCORDANT_EDGE,
-            linewidth=1.7,
-            label="Experiment and model disagree",
+        (
+            "Unsure" in experimental,
+            Patch(
+                facecolor="white",
+                hatch="....",
+                edgecolor=HATCH_EDGE,
+                label="Growth uncertain (experiment)",
+            ),
         ),
-        Patch(
-            facecolor="none",
-            edgecolor="#E0DED7",
-            linestyle=(0, (1, 1.6)),
-            label="Not tested",
+        (
+            None in predicted,
+            Patch(
+                facecolor="white",
+                hatch="////",
+                edgecolor=HATCH_EDGE,
+                label="No exchange reaction in model",
+            ),
+        ),
+        (
+            any(record["discordant"] for record in cells.values()),
+            Patch(
+                facecolor="none",
+                edgecolor=DISCORDANT_EDGE,
+                linewidth=1.7,
+                label="Experiment and model disagree",
+            ),
+        ),
+        (
+            len(cells) < n_slots,
+            Patch(
+                facecolor="none",
+                edgecolor=CELL_EDGE,
+                linestyle=(0, (1, 1.6)),
+                label="Not tested",
+            ),
         ),
     ]
+    return [handle for include, handle in entries if include]
+
+
+def _draw_legend(ax, handles):
+    ax.axis("off")
     ax.legend(
         handles=handles,
         loc="upper left",
@@ -461,94 +361,77 @@ def _draw_legend(ax):
     )
 
 
-def generate_phenotype_figure(model, output_stem="exp_vs_pred_phenotype_matrix"):
-    results = evaluate_phenotypes(model)
+def generate_grid_figure(model, output_stem="kratzl_c_n_grid"):
+    # Only the nine conditions in this screen are solved. There is no reason to
+    # run the other 52 phenotypes to draw a 3x3 grid.
+    phenotypes = load_phenotypes()
+    subset = phenotypes[phenotypes["minimal_media"] == N_SCREEN_MEDIUM]
+    results = evaluate_phenotypes(model, phenotypes=subset)
     summary = summarise(results)
     print(format_summary(summary))
 
-    a_cells, a_rows, a_cols = build_nitrogen_carbon_panel(results)
-    b_cells, b_rows, b_cols = build_pyruvate_panel(results)
-    c_cells, c_rows, c_cols = build_medium_panel(results)
-    c_blocks = _split_blocks(c_cells, c_rows, PANEL_C_BLOCKS)
+    cells, row_labels, col_labels = build_grid(results)
+    handles = _legend_entries(cells)
 
     margin = 0.18
-    gap = 0.60
-    a_label_width, b_label_width, c_label_width = 0.80, 1.05, 1.85
-    legend_width = 3.10
+    label_width = 0.80
     header = 0.95
+    key_width, key_height = 2.85, 0.78
+    legend_width = 2.95
+    # Matches what the legend actually occupies at this font size and
+    # spacing; an over-estimate leaves the axes reserving blank space that
+    # bbox_inches="tight" then keeps.
+    legend_height = 0.06 + 0.22 * len(handles)
 
-    a_matrix_x = margin + a_label_width
-    a_width = len(a_cols) * CELL
-    b_matrix_x = a_matrix_x + a_width + gap + b_label_width
-    b_width = len(b_cols) * CELL
-    legend_x = b_matrix_x + b_width + gap + 0.30
+    matrix_x = margin + label_width
+    matrix_width = len(col_labels) * CELL
+    matrix_height = len(row_labels) * CELL
+    right_x = matrix_x + matrix_width + 0.65
 
-    top_y = header + 0.28
-    top_height = max(len(a_rows), len(b_rows)) * CELL
-    block_width = len(c_cols) * CELL
-    c_matrix_y = top_y + top_height + 0.55 + header
-    c_height = max(len(rows) for _, rows in c_blocks) * CELL
+    matrix_y = header + 0.28
+    key_y = matrix_y - 0.22
+    legend_y = key_y + key_height + 0.30
 
-    block_content = c_label_width + block_width
-    fig_width = (
-        max(
-            legend_x + legend_width,
-            margin + len(c_blocks) * block_content + (len(c_blocks) - 1) * gap,
-        )
-        + margin
-    )
-    fig_height = c_matrix_y + c_height + margin + 0.15
+    fig_width = right_x + max(key_width, legend_width) + margin
+    fig_height = max(matrix_y + matrix_height, legend_y + legend_height) + margin + 0.10
     fig = plt.figure(figsize=(fig_width, fig_height))
 
-    ax_a = _axes_inches(fig, a_matrix_x, top_y, a_width, len(a_rows) * CELL)
-    _draw_matrix(ax_a, a_cells, a_rows, a_cols, rotate_columns=True)
-    _figure_label(fig, margin, top_y - header - 0.24, "A")
+    ax_matrix = _axes_inches(fig, matrix_x, matrix_y, matrix_width, matrix_height)
+    _draw_matrix(ax_matrix, cells, row_labels, col_labels)
 
-    ax_b = _axes_inches(fig, b_matrix_x, top_y, b_width, len(b_rows) * CELL)
-    _draw_matrix(ax_b, b_cells, b_rows, b_cols, rotate_columns=True)
-    _figure_label(fig, b_matrix_x - b_label_width, top_y - header - 0.24, "B")
-
-    ax_key = _axes_inches(fig, legend_x, top_y - 0.15, 2.30, 0.70)
-    _draw_key(ax_key)
-
-    ax_legend = _axes_inches(fig, legend_x, top_y + 0.95, legend_width, 2.05)
-    _draw_legend(ax_legend)
-
-    # Spread the blocks across the full width rather than packing them left,
-    # so panel C sits under the legend instead of leaving a gutter beside it.
-    if len(c_blocks) > 1:
-        stride = (fig_width - margin - block_content - margin) / (len(c_blocks) - 1)
-    else:
-        stride = 0.0
-
-    for index, (block_cells, block_rows) in enumerate(c_blocks):
-        block_x = margin + index * stride + c_label_width
-        ax_block = _axes_inches(
-            fig, block_x, c_matrix_y, block_width, len(block_rows) * CELL
+    if PANEL_LABEL:
+        fig.text(
+            margin / fig_width,
+            1 - (matrix_y - header - 0.24) / fig_height,
+            PANEL_LABEL,
+            fontsize=PANEL_SIZE,
+            fontweight="bold",
+            va="top",
+            ha="left",
+            color=TEXT_COLOR,
         )
-        _draw_matrix(ax_block, block_cells, block_rows, c_cols, rotate_columns=True)
-        if index == 0:
-            _figure_label(fig, margin, c_matrix_y - header - 0.20, "C")
 
-    os.makedirs(RESULTS_DIR, exist_ok=True)
+    _draw_key(_axes_inches(fig, right_x, key_y, key_width, key_height))
+    _draw_legend(
+        _axes_inches(fig, right_x, legend_y, legend_width, legend_height), handles
+    )
+
+    os.makedirs(FIGURES_DIR, exist_ok=True)
     for extension in ("png", "pdf"):
         fig.savefig(
-            os.path.join(RESULTS_DIR, f"{output_stem}.{extension}"),
+            os.path.join(FIGURES_DIR, f"{output_stem}.{extension}"),
             dpi=300,
             bbox_inches="tight",
         )
     plt.close(fig)
 
     # The classified table backs the numbers quoted in the caption.
-    table = results.drop(columns=["met_id"]).copy()
-    table.to_csv(
-        os.path.join(RESULTS_DIR, f"{output_stem}_classified.tsv"),
+    results.drop(columns=["met_id"]).to_csv(
+        os.path.join(FIGURES_DIR, f"{output_stem}_classified.tsv"),
         sep="\t",
         index=False,
     )
-    with open(
-        os.path.join(RESULTS_DIR, f"{output_stem}_summary.txt"), "w"
-    ) as handle:
+    with open(os.path.join(FIGURES_DIR, f"{output_stem}_summary.txt"), "w") as handle:
         handle.write(format_summary(summary) + "\n")
         handle.write(f"Growth threshold: {GROWTH_THRESHOLD} 1/hr\n")
 
@@ -559,25 +442,21 @@ def main():
     import cobra
 
     model = cobra.io.read_sbml_model(MODEL_PATH)
-    results, _ = generate_phenotype_figure(model)
+    results, _ = generate_grid_figure(model)
 
     discordant = results[results["discordant"]]
     if not discordant.empty:
         print("\nMismatches:")
         print(
-            discordant[
-                ["minimal_media", "c_source", "growth", "predicted", "category"]
-            ].to_string(index=False)
+            discordant[["c_source", "growth", "predicted", "category"]].to_string(
+                index=False
+            )
         )
 
     unrepresentable = results[results["category"] == "no_exchange"]
     if not unrepresentable.empty:
         print("\nNot representable (no exchange reaction):")
-        print(
-            unrepresentable[["minimal_media", "c_source", "missing_exchanges"]].to_string(
-                index=False
-            )
-        )
+        print(unrepresentable[["c_source", "missing_exchanges"]].to_string(index=False))
 
 
 if __name__ == "__main__":
