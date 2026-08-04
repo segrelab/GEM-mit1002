@@ -93,6 +93,12 @@ KEY_CELL_SCALE = 0.55
 #: a thick frame at the smaller cell size.
 KEY_DISCORDANT_LW = 1.6
 
+#: Mark predictions that land within NEAR_THRESHOLD_FACTOR of the growth
+#: threshold. Only ever drawn on cells whose prediction is actually shown, so
+#: it stays off the hatched "no exchange reaction" cells. Set False to drop the
+#: markers entirely.
+SHOW_NEAR_THRESHOLD = True
+
 #: Room to reserve for the key's two annotation labels, in inches.
 KEY_TEXT_LEFT = 0.68
 KEY_TEXT_RIGHT = 0.42
@@ -178,7 +184,10 @@ def _draw_cell(ax, col, row, record):
             )
         )
 
-    if record["near_threshold"]:
+    # Skipped when the cell is hatched: flagging a prediction as marginal makes
+    # no sense on a condition the model cannot represent, where any nonzero rate
+    # comes from the parts of the medium that did get added.
+    if record["near_threshold"] and representable and SHOW_NEAR_THRESHOLD:
         # Outlined rather than filled, so it stays visible on either fill.
         ax.plot(
             [x + 0.72],
