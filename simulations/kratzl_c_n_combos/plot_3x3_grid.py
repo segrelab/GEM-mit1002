@@ -1,17 +1,17 @@
 """Nitrogen source x carbon source grid: experiment vs. FBA prediction.
 
-The Kratzl nitrogen-source screen is the only genuine factorial block in
-``data/known_growth_phenotypes.tsv``: three nitrogen sources crossed with three
-carbon sources, all in ``marine_broth_wo_yeast_and_peptone_no_n``. That is the
-one place a 2D grid earns its keep, because conditions failing for a single
-shared reason line up as a whole row or column instead of scattering through a
-61-row list.
+The data from Kratzl in ``data/known_growth_phenotypes.tsv`` includes three
+nitrogen sources (ammonium, nitrate, and urea) crossed with three carbon
+sources (glucose, pyruvate, succinate), all in the same medium. What is
+interesting is that not all combintions support growth, indicating that the
+combinations matter, rahter than just the individual sources.
 
-Every cell is split on the diagonal. The upper-left triangle is the
-experiment, the lower-right triangle is the model, so a cell reading as one
-solid block is an agreement and a two-tone cell is a mismatch. Mismatched
-cells also carry a heavy outline: colour is already carrying the data, so the
-annotation gets its own channel.
+This script plots the experimental data and the FBA predictions in a 3x3 grid,
+with the nitrogen source on the rows and the carbon source on the columns. Each
+cell is split on the diagonal. The upper-left triangle is the experiment, the
+lower-right triangle is the model, so a cell reading as one solid block is an
+agreement and a two-tone cell is a mismatch. Mismatched cells also carry a
+heavy outline.
 
 Cells with no exchange reaction in the model are hatched rather than drawn as
 a no-growth prediction. The distinction matters for what this figure is
