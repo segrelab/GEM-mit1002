@@ -75,12 +75,36 @@ HATCH_EDGE = summer_colors["dark_tan"]
 DISCORDANT_EDGE = summer_colors["dark_pink"]
 TEXT_COLOR = "#333333"
 
-CELL = 0.30
+#: Grid cell size, in inches. Only nine cells carry the result, so they get to
+#: be large; the key and legend are explanatory furniture and stay subordinate.
+CELL = 0.70
 PAD = 0.08
-GAP = 0.05
+#: Width of the white stripe along the diagonal, in cell units. Only needs to
+#: be wide enough to keep the split legible when both halves agree; at this
+#: cell size anything larger reads as a design element rather than a divider.
+GAP = 0.03
+
+#: Size of the key's example cell as a fraction of a grid cell. Kept well under
+#: 1.0 so the example reads as an explanation rather than as a tenth data
+#: point competing with the nine real ones.
+KEY_CELL_SCALE = 0.55
+
+#: The key's outline, slightly lighter than the grid's so it does not turn into
+#: a thick frame at the smaller cell size.
+KEY_DISCORDANT_LW = 1.6
+
+#: Room to reserve for the key's two annotation labels, in inches.
+KEY_TEXT_LEFT = 0.68
+KEY_TEXT_RIGHT = 0.42
+
+#: Vertical space between the annotated example cell and the colour key. They
+#: are one explanatory unit, so this is deliberately tight.
+KEY_LEGEND_GAP = 0.12
+
 LABEL_SIZE = 8
 HEADER_SIZE = 8
 PANEL_SIZE = 9
+DISCORDANT_LW = 2.0
 
 
 def _axes_inches(fig, x, y, width, height):
@@ -149,7 +173,7 @@ def _draw_cell(ax, col, row, record):
                 1 - 2 * PAD + 0.06,
                 fill=False,
                 edgecolor=DISCORDANT_EDGE,
-                linewidth=1.7,
+                linewidth=DISCORDANT_LW,
                 zorder=4,
             )
         )
@@ -229,17 +253,24 @@ def build_grid(results):
     return cells, [N_SOURCE_IDS[n] for n in rows], [C_SOURCE_IDS[c] for c in cols]
 
 
-def _draw_key(ax):
-    """A single annotated split cell explaining which half is which."""
-    ax.set_xlim(0, 4.0)
-    ax.set_ylim(0, 1)
+def _draw_key(ax, width, height, cell):
+    """A single annotated split cell explaining which half is which.
+
+    Data coordinates here are inches, so ``cell`` sets the example cell's true
+    printed size and it can be kept smaller than a grid cell.
+    """
+    ax.set_xlim(0, width)
+    ax.set_ylim(0, height)
     ax.invert_yaxis()
     ax.axis("off")
 
-    x, y, size = 1.55, 0.05, 0.9
+    gap = GAP * cell
+    x = KEY_TEXT_LEFT + 0.14
+    y = 0.09
+
     ax.add_patch(
         Polygon(
-            [(x, y), (x + size - GAP, y), (x, y + size - GAP)],
+            [(x, y), (x + cell - gap, y), (x, y + cell - gap)],
             closed=True,
             facecolor=GROWTH_FILL,
             zorder=2,
@@ -247,7 +278,7 @@ def _draw_key(ax):
     )
     ax.add_patch(
         Polygon(
-            [(x + size, y + GAP), (x + size, y + size), (x + GAP, y + size)],
+            [(x + cell, y + gap), (x + cell, y + cell), (x + gap, y + cell)],
             closed=True,
             facecolor=NO_GROWTH_FILL,
             edgecolor="none",
@@ -256,19 +287,19 @@ def _draw_key(ax):
     )
     ax.add_patch(
         Rectangle(
-            (x - 0.03, y - 0.03),
-            size + 0.06,
-            size + 0.06,
+            (x - 0.02, y - 0.02),
+            cell + 0.04,
+            cell + 0.04,
             fill=False,
             edgecolor=DISCORDANT_EDGE,
-            linewidth=1.7,
+            linewidth=KEY_DISCORDANT_LW,
             zorder=3,
         )
     )
     ax.annotate(
         "experiment",
-        xy=(x + 0.18, y + 0.16),
-        xytext=(x - 0.28, y - 0.02),
+        xy=(x + 0.20 * cell, y + 0.18 * cell),
+        xytext=(x - 0.11, y - 0.01),
         fontsize=LABEL_SIZE,
         color=TEXT_COLOR,
         ha="right",
@@ -277,8 +308,8 @@ def _draw_key(ax):
     )
     ax.annotate(
         "model",
-        xy=(x + size - 0.18, y + size - 0.16),
-        xytext=(x + size + 0.28, y + size + 0.02),
+        xy=(x + 0.80 * cell, y + 0.82 * cell),
+        xytext=(x + cell + 0.11, y + cell + 0.01),
         fontsize=LABEL_SIZE,
         color=TEXT_COLOR,
         ha="left",
@@ -375,8 +406,13 @@ def generate_grid_figure(model, output_stem="kratzl_c_n_grid"):
 
     margin = 0.18
     label_width = 0.80
-    header = 0.95
-    key_width, key_height = 2.85, 0.78
+    # Just enough to clear the rotated column labels. Over-reserving here only
+    # creates whitespace that bbox_inches="tight" crops back off, which throws
+    # off anything positioned relative to the figure height.
+    header = 0.60
+    key_cell = CELL * KEY_CELL_SCALE
+    key_width = KEY_TEXT_LEFT + 0.14 + key_cell + 0.14 + KEY_TEXT_RIGHT
+    key_height = key_cell + 0.20
     legend_width = 2.95
     # Matches what the legend actually occupies at this font size and
     # spacing; an over-estimate leaves the axes reserving blank space that
@@ -386,14 +422,26 @@ def generate_grid_figure(model, output_stem="kratzl_c_n_grid"):
     matrix_x = margin + label_width
     matrix_width = len(col_labels) * CELL
     matrix_height = len(row_labels) * CELL
-    right_x = matrix_x + matrix_width + 0.65
-
     matrix_y = header + 0.28
-    key_y = matrix_y - 0.22
-    legend_y = key_y + key_height + 0.30
 
-    fig_width = right_x + max(key_width, legend_width) + margin
-    fig_height = max(matrix_y + matrix_height, legend_y + legend_height) + margin + 0.10
+    # The example cell sits this far into its own axes, because the
+    # "experiment" label is drawn to its left. Backing the axes off by the same
+    # amount puts the example cell on the same vertical line as the legend
+    # swatches, so everything in the right-hand column aligns.
+    key_indent = KEY_TEXT_LEFT + 0.14
+    right_x = matrix_x + matrix_width + 0.90
+    key_x = right_x - key_indent
+
+    # Centre the key and legend together on the grid rows. Measuring against
+    # the rows rather than the rows plus column labels keeps this independent
+    # of how tall the rotated labels happen to render.
+    matrix_bottom = matrix_y + matrix_height
+    block_height = key_height + KEY_LEGEND_GAP + legend_height
+    key_y = matrix_y + (matrix_height - block_height) / 2
+    legend_y = key_y + key_height + KEY_LEGEND_GAP
+
+    fig_width = right_x + max(key_width - key_indent, legend_width) + margin
+    fig_height = max(matrix_bottom, legend_y + legend_height) + margin + 0.10
     fig = plt.figure(figsize=(fig_width, fig_height))
 
     ax_matrix = _axes_inches(fig, matrix_x, matrix_y, matrix_width, matrix_height)
@@ -411,7 +459,12 @@ def generate_grid_figure(model, output_stem="kratzl_c_n_grid"):
             color=TEXT_COLOR,
         )
 
-    _draw_key(_axes_inches(fig, right_x, key_y, key_width, key_height))
+    _draw_key(
+        _axes_inches(fig, key_x, key_y, key_width, key_height),
+        key_width,
+        key_height,
+        key_cell,
+    )
     _draw_legend(
         _axes_inches(fig, right_x, legend_y, legend_width, legend_height), handles
     )
