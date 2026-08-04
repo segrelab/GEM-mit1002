@@ -10,7 +10,6 @@ sorted by growth rate. Self-contained: re-runs the simulations, no dependence
 on the (retired) PCA analysis.
 """
 
-import pickle as pkl
 import re
 import warnings
 from pathlib import Path
@@ -23,7 +22,12 @@ from gem_utilities import media as media_utils
 
 FILE_PATH = Path(__file__).resolve().parent
 REPO_ROOT = FILE_PATH.parents[1]
-TEST_FILE_DIR = REPO_ROOT / "test" / "test_files"
+
+import sys
+
+sys.path.insert(0, str(REPO_ROOT))
+
+from tools.media import MEDIA  # noqa: E402
 OUT_PATH = FILE_PATH / "results"
 OUT_PATH.mkdir(exist_ok=True)
 FLUX_PATH = OUT_PATH / "fluxes"
@@ -56,8 +60,7 @@ def main():
     model = cobra.io.read_sbml_model(REPO_ROOT / "model.xml")
 
     print("Loading media definitions...")
-    with open(TEST_FILE_DIR / "media" / "media_definitions.pkl", "rb") as f:
-        media_defs = pkl.load(f)
+    media_defs = MEDIA
 
     print("Loading the substrate panel...")
     substrate_df = pd.read_csv(OUT_PATH / "substrate_panel.csv")

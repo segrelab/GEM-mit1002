@@ -1,6 +1,5 @@
 import json
 import os
-import pickle
 
 import cobra
 import matplotlib.pyplot as plt
@@ -11,22 +10,27 @@ from gem_utilities import biomass, media
 # Define paths relative to the script or project root
 # It's better practice to define a project root
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-TESTFILE_DIR = os.path.join(PROJECT_ROOT, "test", "test_files")
+
+import sys
+
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from tools.media import MEDIA  # noqa: E402
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "results")
 
 # Ensure the results directory exists
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 # Load the media definitions
-with open(os.path.join(TESTFILE_DIR, "media", "media_definitions.pkl"), "rb") as f:
-    media_definitions = pickle.load(f)
+media_definitions = MEDIA
 
 # Load the model
 model = cobra.io.read_sbml_model(os.path.join(PROJECT_ROOT, "model.xml"))
 
 # Load the TSV of the growth phenotypes
 growth_phenotypes = pd.read_csv(
-    os.path.join(TESTFILE_DIR, "known_growth_phenotypes.tsv"),
+    os.path.join(DATA_DIR, "known_growth_phenotypes.tsv"),
     sep="\t",
     converters={"met_id": lambda x: x.split(",")},
 )

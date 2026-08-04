@@ -5,7 +5,6 @@ from pathlib import Path
 
 import cobra
 import numpy as np
-import pickle as pkl
 import pandas as pd
 
 # Set file paths
@@ -13,7 +12,12 @@ FILE_PATH = Path(__file__).resolve().parent
 OUT_PATH = FILE_PATH / "results"
 TOP_10_DIR = FILE_PATH.parent
 REPO_ROOT = FILE_PATH.parents[2]
-TEST_FILE_DIR = REPO_ROOT / "test" / "test_files"
+
+import sys
+
+sys.path.insert(0, str(REPO_ROOT))
+
+from tools.media import MEDIA  # noqa: E402
 
 # Make the results directory if it doesn't exist
 OUT_PATH.mkdir(exist_ok=True)
@@ -48,8 +52,7 @@ def main():
     ].copy()
 
     # Load the minimal media definition
-    with open(TEST_FILE_DIR / "media" / "media_definitions.pkl", "rb") as f:
-        media_definitions = pkl.load(f)
+    media_definitions = MEDIA
     minimal_media = media_definitions["minimal"]
 
     # Make a list to hold the results

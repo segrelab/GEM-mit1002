@@ -10,11 +10,10 @@ FILE_PATH = Path(__file__).resolve().parent
 OUT_PATH = FILE_PATH / "results"
 TOP_10_DIR = FILE_PATH.parent
 REPO_ROOT = FILE_PATH.parents[2]
-TEST_FILE_DIR = REPO_ROOT / "test" / "test_files"
 
-# Add the repo root to the system path so we can import from the plot_styles file
+# Add the repo root to the system path so tools/ is importable
 sys.path.append(str(REPO_ROOT))
-import plot_styles  # Import the plot styles from the repo
+from tools import plot_styles  # Import the plot styles from the repo
 
 # Make the results directory if it doesn't exist
 OUT_PATH.mkdir(exist_ok=True)

@@ -11,7 +11,7 @@ from gem_utilities import media
 
 # Import the plot styles (has global variables for colors)
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-from plot_styles import *
+from tools.plot_styles import *
 
 # Set the output directory
 FILE_DIR = os.path.dirname(os.path.realpath(__file__))

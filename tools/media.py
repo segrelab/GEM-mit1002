@@ -1,8 +1,36 @@
-import json
-import os
-import pickle
+"""Growth media definitions for the MIT1002 model.
 
-import pandas as pd
+Each medium is a dict mapping an exchange reaction ID to the bound used for it,
+in the form COBRApy expects for ``model.medium``. Import the registry rather
+than reading a file::
+
+    from tools.media import MEDIA
+
+    model.medium = MEDIA["minimal_glucose"]
+
+These definitions used to be serialised to ``media_definitions.pkl`` and loaded
+with ``pickle.load`` from ~17 places. That was replaced with a plain importable
+module because the pickle was a cache of literal dicts -- there was no
+computation to save, so it bought nothing while costing three things:
+
+* It was a tracked binary, so a media change could not be reviewed in a diff.
+  That matters because media determine which growth phenotypes pass, so an
+  unreviewable media change silently changes test outcomes.
+* It could go stale. Editing the definitions without regenerating the pickle
+  left every consumer silently using the old media.
+* ``pickle.load`` is tied to Python and library versions and executes arbitrary
+  code on load.
+
+The exchange reactions listed here must exist in the model, so not every
+metabolite in the experimental medium can be represented. Where the exchange
+reaction is missing the line is commented out rather than deleted, so the
+omission stays visible. All exchange reactions use ModelSEED nomenclature.
+
+Primary sources for the recipes -- published protocols and lab documents -- are
+in ``data/media_sources/``. If you change a medium here, that is what a reviewer
+should be able to check it against.
+"""
+
 
 # This file is for defining the different minimal media with no carbon sources
 # for the growth tests. These media are defined as dictionaries, where the keys
@@ -579,8 +607,9 @@ lb = {
     "EX_cpd11595_e0": 100,  # Chromate
 }
 
-# Make a dictionary of all the media
-media = {
+#: All media, keyed by the name used in known_growth_phenotypes.tsv and by
+#: every consumer that used to read media_definitions.pkl.
+MEDIA = {
     "minimal": minimal_media,
     "minimal_glucose": minimal_glucose,
     "minimal_acetate": minimal_acetate,
@@ -599,53 +628,52 @@ media = {
     "swm": swm,
 }
 
-# Save a pickle file with the media definitions
-with open(os.path.join(os.path.dirname(__file__), "media_definitions.pkl"), "wb") as f:
-    pickle.dump(media, f)
+# --------------------------------------------------------------------------
+# ModelSEED compound database
+# --------------------------------------------------------------------------
+#
+# The scripts that derive the KBase and CarveMe tables from the media above need
+# compound names, formulae and BiGG aliases, which come from a local clone of the
+# ModelSEED database. That path used to be hardcoded to one developer's home
+# directory in two separate files, so those scripts only ran on one machine.
 
-# Need to load in the ModelSEED database first
-modelseed_db = json.load(
-    open(
-        "/Users/helenscott/Documents/PhD/Segre-lab/ModelSEEDDatabase/Biochemistry/compounds.json"
-    )
+import json  # noqa: E402  (kept below the definitions, which need no imports)
+import os  # noqa: E402
+
+#: Environment variable giving the path to ModelSEED's ``compounds.json``.
+MODELSEED_COMPOUNDS_ENV = "MODELSEED_COMPOUNDS"
+
+#: Where the ModelSEED database is looked for if the variable is not set.
+MODELSEED_COMPOUNDS_DEFAULT = os.path.join(
+    os.path.expanduser("~"),
+    "Documents", "PhD", "Segre-lab", "ModelSEEDDatabase",
+    "Biochemistry", "compounds.json",
 )
-# Convert to a dictionary with the ModelSEED IDs as the keys for easier searching
-modelseed_db = {met["id"]: met for met in modelseed_db}
 
 
-# Convert to a TSV file to upload to KBase
-def write_media_tsv(media_dict, media_name, modelseed_db):
-    media_df = pd.DataFrame.from_dict(media_dict, orient="index", columns=["minFlux"])
-    # Fix the names of the compounds
-    media_df.index = media_df.index.str.replace("EX_", "").str.replace("_e0", "")
-    media_df.index.name = "compounds"
-    # Make the min flux negative
-    media_df["minFlux"] = -1 * media_df["minFlux"]
-    # Set the max flux for everything to be 1000
-    media_df["maxFlux"] = 1000
-    # Add the names of the compounds
-    media_df["name"] = media_df.index.map(lambda x: modelseed_db[x]["name"])
-    # Add the formula of the compounds
-    media_df["formula"] = media_df.index.map(lambda x: modelseed_db[x]["formula"])
-    # Set the concentration to be something?
-    # TODO: Does the concentration matter?
-    media_df["concentration"] = 1
-    # Save
-    media_df.to_csv(
-        os.path.join(
-            os.path.dirname(__file__), "kbase_tsvs", media_name + "_media.tsv"
-        ),
-        sep="\t",
-    )
+def load_modelseed_compounds(path: str | None = None) -> dict:
+    """Load ModelSEED's ``compounds.json``, keyed by compound ID.
+
+    Looks at ``path``, then ``$MODELSEED_COMPOUNDS``, then
+    :data:`MODELSEED_COMPOUNDS_DEFAULT`. Raises with an actionable message if
+    none of those exist, rather than a bare ``FileNotFoundError`` on somebody
+    else's home directory.
+    """
+    candidate = path or os.environ.get(MODELSEED_COMPOUNDS_ENV) or MODELSEED_COMPOUNDS_DEFAULT
+    if not os.path.exists(candidate):
+        raise FileNotFoundError(
+            f"ModelSEED compounds.json not found at {candidate!r}. Clone "
+            f"https://github.com/ModelSEED/ModelSEEDDatabase and point "
+            f"${MODELSEED_COMPOUNDS_ENV} at its "
+            f"Biochemistry/compounds.json, e.g.\n"
+            f"  export {MODELSEED_COMPOUNDS_ENV}=/path/to/ModelSEEDDatabase/Biochemistry/compounds.json"
+        )
+    with open(candidate) as handle:
+        return {met["id"]: met for met in json.load(handle)}
 
 
-# Write the media TSV files
-for media_name, media_dict in media.items():
-    write_media_tsv(media_dict, media_name, modelseed_db)
-
-
-# Write a function to convert the alias strings to a dictionary
-def convert_aliases_to_dict(alias_string):
+def convert_aliases_to_dict(alias_string) -> dict:
+    """Parse a ModelSEED ``aliases`` list into ``{database: [ids]}``."""
     return {
         alias.split(":")[0]: [ak.strip() for ak in alias.split(":")[1].split(";")]
         for alias in alias_string
@@ -653,55 +681,6 @@ def convert_aliases_to_dict(alias_string):
     }
 
 
-# Make a new dataframe for the carveme database
-media_db = pd.DataFrame(columns=["medium", "description", "compound", "name"])
-
-
-# Define a function to make the carveme media database
-def make_carveme_media(media_dict, media_id, media_name, modelseed_db, media_db):
-    for ex_rxn, min_flux in media_dict.items():
-        met = ex_rxn.replace("EX_", "").replace("_e0", "")
-        name = modelseed_db[met]["name"]
-        aliases = convert_aliases_to_dict(modelseed_db[met]["aliases"])
-        if "BiGG" not in aliases:
-            print(f"No BiGG ID for {name}")
-            bigg_to_use = met
-        else:
-            bigg_id = aliases["BiGG"]
-            if len(bigg_id) == 0:
-                print(f"No BiGG ID for {name}")
-                bigg_to_use = met
-            if len(bigg_id) > 1:
-                print(f"Multiple BiGG IDs for {name}: {bigg_id}")
-            bigg_to_use = bigg_id[0]
-        media_db = pd.concat(
-            [
-                media_db,
-                pd.DataFrame(
-                    {
-                        "medium": media_id,
-                        "description": media_name,
-                        "compound": bigg_to_use,
-                        "name": modelseed_db[met]["name"],
-                    },
-                    index=[0],
-                ),
-            ],
-            ignore_index=True,
-        )
-    return media_db
-
-
-media_db = make_carveme_media(
-    mbm_media, "mbm", "Minimal Basal Medium (Moran Lab)", modelseed_db, media_db
-)
-media_db = make_carveme_media(
-    l1_media, "l1", "L1 Minimal Medium", modelseed_db, media_db
-)
-
-# Save the media database
-media_db.to_csv(
-    os.path.join(os.path.dirname(__file__), "no_c_media_database.tsv"),
-    sep="\t",
-    index=False,
-)
+def modelseed_id_from_exchange(exchange_reaction: str) -> str:
+    """``EX_cpd00027_e0`` -> ``cpd00027``."""
+    return exchange_reaction.replace("EX_", "").replace("_e0", "")

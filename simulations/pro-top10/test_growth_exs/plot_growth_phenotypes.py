@@ -1,4 +1,3 @@
-import pickle
 from pathlib import Path
 
 import cobra
@@ -13,12 +12,17 @@ FILE_DIR = Path(__file__).resolve().parent
 TOP_10_DIR = FILE_DIR.parent
 REPO_DIR = FILE_DIR.parents[2]
 
+import sys
+
+sys.path.insert(0, str(REPO_DIR))
+
+from tools.media import MEDIA  # noqa: E402
+
 # Set path to the `test_files` directory
-TESTFILE_DIR = REPO_DIR / "test" / "test_files"
+DATA_DIR = REPO_DIR / "data"
 
 # Load the media definitions
-with open(TESTFILE_DIR / "media" / "media_definitions.pkl", "rb") as f:
-    media_definitions = pickle.load(f)
+media_definitions = MEDIA
 minimal_media = media_definitions["minimal"]
 
 # Load the model with cobrapy
@@ -32,7 +36,7 @@ top_10_metabolites = pd.read_csv(
 
 # Load the known growth phenotype file
 known_growth_phenotypes = pd.read_csv(
-    TESTFILE_DIR / "known_growth_phenotypes.tsv", sep="\t"
+    DATA_DIR / "known_growth_phenotypes.tsv", sep="\t"
 )
 
 # Subset the top 10 metabolites to only include the ones that are from PRO

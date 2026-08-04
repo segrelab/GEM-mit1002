@@ -1,8 +1,9 @@
+import os
 import pandas as pd
 import cobra
 
 # Load the TSV of the growth phenotypes
-growth_phenotypes = pd.read_csv('known_growth_phenotypes.tsv', sep='\t')
+growth_phenotypes = pd.read_csv(os.path.join('data', 'known_growth_phenotypes.tsv'), sep='\t')
 
 # Rename the experimental column
 growth_phenotypes = growth_phenotypes.rename(columns={'growth': 'exp_growth'})

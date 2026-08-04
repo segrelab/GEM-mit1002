@@ -11,9 +11,9 @@ REPO_ROOT = FILE_PATH.parents[2]
 OUT_PATH = FILE_PATH / "results"
 OUT_PATH.mkdir(exist_ok=True)
 
-# Import plot_styles.py from the root of the repo
+# Import the shared plot styles from tools/
 sys.path.append(str(REPO_ROOT))
-from plot_styles import set_plot_style, summer_colors
+from tools.plot_styles import set_plot_style, summer_colors
 
 # Load the results
 df = pd.read_csv(OUT_PATH / "results.csv", header=[0, 1], index_col=0)

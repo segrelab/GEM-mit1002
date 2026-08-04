@@ -18,7 +18,7 @@ OUT_PATH = FILE_PATH / "results"
 OUT_PATH.mkdir(exist_ok=True)
 
 sys.path.append(str(REPO_ROOT))
-from plot_styles import set_plot_style, summer_colors  # noqa: E402
+from tools.plot_styles import set_plot_style, summer_colors  # noqa: E402
 
 SUBSTRATE_COLORS = {
     "Phenol": summer_colors["pink"],

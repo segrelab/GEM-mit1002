@@ -48,9 +48,9 @@ DATA_DIR = SCRIPT_DIR / "data"
 FIG_DIR = SCRIPT_DIR / "figs"
 FIG_DIR.mkdir(exist_ok=True)
 
-# Import plot_styles.py from the root of the repo
+# Import the shared plot styles from tools/
 sys.path.append(str(REPO_ROOT))
-from plot_styles import summer_colors
+from tools.plot_styles import summer_colors
 
 F_PLOT = 10.0
 ALT_DW_G = 2.5e-13  # g/cell

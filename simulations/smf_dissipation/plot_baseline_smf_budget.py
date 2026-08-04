@@ -39,13 +39,12 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
-import pickle as pkl
 
-# Import plot_styles.py from the root of the repo
+# Import the shared plot styles from tools/
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 )
-from plot_styles import summer_colors
+from tools.plot_styles import summer_colors
 
 matplotlib.rcParams.update(
     {
@@ -73,6 +72,12 @@ SUBSTRATES = [
 
 FILE_PATH = Path(__file__).resolve().parent
 REPO_ROOT = FILE_PATH.parents[1]
+
+import sys
+
+sys.path.insert(0, str(REPO_ROOT))
+
+from tools.media import MEDIA  # noqa: E402
 OUT_PATH = FILE_PATH / "results"
 OUT_PATH.mkdir(exist_ok=True)
 
@@ -250,10 +255,7 @@ def plot_budget(ax, df, title, ylabel):
 
 def main():
     model = cobra.io.read_sbml_model(REPO_ROOT / "model.xml")
-    with open(
-        REPO_ROOT / "test" / "test_files" / "media" / "media_definitions.pkl", "rb"
-    ) as fh:
-        minimal_media = pkl.load(fh)["minimal"]
+    minimal_media = MEDIA["minimal"]
 
     print(
         "Running baseline pFBA per substrate (equal carbon, no forced dissipation)..."

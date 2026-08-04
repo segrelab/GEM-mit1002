@@ -25,9 +25,9 @@ IN_PATH = FILE_PATH / "results"
 OUT_PATH = FILE_PATH / "figures"
 OUT_PATH.mkdir(exist_ok=True)
 
-# Import plot_styles.py from the root of the repo
+# Import the shared plot styles from tools/
 sys.path.append(str(REPO_ROOT))
-from plot_styles import summer_colors
+from tools.plot_styles import summer_colors
 
 # Color palette for exchange metabolites
 # The "Summer" color palette with a few extra colors to avoid repeats
