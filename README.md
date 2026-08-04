@@ -36,11 +36,14 @@ code does*, not what it is about. Please put new code in the matching one.
 | `tools/` | Importable functions and definitions, and command-line utilities a curator runs deliberately | By hand, or imported by the above |
 | `data/` | Experimental observations, media provenance, and derived tables. See [`data/README.md`](data/README.md) | Read by the above |
 
-`tools/deprecate.py` is one example of the third kind: you invoke it yourself
-when you remove something, and `scripts/export_model.py` and
-`test/test_deprecated.py` both import from it. `tools/media.py` is the other: it
-defines the growth media as importable dictionaries, so anything needing a medium
-does `from tools.media import MEDIA` rather than reading a file.
+Examples of the third kind:
+
+* `tools/deprecate.py` — you invoke it yourself when removing a reaction, and
+  `scripts/export_model.py` and `test/test_deprecated.py` both import from it
+* `tools/media.py` — defines the growth media as importable dictionaries, so
+  anything needing a medium does `from tools.media import MEDIA`
+* `tools/plot_styles.py` — shared colour palettes and figure styling, imported by
+  every plotting script so figures stay consistent
 
 Two other directories hold code that is neither of these: `curation_process/`
 analyses the history of the curation effort itself across past PRs, and
