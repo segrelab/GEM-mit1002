@@ -11,6 +11,7 @@ from gem_utilities import biomass, media
 
 # Set path to the `test_files` directory
 TESTFILE_DIR = os.path.join(os.path.dirname(__file__), "test_files")
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 
 # Set path to the results directory
 RESULTS_DIR = os.path.join(TESTFILE_DIR, "test_results")
@@ -40,7 +41,7 @@ class TestGrowthPhenotypes(unittest.TestCase):
     def test_expected_growth_phenotypes(self):
         # Load the TSV of the growth phenotypes
         growth_phenotypes = pd.read_csv(
-            os.path.join(TESTFILE_DIR, "known_growth_phenotypes.tsv"),
+            os.path.join(DATA_DIR, "known_growth_phenotypes.tsv"),
             sep="\t",
             converters={"met_id": lambda x: x.split(",")},
         )

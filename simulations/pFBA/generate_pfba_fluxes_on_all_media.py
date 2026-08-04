@@ -12,6 +12,7 @@ from gem_utilities import biomass, media
 # It's better practice to define a project root
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 TESTFILE_DIR = os.path.join(PROJECT_ROOT, "test", "test_files")
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "results")
 
 # Ensure the results directory exists
@@ -26,7 +27,7 @@ model = cobra.io.read_sbml_model(os.path.join(PROJECT_ROOT, "model.xml"))
 
 # Load the TSV of the growth phenotypes
 growth_phenotypes = pd.read_csv(
-    os.path.join(TESTFILE_DIR, "known_growth_phenotypes.tsv"),
+    os.path.join(DATA_DIR, "known_growth_phenotypes.tsv"),
     sep="\t",
     converters={"met_id": lambda x: x.split(",")},
 )

@@ -10,6 +10,7 @@ import seaborn as sns
 
 # Set path to the `test_files` directory
 TESTFILE_DIR = os.path.join("test", "test_files")
+DATA_DIR = "data"
 
 # Define the base media
 mbm_media = {
@@ -67,7 +68,7 @@ l1_media = {
 
 # Load the TSV of the growth phenotypes
 growth_phenotypes = pd.read_csv(
-    os.path.join(TESTFILE_DIR, "known_growth_phenotypes.tsv"), sep="\t"
+    os.path.join(DATA_DIR, "known_growth_phenotypes.tsv"), sep="\t"
 )
 
 # Load the model

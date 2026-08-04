@@ -29,6 +29,7 @@ from sklearn.preprocessing import StandardScaler
 FILE_PATH = Path(__file__).resolve().parent
 REPO_ROOT = FILE_PATH.parents[1]
 TEST_FILE_DIR = REPO_ROOT / "test" / "test_files"
+DATA_DIR = REPO_ROOT / "data"
 OUT_PATH = FILE_PATH / "results"
 OUT_PATH.mkdir(exist_ok=True)
 
@@ -150,7 +151,7 @@ def load_substrates(model: cobra.Model, media_defs: dict) -> pd.DataFrame:
     Filters for confirmed single-substrate growth, deduplicates by met_id,
     appends aspartate and glycine if absent, verifies exchange reactions exist.
     """
-    tsv = TEST_FILE_DIR / "known_growth_phenotypes.tsv"
+    tsv = DATA_DIR / "known_growth_phenotypes.tsv"
     df = pd.read_csv(tsv, sep="\t")
 
     df = df[df["growth"] == "Yes"].copy()

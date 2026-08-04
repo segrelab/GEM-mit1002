@@ -10,6 +10,7 @@ from gem_utilities import media as media_utils
 FILE_PATH = Path(__file__).resolve().parent
 REPO_ROOT = FILE_PATH.parents[1]
 TEST_FILE_DIR = REPO_ROOT / "test" / "test_files"
+DATA_DIR = REPO_ROOT / "data"
 OUT_PATH = FILE_PATH / "results"
 OUT_PATH.mkdir(exist_ok=True)
 
@@ -81,7 +82,7 @@ def main():
         media_defs = pkl.load(f)
 
     # Load the known growth phenotypes table with predicted results
-    df = pd.read_csv(TEST_FILE_DIR / "known_growth_phenotypes.tsv", sep="\t")
+    df = pd.read_csv(DATA_DIR / "known_growth_phenotypes.tsv", sep="\t")
 
     # Filter the growth phenotypes to keep:
     # substrates where growth is observed

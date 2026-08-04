@@ -28,6 +28,7 @@ FORCE_RERUN = False
 FILE_PATH = os.path.dirname(os.path.abspath(__file__))
 REPO_PATH = os.path.dirname(FILE_PATH)
 TESTFILE_DIR = os.path.join(REPO_PATH, "test", "test_files")
+DATA_DIR = os.path.join(REPO_PATH, "data")
 
 # Load the media definitions
 with open(os.path.join(TESTFILE_DIR, "media", "media_definitions.pkl"), "rb") as f:
@@ -35,7 +36,7 @@ with open(os.path.join(TESTFILE_DIR, "media", "media_definitions.pkl"), "rb") as
 
 # Load the TSV of the growth phenotypes
 growth_phenotypes = pd.read_csv(
-    os.path.join(TESTFILE_DIR, "known_growth_phenotypes.tsv"),
+    os.path.join(DATA_DIR, "known_growth_phenotypes.tsv"),
     sep="\t",
     converters={"met_id": lambda x: x.split(",")},
 )

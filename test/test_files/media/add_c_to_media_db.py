@@ -4,12 +4,13 @@ import os
 import pandas as pd
 
 FILE_DIR = os.path.dirname(__file__)
+DATA_DIR = os.path.join(FILE_DIR, "..", "..", "..", "data")
 
 # Load the media database (without carbon sources)
 media_db = pd.read_csv(os.path.join(FILE_DIR, "no_c_media_database.tsv"), sep="\t", header=0)
 
 # Load the growth phenotype data
-growth_phenotype = pd.read_csv(os.path.join(FILE_DIR, "../known_growth_phenotypes.tsv"), sep="\t", header=0)
+growth_phenotype = pd.read_csv(os.path.join(DATA_DIR, "known_growth_phenotypes.tsv"), sep="\t", header=0)
 
 # Split the media database into the two different media (value in the "medium" column)
 media_db_mbm = media_db[media_db["medium"] == "mbm"]

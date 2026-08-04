@@ -10,6 +10,7 @@ import seaborn as sns
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR = os.path.dirname(FILE_DIR)
 TESTFILE_DIR = os.path.join(REPO_DIR, "test", "test_files")
+DATA_DIR = os.path.join(REPO_DIR, "data")
 # Define the directory containing the files
 gapfill_dir = os.path.join(REPO_DIR, "modelseedpy_gapfill_per_biomass_cmpt")
 
@@ -56,7 +57,7 @@ def main():
 
     # Load the growth pheonotype results
     growth_phenotypes = pd.read_csv(
-        os.path.join(TESTFILE_DIR, "known_growth_phenotypes.tsv"),
+        os.path.join(DATA_DIR, "known_growth_phenotypes.tsv"),
         sep="\t",
         header=0,
     )

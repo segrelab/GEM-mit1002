@@ -6,6 +6,7 @@ import pandas as pd
 media_workspace = "hgsco:narrative_1740349496319"
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(FILE_DIR)), "data")
 media = {
     "mbm": {"kbase_id": "mbm.media", "kbase_ws": media_workspace},
     "l1": {"kbase_id": "l1.media", "kbase_ws": media_workspace},
@@ -22,7 +23,7 @@ media = {
 
 # Load the known growth phenotype data as a pandas DataFrame
 growth_phenotype_data = pd.read_csv(
-    os.path.join(FILE_DIR, "known_growth_phenotypes.tsv"), sep="\t"
+    os.path.join(DATA_DIR, "known_growth_phenotypes.tsv"), sep="\t"
 )
 
 # Add a "geneko" ccolumn to the DataFrame and set it to "none"
@@ -56,5 +57,5 @@ growth_phenotype_data = growth_phenotype_data[
 
 # Save the DataFrame to a tab-separated file
 growth_phenotype_data.to_csv(
-    os.path.join(FILE_DIR, "kbase_phenotype_set.tsv"), sep="\t", index=False
+    os.path.join(DATA_DIR, "kbase_phenotype_set.tsv"), sep="\t", index=False
 )
