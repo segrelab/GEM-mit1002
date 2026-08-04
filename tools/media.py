@@ -26,9 +26,9 @@ metabolite in the experimental medium can be represented. Where the exchange
 reaction is missing the line is commented out rather than deleted, so the
 omission stays visible. All exchange reactions use ModelSEED nomenclature.
 
-Primary sources for the recipes are in ``data/media/sources/``. To regenerate
-the KBase and CarveMe tables derived from these definitions, run
-``python scripts/export_media_tables.py``.
+Primary sources for the recipes -- published protocols and lab documents -- are
+in ``data/media_sources/``. If you change a medium here, that is what a reviewer
+should be able to check it against.
 """
 
 
