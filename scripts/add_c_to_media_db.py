@@ -1,13 +1,34 @@
-import json
+"""Add carbon sources to the CarveMe media database.
+
+Expands ``data/media/no_c_media_database.tsv`` (the carbon-free MBM and L1 base
+media) into ``data/media/media_database.tsv``, one medium per carbon source in
+the known growth phenotypes.
+
+Run ``scripts/export_media_tables.py`` first to regenerate the carbon-free
+database. Like that script, this needs a local ModelSEED clone::
+
+    export MODELSEED_COMPOUNDS=/path/to/ModelSEEDDatabase/Biochemistry/compounds.json
+    python scripts/add_c_to_media_db.py
+"""
+
 import os
+import sys
 
 import pandas as pd
 
-FILE_DIR = os.path.dirname(__file__)
-DATA_DIR = os.path.join(FILE_DIR, "..", "..", "..", "data")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from tools.media import (  # noqa: E402
+    convert_aliases_to_dict,
+    load_modelseed_compounds,
+)
+
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(REPO_ROOT, "data")
+MEDIA_DATA_DIR = os.path.join(DATA_DIR, "media")
 
 # Load the media database (without carbon sources)
-media_db = pd.read_csv(os.path.join(FILE_DIR, "no_c_media_database.tsv"), sep="\t", header=0)
+media_db = pd.read_csv(os.path.join(MEDIA_DATA_DIR, "no_c_media_database.tsv"), sep="\t", header=0)
 
 # Load the growth phenotype data
 growth_phenotype = pd.read_csv(os.path.join(DATA_DIR, "known_growth_phenotypes.tsv"), sep="\t", header=0)
@@ -16,23 +37,8 @@ growth_phenotype = pd.read_csv(os.path.join(DATA_DIR, "known_growth_phenotypes.t
 media_db_mbm = media_db[media_db["medium"] == "mbm"]
 media_db_l1 = media_db[media_db["medium"] == "l1"]
 
-# Need to load in the ModelSEED database first
-modelseed_db = json.load(
-    open(
-        "/Users/helenscott/Documents/PhD/Segre-lab/ModelSEEDDatabase/Biochemistry/compounds.json"
-    )
-)
-# Convert to a dictionary with the ModelSEED IDs as the keys for easier searching
-modelseed_db = {met["id"]: met for met in modelseed_db}
-
-
-# Write a function to conver the alias strings to a dictionary
-def convert_aliases_to_dict(alias_string):
-    return {
-        alias.split(":")[0]: [ak.strip() for ak in alias.split(":")[1].split(";")]
-        for alias in alias_string
-        if alias
-    }
+# Compound names and BiGG aliases come from a local ModelSEED clone
+modelseed_db = load_modelseed_compounds()
 
 
 # Make a new media database with the same columns as the original media database
@@ -81,4 +87,4 @@ for index, row in growth_phenotype.iterrows():
     media_db_c = pd.concat([media_db_c, media])
 
 # Save the new media database
-media_db_c.to_csv(os.path.join(FILE_DIR, "media_database.tsv"), sep="\t", index=False)
+media_db_c.to_csv(os.path.join(MEDIA_DATA_DIR, "media_database.tsv"), sep="\t", index=False)
