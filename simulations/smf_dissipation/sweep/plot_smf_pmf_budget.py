@@ -28,7 +28,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pickle as pkl
 
 matplotlib.rcParams.update({"font.size": 9, "axes.linewidth": 0.8})
 
@@ -41,6 +40,12 @@ RATE_THRESHOLD = 0.4                      # mmol/gDW/hr; smaller contributions -
 
 FILE_PATH = Path(__file__).resolve().parent
 REPO_ROOT = FILE_PATH.parents[2]
+
+import sys
+
+sys.path.insert(0, str(REPO_ROOT))
+
+from tools.media import MEDIA  # noqa: E402
 OUT_PATH = FILE_PATH / "results"
 OUT_PATH.mkdir(exist_ok=True)
 
@@ -231,8 +236,7 @@ def plot_budget(ax, df, model, title, ylabel):
 
 def main():
     model = build_model()
-    with open(REPO_ROOT / "test" / "test_files" / "media" / "media_definitions.pkl", "rb") as fh:
-        minimal_media = pkl.load(fh)["minimal"]
+    minimal_media = MEDIA["minimal"]
 
     print(f"Running sweep for {SUBSTRATE['name']}...")
     sols = run_sweep(model, minimal_media)

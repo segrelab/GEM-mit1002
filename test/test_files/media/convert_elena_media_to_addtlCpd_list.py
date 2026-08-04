@@ -3,14 +3,12 @@
 # for the phenotype sets
 
 import os
-import pickle
 
 import pandas as pd
+from tools.media import MEDIA
 
 # Load the media definitions
-media_dir = os.path.join(os.path.dirname(__file__), "media_definitions.pkl")
-with open(media_dir, "rb") as f:
-    media = pickle.load(f)
+media = MEDIA
 
 # Load the KBase media TSV from Osnat's narrative
 # Change this whenever you want to run on a new medium

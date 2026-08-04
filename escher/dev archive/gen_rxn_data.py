@@ -1,14 +1,18 @@
 import os
 
 import cobra
-import pickle
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR = os.path.dirname(FILE_DIR)
 
+import sys
+
+sys.path.insert(0, str(REPO_DIR))
+
+from tools.media import MEDIA  # noqa: E402
+
 # Load the media defintions from the pickle file
-with open(os.path.join(REPO_DIR, "test", "test_files", "media", "media_definitions.pkl"), "rb") as f:
-    media_definitions = pickle.load(f)
+media_definitions = MEDIA
 
 # Load the model
 model = cobra.io.read_sbml_model(os.path.join(REPO_DIR, "model.xml"))

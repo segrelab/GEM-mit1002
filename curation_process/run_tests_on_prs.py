@@ -1,6 +1,5 @@
 import json
 import os
-import pickle
 import subprocess
 import warnings
 
@@ -27,12 +26,16 @@ FORCE_RERUN = False
 # FILE PATHS
 FILE_PATH = os.path.dirname(os.path.abspath(__file__))
 REPO_PATH = os.path.dirname(FILE_PATH)
-TESTFILE_DIR = os.path.join(REPO_PATH, "test", "test_files")
+
+import sys
+
+sys.path.insert(0, str(REPO_PATH))
+
+from tools.media import MEDIA  # noqa: E402
 DATA_DIR = os.path.join(REPO_PATH, "data")
 
 # Load the media definitions
-with open(os.path.join(TESTFILE_DIR, "media", "media_definitions.pkl"), "rb") as f:
-    media_definitions = pickle.load(f)
+media_definitions = MEDIA
 
 # Load the TSV of the growth phenotypes
 growth_phenotypes = pd.read_csv(

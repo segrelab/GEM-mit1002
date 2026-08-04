@@ -6,7 +6,6 @@ from gem_utilities.biomass import save_biomass_composition_work_table
 # Define paths relative to the script or project root
 # It's better practice to define a project root
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
-TESTFILE_DIR = os.path.join(PROJECT_ROOT, "test", "test_files")
 RESULTS_DIR = os.path.join(PROJECT_ROOT, "scripts", "results")
 
 # Load the model

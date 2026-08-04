@@ -1,5 +1,4 @@
 import os
-import pickle
 import warnings
 
 import cobra
@@ -9,7 +8,12 @@ import seaborn as sns
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR = os.path.dirname(FILE_DIR)
-TESTFILE_DIR = os.path.join(REPO_DIR, "test", "test_files")
+
+import sys
+
+sys.path.insert(0, str(REPO_DIR))
+
+from tools.media import MEDIA  # noqa: E402
 DATA_DIR = os.path.join(REPO_DIR, "data")
 # Define the directory containing the files
 gapfill_dir = os.path.join(REPO_DIR, "modelseedpy_gapfill_per_biomass_cmpt")
@@ -66,8 +70,7 @@ def main():
     growth_phenotypes = growth_phenotypes[growth_phenotypes["growth"] == "Yes"]
 
     # Load the media definitions
-    with open(os.path.join(TESTFILE_DIR, "media", "media_definitions.pkl"), "rb") as f:
-        media_definitions = pickle.load(f)
+    media_definitions = MEDIA
 
     # Run my function on each of the models
     for model in models:

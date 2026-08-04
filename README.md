@@ -33,11 +33,14 @@ code does*, not what it is about. Please put new code in the matching one.
 | --- | --- | --- |
 | `test/` | Checks that assert something about the model and pass or fail | Automatically, via `pytest` in CI. A failure blocks the PR |
 | `scripts/` | Code that generates an artifact for a person to look at — a table, a plot, an exported file. No pass/fail | Automatically in CI, writing to `scripts/results/` |
-| `tools/` | Importable functions, and command-line utilities a curator runs deliberately to *change* the model | By hand, or imported by the above |
+| `tools/` | Importable functions and definitions, and command-line utilities a curator runs deliberately | By hand, or imported by the above |
+| `data/` | Experimental observations, media provenance, and derived tables. See [`data/README.md`](data/README.md) | Read by the above |
 
-`tools/deprecate.py` is the current example of the third kind: you invoke it
-yourself when you remove something, and `scripts/export_model.py` and
-`test/test_deprecated.py` both import from it.
+`tools/deprecate.py` is one example of the third kind: you invoke it yourself
+when you remove something, and `scripts/export_model.py` and
+`test/test_deprecated.py` both import from it. `tools/media.py` is the other: it
+defines the growth media as importable dictionaries, so anything needing a medium
+does `from tools.media import MEDIA` rather than reading a file.
 
 Two other directories hold code that is neither of these: `curation_process/`
 analyses the history of the curation effort itself across past PRs, and

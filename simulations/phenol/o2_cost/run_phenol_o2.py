@@ -13,7 +13,6 @@ acetate use O2 only for respiration. This script quantifies both effects:
 Plotting lives in plot_phenol_o2.py.
 """
 
-import pickle as pkl
 from pathlib import Path
 
 import cobra
@@ -22,7 +21,12 @@ import pandas as pd
 
 FILE_PATH = Path(__file__).resolve().parent
 REPO_ROOT = FILE_PATH.parents[2]
-TEST_FILE_DIR = REPO_ROOT / "test" / "test_files"
+
+import sys
+
+sys.path.insert(0, str(REPO_ROOT))
+
+from tools.media import MEDIA  # noqa: E402
 OUT_PATH = FILE_PATH / "results"
 OUT_PATH.mkdir(exist_ok=True)
 
@@ -65,8 +69,7 @@ def build_medium(model, base, exchange_id, uptake, o2):
 
 def main():
     model = cobra.io.read_sbml_model(REPO_ROOT / "model.xml")
-    with open(TEST_FILE_DIR / "media" / "media_definitions.pkl", "rb") as f:
-        media_defs = pkl.load(f)
+    media_defs = MEDIA
     base = media_defs["minimal"]  # minimal medium, no carbon source
 
     panel = pd.read_csv(

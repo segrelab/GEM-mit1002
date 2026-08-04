@@ -14,7 +14,6 @@ cycled internally through NaNQR, which is the real SMF cost.
 """
 
 import json
-import pickle as pkl
 import warnings
 from pathlib import Path
 
@@ -27,6 +26,12 @@ import pandas as pd
 # ---------------------------------------------------------------------------
 FILE_PATH = Path(__file__).resolve().parent
 REPO_ROOT = FILE_PATH.parents[2]
+
+import sys
+
+sys.path.insert(0, str(REPO_ROOT))
+
+from tools.media import MEDIA  # noqa: E402
 OUT_PATH = FILE_PATH / "results"
 FLUX_DIR = OUT_PATH / "flux_distributions"
 OUT_PATH.mkdir(exist_ok=True)
@@ -153,8 +158,7 @@ print("Loading model...")
 model_base = cobra.io.read_sbml_model(REPO_ROOT / "model.xml")
 add_flagella_reaction(model_base)
 
-with open(REPO_ROOT / "test" / "test_files" / "media" / "media_definitions.pkl", "rb") as fh:
-    media_defs = pkl.load(fh)
+media_defs = MEDIA
 minimal_media = media_defs["minimal"]
 
 # ---------------------------------------------------------------------------

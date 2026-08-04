@@ -1,5 +1,4 @@
 import os
-import pickle
 
 import cobra
 import matplotlib.pyplot as plt
@@ -10,13 +9,17 @@ from gem_utilities import biomass, media
 # Define paths relative to the script or project root
 # It's better practice to define a project root
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
-TESTFILE_DIR = os.path.join(PROJECT_ROOT, "test", "test_files")
+
+import sys
+
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from tools.media import MEDIA  # noqa: E402
 DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 RESULTS_DIR = os.path.join(PROJECT_ROOT, "scripts", "results")
 
 # Load the media definitions
-with open(os.path.join(TESTFILE_DIR, "media", "media_definitions.pkl"), "rb") as f:
-    media_definitions = pickle.load(f)
+media_definitions = MEDIA
 
 # Define a dictionary of human-friendly versions of the media names
 # The key is the name in the media_definitions dictionary

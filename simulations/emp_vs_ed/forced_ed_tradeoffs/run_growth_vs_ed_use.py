@@ -11,7 +11,6 @@ plot_growth_vs_ed_use.py.
 """
 
 import json
-import pickle as pkl
 from pathlib import Path
 
 import cobra
@@ -20,7 +19,12 @@ import pandas as pd
 
 FILE_PATH = Path(__file__).resolve().parent
 REPO_ROOT = FILE_PATH.parents[2]
-TEST_FILE_DIR = REPO_ROOT / "test" / "test_files"
+
+import sys
+
+sys.path.insert(0, str(REPO_ROOT))
+
+from tools.media import MEDIA  # noqa: E402
 OUT_PATH = FILE_PATH / "results"
 OUT_PATH.mkdir(exist_ok=True)
 FLUX_PATH = OUT_PATH / "fluxes"
@@ -50,8 +54,7 @@ O2_LEVELS = [20, 1000]
 def main():
     # Load the model and set the minimal glucose medium
     model = cobra.io.read_sbml_model(REPO_ROOT / "model.xml")
-    with open(TEST_FILE_DIR / "media" / "media_definitions.pkl", "rb") as f:
-        media_definitions = pkl.load(f)
+    media_definitions = MEDIA
     model.medium = media_definitions["minimal_glucose"]
 
     ed_rxn = model.reactions.get_by_id(ED_RXN_ID)

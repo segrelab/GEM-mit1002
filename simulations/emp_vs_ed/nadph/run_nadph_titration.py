@@ -12,7 +12,6 @@ demand alone pull flux into ED? An ED-obligate uronic acid (galacturonate) is
 included as a control, where ED is already required regardless of NADPH demand.
 """
 
-import pickle as pkl
 from pathlib import Path
 
 import cobra
@@ -22,7 +21,12 @@ from gem_utilities import media as media_utils
 
 FILE_PATH = Path(__file__).resolve().parent
 REPO_ROOT = FILE_PATH.parents[2]
-TEST_FILE_DIR = REPO_ROOT / "test" / "test_files"
+
+import sys
+
+sys.path.insert(0, str(REPO_ROOT))
+
+from tools.media import MEDIA  # noqa: E402
 OUT_PATH = FILE_PATH / "results"
 OUT_PATH.mkdir(exist_ok=True)
 
@@ -101,8 +105,7 @@ def main():
     add_nadph_drain(model)
 
     # Load the media definitions
-    with open(TEST_FILE_DIR / "media" / "media_definitions.pkl", "rb") as f:
-        media_defs = pkl.load(f)
+    media_defs = MEDIA
 
     # Load the substrate panel and pick glucose (EMP-preferring) plus
     # galacturonic acid (ED-obligate control)
