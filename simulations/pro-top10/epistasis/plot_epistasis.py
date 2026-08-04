@@ -11,6 +11,14 @@ import seaborn as sns
 FILE_PATH = Path(__file__).resolve().parent
 OUT_PATH = FILE_PATH / "results"
 TOP_10_DIR = FILE_PATH.parent
+REPO_ROOT = FILE_PATH.parents[2]
+
+import sys  # noqa: E402
+
+sys.path.insert(0, str(REPO_ROOT))
+
+# Import the shared plot styles from tools/
+from tools.plot_styles import ccomp_colors  # noqa: E402
 
 # Make the results directory if it doesn't exist
 OUT_PATH.mkdir(exist_ok=True)
@@ -78,8 +86,7 @@ np.fill_diagonal(matrix.values, 0)
 matrix.to_csv(OUT_PATH / "epistasis_matrix.csv")
 
 # Create a custom sequential colormap
-# TODO: Acuatlly import plot_styles, rather than copying a hexcode
-custom_cmap = sns.light_palette("#024064", as_cmap=True)
+custom_cmap = sns.light_palette(ccomp_colors["dark_blue"], as_cmap=True)
 
 # Plot with colormap that begins at 0
 # (positive = synergy, negative = antagonism)

@@ -38,9 +38,9 @@ MODEL_PATH = REPO_ROOT / "model.xml"
 # carbon fates bars, keeping trace byproducts out of the legend/palette.
 BYPRODUCT_FLUX_THRESHOLD = 1.0
 
-# Import plot_styles.py from the root of the repo
+# Import the shared plot styles from tools/
 sys.path.append(str(REPO_ROOT))
-from plot_styles import carbon_fates_bar, ccomp_colors, summer_colors
+from tools.plot_styles import carbon_fates_bar, ccomp_colors, summer_colors
 
 # Anchor colours drawn from the "Summer I Turned Pretty" palette (plus a muted
 # mauve), ordered to flow as a gradient. build_palette() uses these directly

@@ -40,11 +40,11 @@ import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
 
-# Import plot_styles.py from the root of the repo
+# Import the shared plot styles from tools/
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 )
-from plot_styles import summer_colors
+from tools.plot_styles import summer_colors
 
 matplotlib.rcParams.update(
     {

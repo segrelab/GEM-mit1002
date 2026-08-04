@@ -16,9 +16,9 @@ REPO_ROOT = FILE_PATH.parents[2]
 OUT_PATH = FILE_PATH / "results"
 OUT_PATH.mkdir(exist_ok=True)
 
-# Import plot_styles.py from the root of the repo
+# Import the shared plot styles from tools/
 sys.path.append(str(REPO_ROOT))
-from plot_styles import set_plot_style, summer_colors  # noqa: E402
+from tools.plot_styles import set_plot_style, summer_colors  # noqa: E402
 
 # Color each O2 level with a summer-palette color
 O2_COLORS = {20: summer_colors["teal"], 1000: summer_colors["yellow"]}

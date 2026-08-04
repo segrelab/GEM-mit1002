@@ -10,10 +10,10 @@ from adjustText import adjust_text
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 
-# Add the project root to the system path to import my plot_styles file
+# Add the repo root to the system path so tools/ is importable
 sys.path.append(PROJECT_ROOT)
-# Import the plot style from the plot_styles.py file
-from plot_styles import set_plot_style, summer_colors
+# Import the shared plot styles
+from tools.plot_styles import set_plot_style, summer_colors
 
 # Define which PRs to highlight on the plot
 # These are PRs that caused a significant change in the number of matches or unbounded flux reactions
