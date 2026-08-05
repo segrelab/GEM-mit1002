@@ -14,6 +14,7 @@ cpd00663_c0	Acrylyl-CoA	unknown		#286	2025-10-10	fix: add rxn16586_c0 and WP_049
 cpd00666_c0	Tartrate	unknown		#305	2025-10-24	fix: remove reactions rxn01285_c0, rxn01894_c0, rxn02788_c0 and associated metabolites & genes
 cpd00703_c0	Indoleacetate	unknown		#293	2025-10-21	fix: remove rxn02222, cpd00703, and cpd01747
 cpd00731_e0	Ala-Ala [e0]	out_of_scope		#262	2025-09-23	fix: remove dipeptide uptake reactions and extracellular metabolites
+cpd00742_c0	Allophanate	orphaned			2026-08-05	orphaned by removal of rxn00002_c0
 cpd00831_c0	L-Rhamnulose 1-phosphate	unknown		#288	2025-10-16	fix several issues with GPRs of aldehyde/carboxylate redox reactions and remove rxn01621_c0, cpd00831_c0, & WP_049588490.1
 cpd00965_c0	Hg	no_genomic_evidence		#303	2025-10-23	fix: GPRs of copper transport reactions and remove unsupported/unnecessary heavy metal transport reactions
 cpd01012_c0	Cd2+	no_genomic_evidence		#303	2025-10-23	fix: GPRs of copper transport reactions and remove unsupported/unnecessary heavy metal transport reactions
