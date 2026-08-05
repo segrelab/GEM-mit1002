@@ -14,6 +14,7 @@ __pycache__/
 genome/RefSeq_genome_from_KBase/*.gff
 genome/RefSeq_genome_from_KBase/KBase_object_details_hgsco_narrative_1741199302047_Alteromonas_macleodii_v1.json
 genome/RefSeq_genome/GCF_001077695.1_ASM107769v1_protein.faa
+genome/RefSeq_genome/GCF_001077695.1_ASM107769v1_genomic.fna
 genome/RefSeq_genome/GCF_001077695.1_ASM107769v1_protein.gpff
 Pangenome from Michelle/*
 reac_xref.tsv
