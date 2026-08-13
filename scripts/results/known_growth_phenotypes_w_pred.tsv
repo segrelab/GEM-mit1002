@@ -24,10 +24,10 @@ Marine Broth	NH3, Nitrate	Proline		No	(Kratzl, 2026)	0.687
 Marine Broth	NH3, Nitrate	Proline, Pyruvate		Yes	(Kratzl, 2026)	0.852
 Marine Broth (No Nitrogen)		Ammonium, Glucose		Yes	(Kratzl, 2026)	0.75
 Marine Broth (No Nitrogen)		Ammonium, Pyruvate		Yes	(Kratzl, 2026)	0.565
-Marine Broth (No Nitrogen)		Ammonium, Succinate		No	(Kratzl, 2026)	0.64
+Marine Broth (No Nitrogen)		Ammonium, Succinate		No	(Kratzl, 2026)	-0.032
 Marine Broth (No Nitrogen)		Nitrate, Glucose		Yes	(Kratzl, 2026)	0.647
 Marine Broth (No Nitrogen)		Nitrate, Pyruvate		Yes	(Kratzl, 2026)	0.486
-Marine Broth (No Nitrogen)		Nitrate, Succinate		No	(Kratzl, 2026)	0.538
+Marine Broth (No Nitrogen)		Nitrate, Succinate		No	(Kratzl, 2026)	-0.032
 Marine Broth (No Nitrogen)		Urea+Pyruvate		No	(Kratzl, 2026)	-0.032
 Marine Broth (No Nitrogen)		Urea, Glucose		Yes	(Kratzl, 2026)	-0.032
 Marine Broth (No Nitrogen)		Urea, Succinate		No	(Kratzl, 2026)	-0.032
