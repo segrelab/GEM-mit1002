@@ -1,118 +1,159 @@
+"""Growth phenotype tests.
+
+Two things are checked here. The model must not grow without a carbon source,
+and its predictions across ``data/known_growth_phenotypes.tsv`` must not have
+got worse.
+
+The second one used to fail on any mismatch at all. That cannot work for a
+model under active curation, where some conditions are always wrong and the
+interesting question is whether the set of wrong ones changed. So the currently
+accepted mismatches live in ``test_files/expected_phenotype_mismatches.tsv``,
+and the test compares against that baseline. A new mismatch fails. A baseline
+entry that has started passing also fails, which is the half people leave out —
+without it an accidental fix goes unnoticed and the baseline slowly becomes a
+list of things that are no longer true.
+
+The simulation itself is not implemented here. It lives in ``tools.phenotypes``
+and is shared with ``scripts/generate_growth_report.py``, so the test and the
+report cannot disagree about the same model. They previously did: this file set
+every uptake to a flat 1000 while the report divided a fixed carbon budget by
+the carbon count, so the same condition could pass one and fail the other.
+"""
+
 import os
 import unittest
-import warnings
 
 import cobra
-import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
-from gem_utilities import biomass, media
+from gem_utilities import media
+
 from tools.media import MEDIA
+from tools.phenotypes import (
+    EXCLUSION_COLUMN,
+    compare_to_baseline,
+    evaluate_phenotypes,
+    format_summary,
+    load_expected_mismatches,
+    load_phenotypes,
+    summarise,
+)
 
-# Set path to the `test_files` directory
-TESTFILE_DIR = os.path.join(os.path.dirname(__file__), "test_files")
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.path.join(REPO_ROOT, "model.xml")
 
-# Set path to the results directory
-RESULTS_DIR = os.path.join(TESTFILE_DIR, "test_results")
-
-# Load the media definitions
-media_definitions = MEDIA
-minimal_media = media_definitions["minimal"]
+#: Loaded once. Reading and parsing the SBML is far slower than solving it.
+_MODEL = None
 
 
-class TestGrowthPhenotypes(unittest.TestCase):
-    # Check that there is no growth on a media with no carbon sources
-    def test_growth_w_0_C(self):
-        # Load the model with cobrapy
-        model = cobra.io.read_sbml_model("model.xml")
+def _model():
+    global _MODEL
+    if _MODEL is None:
+        _MODEL = cobra.io.read_sbml_model(MODEL_PATH)
+    return _MODEL
 
-        # Set the media so that there are no carbon sources
-        model.medium = media.clean_media(model, minimal_media)
 
-        # Run the model
-        sol = model.optimize()
+class TestGrowthWithoutCarbon(unittest.TestCase):
+    """The model must not grow on a medium with no carbon source.
 
-        # Check that no biomass is produced
-        self.assertEqual(sol.objective_value, 0)
+    A leak here invalidates every other phenotype result, because a model that
+    can grow on nothing will appear to grow on anything.
+    """
 
-    # Test that there is growth or no growth as expected on different media
-    def test_expected_growth_phenotypes(self):
-        # Load the TSV of the growth phenotypes
-        growth_phenotypes = pd.read_csv(
-            os.path.join(DATA_DIR, "known_growth_phenotypes.tsv"),
-            sep="\t",
-            converters={"met_id": lambda x: x.split(",")},
-        )
+    def test_no_growth_without_carbon(self):
+        model = _model()
+        with model:
+            model.medium = media.clean_media(model, MEDIA["minimal"])
+            solution = model.optimize()
+            self.assertLessEqual(
+                solution.objective_value or 0.0,
+                1e-6,
+                "the model grows with no carbon source available",
+            )
 
-        # Load the model
-        model = cobra.io.read_sbml_model("model.xml")
 
-        # Loop through the growth phenotpes, and add the carbon source to the
-        # minimal media, run FBA and check if the model grows
-        ex_rxn_present = []
-        pred_growth = []
-        for index, row in growth_phenotypes.iterrows():
-            minimal_media = media_definitions[row["minimal_media"]].copy()
-            # Check if the model has an exchange reaction for the metabolite(s)
-            if all(
-                "EX_" + met_id + "_e0" in [r.id for r in model.reactions]
-                for met_id in row["met_id"]
-            ):
-                # If it does, add the exchange reaction to the minimal media used
-                for met_id in row["met_id"]:
-                    minimal_media["EX_" + met_id + "_e0"] = 1000.0
-                # Mark the exchange reaction as present
-                ex_rxn_present.append("Yes")
-            else:
-                # Mark the exchange reaction as not present
-                ex_rxn_present.append("No")
-            # Set the media
-            model.medium = media.clean_media(model, minimal_media)
-            # Run the model
-            sol = model.optimize()
-            # Check if the model grows
-            if sol.objective_value > 1e-3:
-                # If it does, add 'Y' to the list
-                pred_growth.append("Yes")
-            else:
-                # If it doesn't, add 'N' to the list
-                pred_growth.append("No")
+class TestExpectedGrowthPhenotypes(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.results = evaluate_phenotypes(_model())
+        cls.summary = summarise(cls.results)
+        cls.diff = compare_to_baseline(cls.results, load_expected_mismatches())
 
-        # Add the lists as new columns in the dataframe
-        growth_phenotypes["all_ex_rxn_present"] = ex_rxn_present
-        growth_phenotypes["pred_growth"] = pred_growth
-
-        # Filter for only the phenotypes that are explicitly "Yes" or "No"
-        # Since these are the only ones we can test
-        testable_phenotypes = growth_phenotypes[
-            growth_phenotypes["growth"].isin(["Yes", "No"])
-        ].copy()
-
-        # Find all rows where the experimental and predicted growth do not match
-        mismatches = testable_phenotypes[
-            testable_phenotypes["growth"] != testable_phenotypes["pred_growth"]
+    def test_no_new_mismatches(self):
+        new = self.diff["new"]
+        if not new:
+            return
+        lines = [
+            "",
+            f"{len(new)} condition(s) disagree with experiment and are not in "
+            f"the accepted baseline:",
+            "",
         ]
+        lines += [f"  {condition}  ->  {category}" for condition, category in new]
+        lines += [
+            "",
+            "Either fix the model, or -- if this is an accepted consequence of "
+            "a deliberate change -- record it with:",
+            "    python scripts/update_phenotype_baseline.py",
+            "",
+            format_summary(self.summary),
+        ]
+        self.fail("\n".join(lines))
 
-        # If the mismatches DataFrame is not empty, the test fails.
-        if not mismatches.empty:
-            # Format a detailed error message
-            error_message = [
-                "\nPredicted growth phenotypes do not match experimental data for the following conditions:"
-            ]
-            # Add a header for the output table
-            header = f"{'Media':<35} | {'Carbon Source':<25} | {'Experimental':<12} | {'Predicted':<12} | {'Ex Rxn Present':<10}"
-            error_message.append(header)
-            error_message.append("-" * len(header))
+    def test_no_stale_baseline_entries(self):
+        """Mismatches that now agree must be removed from the baseline.
 
-            # Add a row for each mismatch
-            for index, row in mismatches.iterrows():
-                # Note: Assuming you have a 'c_source' column as in your original file
-                line = f"{row['minimal_media']:<35} | {row['c_source']:<25} | {row['growth']:<12} | {row['pred_growth']:<12} | {row['all_ex_rxn_present']:<10}"
-                error_message.append(line)
+        Failing here is good news: the model improved. The test fails anyway so
+        that the baseline gets updated, rather than quietly carrying permission
+        for a failure that no longer happens.
+        """
+        resolved = self.diff["resolved"]
+        if not resolved:
+            return
+        lines = ["", f"{len(resolved)} baseline entr(y/ies) no longer mismatch:", ""]
+        for condition, category, still_exists in resolved:
+            why = "now agrees" if still_exists else "condition no longer in the TSV"
+            lines.append(f"  {condition}  (was {category}) -- {why}")
+        lines += [
+            "",
+            "Refresh the baseline to record the improvement:",
+            "    python scripts/update_phenotype_baseline.py",
+        ]
+        self.fail("\n".join(lines))
 
-            # Combine the list into a single string and fail the test
-            self.fail("\n".join(error_message))
+    def test_mismatch_categories_are_unchanged(self):
+        """A false positive turning into a false negative is a real change.
+
+        The condition still disagrees either way, so a test keyed only on
+        which conditions mismatch would miss it -- but the two need opposite
+        fixes, so it should not pass silently.
+        """
+        changed = self.diff["changed"]
+        if not changed:
+            return
+        lines = ["", "Mismatch category changed:", ""]
+        lines += [
+            f"  {condition}: {was} -> {now}" for condition, was, now in changed
+        ]
+        lines += ["", "    python scripts/update_phenotype_baseline.py"]
+        self.fail("\n".join(lines))
+
+    def test_excluded_rows_are_not_scored(self):
+        """Rows carrying an exclusion reason must not reach the scoring."""
+        scored = self.results[
+            self.results["category"].isin(
+                ["true_positive", "true_negative", "false_positive", "false_negative"]
+            )
+        ]
+        leaked = sorted(scored[scored[EXCLUSION_COLUMN] != ""]["condition"])
+        self.assertFalse(leaked, f"excluded conditions were scored: {leaked}")
+
+    def test_every_phenotype_was_evaluated(self):
+        """Guard against a row being silently dropped between file and result."""
+        self.assertEqual(
+            len(self.results),
+            len(load_phenotypes()),
+            "evaluate_phenotypes returned a different number of rows than the "
+            "phenotype table contains",
+        )
 
 
 if __name__ == "__main__":

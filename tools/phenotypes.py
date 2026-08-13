@@ -76,12 +76,61 @@ C_SOURCE_IDS = {
 CONCORDANT = ("true_positive", "true_negative")
 DISCORDANT = ("false_positive", "false_negative")
 #: Rows that carry no information about model quality either way.
-UNSCORED = ("unsure", "no_exchange", "invalid_solve")
+UNSCORED = ("unsure", "no_exchange", "invalid_solve", "excluded")
+
+#: Column naming a reason the row is not scored. Empty means "score this row".
+EXCLUSION_COLUMN = "exclude_reason"
+
+#: Closed vocabulary for :data:`EXCLUSION_COLUMN`. Keep in sync with the table
+#: in ``data/README.md``; ``test_phenotype_data.py`` enforces it.
+#:
+#: The split that matters is between the first three and the last. The first
+#: three are problems with the observation -- a better experiment could fix
+#: them, and the row might come back. ``not_representable`` is a trusted
+#: observation that a stoichiometric model cannot express even in principle,
+#: which is a permanent property of the modelling formalism rather than a data
+#: problem, and is worth reporting rather than quietly dropping.
+EXCLUSION_REASONS = {
+    "control_failed": (
+        "The experiment's own control did not behave as required, so the "
+        "condition cannot be interpreted."
+    ),
+    "id_uncertain": (
+        "The compound could not be confidently mapped to a model metabolite."
+    ),
+    "conflicting_reports": (
+        "The same condition was scored differently by different sources and "
+        "the disagreement is unresolved."
+    ),
+    "not_representable": (
+        "A trusted result that flux balance analysis cannot reproduce in "
+        "principle -- regulation, inhibition, or a kinetic effect."
+    ),
+}
+
+#: Baseline of mismatches that are known and accepted at the current state of
+#: curation. See :func:`load_expected_mismatches`.
+EXPECTED_MISMATCHES_TSV = os.path.join(
+    PROJECT_ROOT, "test", "test_files", "expected_phenotype_mismatches.tsv"
+)
+
+MISMATCH_COLUMNS = ["minimal_media", "c_source", "category", "notes"]
 
 
 def exchange_id(met_id: str) -> str:
     """Exchange reaction id for a ModelSEED compound id."""
     return f"EX_{met_id}_e0"
+
+
+def condition_key(minimal_media: str, c_source: str) -> str:
+    """Stable identifier for one row of the phenotype table.
+
+    Medium plus displayed substrate is unique across the table and stays
+    readable in a file people edit by hand, which matters more here than
+    robustness -- ``test_phenotype_data.py`` fails if the pair stops being
+    unique.
+    """
+    return f"{str(minimal_media).strip()} | {str(c_source).strip()}"
 
 
 def load_phenotypes(path: str | None = None) -> pd.DataFrame:
@@ -94,6 +143,15 @@ def load_phenotypes(path: str | None = None) -> pd.DataFrame:
     # Several rows have trailing whitespace in the display name ("Glucose ").
     for column in ("c_source", "minimal_media", "growth"):
         table[column] = table[column].astype(str).str.strip()
+    # Tolerate the column being absent so older copies of the file still load.
+    if EXCLUSION_COLUMN not in table.columns:
+        table[EXCLUSION_COLUMN] = ""
+    table[EXCLUSION_COLUMN] = (
+        table[EXCLUSION_COLUMN].fillna("").astype(str).str.strip()
+    )
+    table["condition"] = [
+        condition_key(m, c) for m, c in zip(table["minimal_media"], table["c_source"])
+    ]
     return table
 
 
@@ -166,9 +224,16 @@ def evaluate_phenotypes(
         "Yes", "No", or None when not evaluable.
     ``category``
         One of true_positive, true_negative, false_positive, false_negative,
-        unsure, no_exchange, invalid_solve.
+        unsure, no_exchange, invalid_solve, excluded. This is the single field
+        downstream code should switch on.
+    ``raw_category``
+        The verdict the row would have had if it were not excluded. Identical
+        to ``category`` for rows that are scored. Kept so that excluding a row
+        never destroys the underlying comparison.
     ``discordant``
-        True for false positives and false negatives only.
+        True for false positives and false negatives that are actually scored.
+        Always False for excluded rows, since an uninterpretable condition is
+        not evidence that the model is wrong.
     ``near_threshold``
         True when the predicted rate is positive but within
         ``NEAR_THRESHOLD_FACTOR`` of the threshold, so the call is marginal.
@@ -201,24 +266,26 @@ def evaluate_phenotypes(
             rate, valid = _solve(model)
 
         if missing:
-            category = "no_exchange"
+            raw_category = "no_exchange"
             predicted = None
         elif not valid:
-            category = "invalid_solve"
+            raw_category = "invalid_solve"
             predicted = None
         else:
             predicted_growth = rate > growth_threshold
             predicted = "Yes" if predicted_growth else "No"
-            category = _classify(row["growth"], predicted_growth)
+            raw_category = _classify(row["growth"], predicted_growth)
 
+        excluded = bool(row.get(EXCLUSION_COLUMN, ""))
         records.append(
             {
                 "missing_exchanges": ", ".join(missing),
                 "evaluable": not missing and valid,
                 "fba_growth_rate": rate if valid else float("nan"),
                 "predicted": predicted,
-                "category": category,
-                "discordant": category in DISCORDANT,
+                "raw_category": raw_category,
+                "category": "excluded" if excluded else raw_category,
+                "discordant": (not excluded) and raw_category in DISCORDANT,
                 "near_threshold": bool(
                     valid
                     and 0 < rate <= NEAR_THRESHOLD_FACTOR * growth_threshold
@@ -253,6 +320,7 @@ def summarise(results: pd.DataFrame) -> dict:
         "n_no_exchange": counts.get("no_exchange", 0),
         "n_invalid_solve": counts.get("invalid_solve", 0),
         "n_unsure": counts.get("unsure", 0),
+        "n_excluded": counts.get("excluded", 0),
         "n_scored": true_positive + true_negative + false_positive + false_negative,
         "true_positive": true_positive,
         "true_negative": true_negative,
@@ -271,7 +339,8 @@ def format_summary(summary: dict) -> str:
         f"{summary['n_conditions']} conditions; "
         f"{summary['n_no_exchange']} not representable (no exchange reaction), "
         f"{summary['n_invalid_solve']} invalid solves, "
-        f"{summary['n_unsure']} experimentally unsure; "
+        f"{summary['n_unsure']} experimentally unsure, "
+        f"{summary['n_excluded']} excluded; "
         f"{summary['n_scored']} scored. "
         f"Sensitivity {summary['sensitivity']:.2f} "
         f"({summary['true_positive']}/"
@@ -280,3 +349,93 @@ def format_summary(summary: dict) -> str:
         f"({summary['true_negative']}/"
         f"{summary['true_negative'] + summary['false_positive']})."
     )
+
+
+# --------------------------------------------------------------------------
+# Expected-mismatch baseline
+# --------------------------------------------------------------------------
+#
+# A model under curation always has mismatches; that is the normal state, not
+# an error. A test that fails whenever any condition disagrees can only pass
+# when the model is perfect, so it fails continuously and stops being read.
+#
+# Instead the currently-accepted mismatches are recorded in a committed file
+# and the test compares against it. A *new* mismatch fails, and so does a
+# listed mismatch that has started passing -- the second case matters just as
+# much, because otherwise an accidental fix goes unnoticed and the baseline
+# silently rots into a list of things that are no longer true.
+
+
+def load_expected_mismatches(path: str | None = None) -> pd.DataFrame:
+    """Read the accepted-mismatch baseline. A missing file reads as empty."""
+    path = path or EXPECTED_MISMATCHES_TSV
+    if not os.path.exists(path):
+        return pd.DataFrame(columns=MISMATCH_COLUMNS + ["condition"])
+    table = pd.read_csv(path, sep="\t").fillna("")
+    for column in MISMATCH_COLUMNS:
+        if column not in table.columns:
+            table[column] = ""
+    table["condition"] = [
+        condition_key(m, c) for m, c in zip(table["minimal_media"], table["c_source"])
+    ]
+    return table
+
+
+def write_expected_mismatches(
+    results: pd.DataFrame, path: str | None = None, notes: str = ""
+) -> pd.DataFrame:
+    """Overwrite the baseline with the mismatches in ``results``.
+
+    Deliberately not called from the test suite. Regenerating the baseline is
+    a decision to accept the current state, so it belongs in a script someone
+    runs on purpose and commits.
+    """
+    path = path or EXPECTED_MISMATCHES_TSV
+    mismatches = results[results["discordant"]].copy()
+    out = pd.DataFrame(
+        {
+            "minimal_media": mismatches["minimal_media"],
+            "c_source": mismatches["c_source"],
+            "category": mismatches["category"],
+            "notes": notes,
+        }
+    ).sort_values(["minimal_media", "c_source"])
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    out.to_csv(path, sep="\t", index=False, lineterminator="\n")
+    return out
+
+
+def compare_to_baseline(
+    results: pd.DataFrame, expected: pd.DataFrame | None = None
+) -> dict:
+    """Diff the current mismatches against the accepted baseline.
+
+    Returns ``new`` (mismatches not in the baseline), ``resolved`` (baseline
+    entries that now agree, or that no longer exist in the phenotype table),
+    and ``changed`` (still mismatching, but as a different category -- a false
+    positive that became a false negative is worth noticing).
+    """
+    if expected is None:
+        expected = load_expected_mismatches()
+
+    current = results[results["discordant"]]
+    current_by_condition = dict(zip(current["condition"], current["category"]))
+    expected_by_condition = dict(zip(expected["condition"], expected["category"]))
+    known_conditions = set(results["condition"])
+
+    new = sorted(set(current_by_condition) - set(expected_by_condition))
+    resolved = sorted(set(expected_by_condition) - set(current_by_condition))
+    changed = sorted(
+        condition
+        for condition in set(current_by_condition) & set(expected_by_condition)
+        if current_by_condition[condition] != expected_by_condition[condition]
+    )
+    return {
+        "new": [(c, current_by_condition[c]) for c in new],
+        "resolved": [
+            (c, expected_by_condition[c], c in known_conditions) for c in resolved
+        ],
+        "changed": [
+            (c, expected_by_condition[c], current_by_condition[c]) for c in changed
+        ],
+    }
