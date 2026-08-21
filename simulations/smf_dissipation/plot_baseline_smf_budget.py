@@ -26,17 +26,17 @@ The story:
     PMF driving ATP synthase is sodium-derived.
 """
 
+import os
+import sys
 import warnings
 from collections import defaultdict
-import os
 from pathlib import Path
-import sys
 
 import cobra
 import cobra.flux_analysis
 import matplotlib
-import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -44,7 +44,7 @@ import pandas as pd
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 )
-from tools.plot_styles import summer_colors
+from tools.plot_styles import set_plot_style, summer_colors
 
 matplotlib.rcParams.update(
     {
@@ -78,6 +78,7 @@ import sys
 sys.path.insert(0, str(REPO_ROOT))
 
 from tools.media import MEDIA  # noqa: E402
+
 OUT_PATH = FILE_PATH / "results"
 OUT_PATH.mkdir(exist_ok=True)
 
@@ -251,6 +252,9 @@ def plot_budget(ax, df, title, ylabel):
         bbox_to_anchor=(1.01, 1.0),
         loc="upper left",
     )
+
+    # Style
+    set_plot_style(ax)
 
 
 def main():
