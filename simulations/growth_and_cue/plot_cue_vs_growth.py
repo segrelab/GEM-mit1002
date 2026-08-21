@@ -40,7 +40,12 @@ BYPRODUCT_FLUX_THRESHOLD = 1.0
 
 # Import the shared plot styles from tools/
 sys.path.append(str(REPO_ROOT))
-from tools.plot_styles import carbon_fates_bar, ccomp_colors, summer_colors
+from tools.plot_styles import (
+    carbon_fates_bar,
+    ccomp_colors,
+    set_plot_style,
+    summer_colors,
+)
 
 # Anchor colours drawn from the "Summer I Turned Pretty" palette (plus a muted
 # mauve), ordered to flow as a gradient. build_palette() uses these directly
@@ -124,9 +129,9 @@ def build_ex_name_map(model) -> dict:
 def parse_c_ex_fluxes(raw) -> dict:
     """Parse the "c_ex_fluxes" column back into a {rxn_id: flux} dict.
 
-    It's written by run_growth_cue.py as the repr() of a dict whose values
-    are np.float64(...), which isn't valid for ast.literal_eval on its own,
-    so strip the np.float64(...) wrapper first."""
+    It's written by run_growth_cue.py as the repr() of a plain {str: float}
+    dict. Older result files wrapped the values in np.float64(...), which
+    isn't valid for ast.literal_eval, so strip that wrapper if present."""
     if pd.isna(raw):
         return {}
     cleaned = re.sub(r"np\.float64\(([^)]+)\)", r"\1", raw)
@@ -625,6 +630,10 @@ def plot_growth_cue_correlation(
     )
 
     fig.tight_layout()
+
+    # Set the plot style (gray axes, ticks, labels, title and legend)
+    set_plot_style(ax)
+
     # Save the figure as a PNG
     fig.savefig(out_path / f"{filename}.png", dpi=300, bbox_inches="tight")
     # Save the figure as an SVG

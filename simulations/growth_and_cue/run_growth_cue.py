@@ -46,6 +46,11 @@ O2_PERCENTAGE_LEVLS = range(0, 110, 10)
 # lumped into a single grey "Other" segment (keeps the trace-ion colours out).
 EX_FLUX_THRESHOLD = 1.0  # mmol / gDW / hr
 
+# Decimal places to keep in the saved results. Without this, re-running gives
+# noisy diffs where the last few decimals wobble but nothing has really
+# changed. Matches the rounding already used for regression_r2s.csv.
+FLUX_DECIMALS = 3
+
 # Define key reaction IDs
 BIOMASS_RXN = "bio1_biomass"
 CO2_EX_RXN = "EX_cpd00011_e0"
@@ -67,15 +72,20 @@ def main():
 
     print("\nRunning pFBA simulations...")
     summary_df, ex_records = run_pfba(model, media_defs, substrate_df)
-    print(f"\nSuccessful: {len(summary_df)}/{len(substrate_df)} substrates")
+    print(
+        f"\nSuccessful: {summary_df.index.nunique()}/{len(substrate_df)} substrates"
+        f" ({len(summary_df)} substrate x O2-level simulations)"
+    )
 
-    # Save the results
-    summary_df.to_csv(OUT_PATH / "growth_and_cue.csv")
+    # Save the results (rounded, so re-running gives clean diffs)
+    round_summary(summary_df).to_csv(OUT_PATH / "growth_and_cue.csv")
 
     # Extract the exchange fluxes
-    order = summary_df.sort_values("growth_rate", ascending=False).index.tolist()
+    # Order the (substrate, O2 level) records by descending growth rate
+    sorted_summary = summary_df.sort_values("growth_rate", ascending=False)
+    order = list(zip(sorted_summary.index, sorted_summary["o2_bound"]))
     ex_df = build_exchange_df(model, ex_records, order, EX_FLUX_THRESHOLD)
-    ex_df.to_csv(OUT_PATH / "exchange_fluxes.csv")
+    ex_df.round(FLUX_DECIMALS).to_csv(OUT_PATH / "exchange_fluxes.csv")
 
 
 def run_pfba(
@@ -148,17 +158,20 @@ def run_pfba(
                     uptake_c = uptake * row["n_c"]
 
                     # Extract the exchange fluxes
-                    ex_records[name] = {
+                    # Key by (substrate, O2 level) so each O2 level is kept
+                    # instead of overwriting the substrate's previous one
+                    ex_fluxes = {
                         rid: sol.fluxes[rid]
                         for rid in ex_rxn_ids
                         if abs(sol.fluxes[rid]) > 1e-9
                     }
+                    ex_records[(name, o2_level)] = ex_fluxes
 
                     # Calculate the exudation C flux
                     exudation_c = 0
                     # Make a dictionary to hold the indivdiual metabolite carbon fluxes
                     c_ex_fluxes = {}
-                    for rxn_id, rxn_flux in ex_records[name].items():
+                    for rxn_id, rxn_flux in ex_fluxes.items():
                         if rxn_flux > 0:
                             # Do not count CO2
                             if rxn_id == CO2_EX_RXN:
@@ -216,13 +229,53 @@ def run_pfba(
     return pd.DataFrame(rows).set_index("substrate"), ex_records
 
 
-def build_exchange_df(model, ex_records, substrate_order, threshold):
-    """{substrate: {ex_rxn: flux}} -> DataFrame (substrate x metabolite name).
+def round_summary(summary_df):
+    """Round the simulated values so that re-running gives clean diffs.
+
+    Only the solver outputs are rounded. `o2_bound` and `o2_percent` are exact
+    inputs derived from the substrate panel, so they are left at full precision
+    and stay reliable as keys for joining to the exchange fluxes.
+    """
+    out = summary_df.copy()
+    flux_cols = [
+        "o2_flux",
+        "growth_rate",
+        "biomass_c",
+        "co2_flux",
+        "organic_c_flux",
+        "cue",
+        "bge",
+        "gge",
+    ]
+    out[flux_cols] = out[flux_cols].round(FLUX_DECIMALS)
+    # c_ex_fluxes holds a {exchange reaction: carbon flux} dict per row.
+    # Cast to plain floats so the dict reprs as valid Python literals rather
+    # than as np.float64(...) wrappers.
+    out["c_ex_fluxes"] = out["c_ex_fluxes"].apply(
+        lambda d: {k: round(float(v), FLUX_DECIMALS) for k, v in d.items()}
+    )
+    return out
+
+
+def build_exchange_df(model, ex_records, record_order, threshold):
+    """{(substrate, O2 level): {ex_rxn: flux}} -> DataFrame indexed by
+    (substrate, o2_bound), with one column per metabolite name.
 
     Columns are renamed from exchange-reaction id to the metabolite name.
     Trace metabolites (max |flux| < threshold) are collapsed into 'Other'.
     """
-    df = pd.DataFrame(ex_records).T.reindex(substrate_order).fillna(0.0)
+    # Records must be unique, otherwise the reindex below silently duplicates
+    # rows, which shows up as repeated bars in the exchange figures
+    assert len(set(record_order)) == len(
+        record_order
+    ), "Duplicate (substrate, o2_bound) records"
+    df = pd.DataFrame(ex_records).T.reindex(record_order)
+    # A record with no matching entry becomes an all-NaN row, which would
+    # otherwise be filled with zeros and plotted as "no flux"
+    missing = df.index[df.isna().all(axis=1)].tolist()
+    assert not missing, f"No exchange fluxes recorded for: {missing[:5]}"
+    df = df.fillna(0.0)
+    df.index = df.index.set_names(["substrate", "o2_bound"])
     # Rename the column with the metabolite name instead of the reaction ID
     rename = {}
     for rid in df.columns:

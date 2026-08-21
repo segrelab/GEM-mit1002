@@ -27,7 +27,7 @@ OUT_PATH.mkdir(exist_ok=True)
 
 # Import the shared plot styles from tools/
 sys.path.append(str(REPO_ROOT))
-from tools.plot_styles import summer_colors
+from tools.plot_styles import set_plot_style, summer_colors
 
 # Color palette for exchange metabolites
 # The "Summer" color palette with a few extra colors to avoid repeats
@@ -60,8 +60,16 @@ OTHER_COLOR = "#bdbdbd"  # grey — collapsed trace metabolites
 
 
 def main():
-    # Load the exchange fluxes
-    ex_df = pd.read_csv(IN_PATH / "exchange_fluxes.csv", index_col=0)
+    # Load the exchange fluxes (indexed by substrate and O2 level)
+    ex_df = pd.read_csv(IN_PATH / "exchange_fluxes.csv", index_col=[0, 1])
+
+    # Keep only the "anchor" O2 level: the highest bound tested, which is
+    # saturating for every substrate in the panel. This is the same anchor
+    # level used in plot_cue_vs_growth.py, so all the figures in this
+    # directory describe the same condition.
+    anchor_level = ex_df.index.get_level_values("o2_bound").max()
+    ex_df = ex_df.xs(anchor_level, level="o2_bound")
+    print(f"Plotting exchange fluxes at the anchor O2 bound ({anchor_level:g})")
 
     # Load the substrate panel to get the names of the carbon sources
     substrate_df = pd.read_csv(IN_PATH / "substrate_panel.csv")
@@ -99,6 +107,7 @@ def main():
 def plot_exchange_stacks(ex_df, carbon_source_names, out_dir):
     """Two stacked-bar charts, both drawn upward, with shared metabolite colours.
 
+    `ex_df` is expected to hold a single O2 condition, one row per substrate.
     Uptake fluxes are negated so they read as positive bars. All substrate
     carbon sources are merged into one 'Carbon source' segment in the uptake
     chart (each appears on a single bar). Byproducts/co-substrates keep
@@ -148,14 +157,14 @@ def plot_exchange_stacks(ex_df, carbon_source_names, out_dir):
     _stacked_bar(
         uptake[up_cols],
         colors,
-        "MIT1002 uptake fluxes across substrates",
+        "MIT1002 uptake fluxes across substrates (saturating O2)",
         "Uptake flux (mmol gDW⁻¹ h⁻¹)",
         out_dir / "uptake_fluxes.png",
     )
     _stacked_bar(
         exud[ex_cols],
         colors,
-        "MIT1002 exudation fluxes across substrates",
+        "MIT1002 exudation fluxes across substrates (saturating O2)",
         "Exudation flux (mmol gDW⁻¹ h⁻¹)",
         out_dir / "exudation_fluxes.png",
     )
@@ -215,6 +224,11 @@ def _stacked_bar(df, colors, title, ylabel, out_path):
         frameon=False,
     )
     fig.tight_layout()
+
+    # Set the plot style
+    set_plot_style(ax)
+
+    # Save the figure
     fig.savefig(out_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
     print(f"  Saved: {out_path.name}")
