@@ -1,11 +1,20 @@
 """Evaluate the known growth phenotypes against the model.
 
-Both the CI regression report (``scripts/generate_growth_report.py``) and the
-manuscript figure (``scripts/generate_phenotype_figure.py``) need the same
-thing: for every row of ``data/known_growth_phenotypes.tsv``, build the
-medium, run FBA, and decide whether the prediction agrees with the
-experiment. Keeping that here means the table and the figure cannot drift
-apart, and a fix lands in both at once.
+Several places need the same thing: for every row of
+``data/known_growth_phenotypes.tsv``, build the medium, run FBA, and decide
+whether the prediction agrees with the experiment. Keeping it here means they
+cannot drift apart, and a fix lands in all of them at once.
+
+Current callers:
+
+* ``test/test_growth.py`` -- the CI regression test against the accepted
+  mismatch baseline.
+* ``curation_process/run_tests_on_prs.py`` -- the same evaluation replayed
+  across every merged PR, which is what figure 2B of the manuscript plots.
+
+``scripts/generate_growth_report.py`` still carries its own inlined copy of
+this loop and therefore still has all three bugs listed below. It only feeds a
+human-read heatmap, not a number in the paper, but it should be migrated.
 
 Three things this does that the loop inlined in ``generate_growth_report.py``
 does not:
@@ -17,15 +26,55 @@ does not:
    from "the model cannot grow on pyruvate", which silently turns a
    reconstruction gap into an apparent false negative.
 
-2. Rows the model cannot represent are reported as ``no_exchange`` instead of
-   as a prediction. A metabolite with no exchange reaction cannot enter the
-   cell, so FBA returns zero growth for a trivial reason. Scoring those as
-   correct "No" predictions inflates specificity: as of this writing 19 of
-   the 61 rows are in this state and 14 of them are experimental "No".
+2. An infeasible solve is read as no growth, not as a failure. See
+   :func:`_solve`.
 
 3. Solver output is validated. Biomass has a lower bound of 0, so a negative
    objective value is not a growth rate. Those rows are reported as
    ``invalid_solve`` rather than plotted as no-growth.
+
+Missing exchange reactions
+--------------------------
+
+A condition whose compound has no exchange reaction in the model **is scored**,
+as the no-growth prediction it is. An earlier version of this module held those
+rows out as a separate ``no_exchange`` category on the grounds that FBA returns
+no growth for a trivial reason.
+
+That was wrong, for two independent reasons.
+
+The first is curatorial. For most of these compounds the absence of a
+transporter is a *finding*: the genome was searched, no candidate transporter
+was found, and the model reflects that. "No genomic evidence for uptake,
+therefore no growth" is a mechanistic prediction, and it is one of the few
+kinds of prediction a stoichiometric model makes about *failure* to grow.
+Discarding it removed most of the model's negative predictions and left
+specificity resting on two conditions.
+
+The second is arithmetic, and it is the reason this is scored on the model's
+actual solution rather than by the shortcut of calling every missing exchange a
+"No". Because point 1 above adds whatever metabolites it can, a multi-compound
+condition can still grow on the compounds that are present. Both of these are
+real rows:
+
+* ``marine_broth_wo_yeast_and_peptone | Methionine, Pyruvate`` -- grows
+  experimentally, has no methionine exchange, and the model grows on the
+  pyruvate. Scoring it on the missing exchange would record a false negative
+  for a condition the model gets right.
+* ``marine_broth_wo_yeast_and_peptone | Cystine, Pyruvate`` -- does *not* grow
+  experimentally, has no cystine exchange, and the model grows on the pyruvate
+  anyway. Scoring it on the missing exchange would record a true negative for a
+  condition the model gets wrong.
+
+So the missing exchange is not itself the prediction; the solve is. Rows where
+the no-growth call did rest on a missing uptake route are flagged in the
+``no_uptake_route`` column, so a caption can report how many of the negative
+predictions come from an absent transporter rather than from network structure.
+
+The genuinely unscorable case still has a home: a trusted observation that FBA
+cannot reproduce in principle goes in ``exclude_reason`` as
+``not_representable``. That is a deliberate, documented, per-row judgement
+rather than a side effect of the reconstruction's coverage.
 """
 
 import os
@@ -56,6 +105,14 @@ GROWTH_THRESHOLD = 1e-3
 #: they are the cells most likely to flip on an unrelated curation change.
 NEAR_THRESHOLD_FACTOR = 10.0
 
+#: Flux magnitude (mmol / gDW / hr) above which a reaction is treated as
+#: implausibly large. Nothing in this organism should carry an order of
+#: magnitude more flux than the carbon supply, so a reaction above this is
+#: almost always a thermodynamically infeasible loop rather than biology.
+#: Used by :func:`evaluate_phenotypes` when ``flux_limit`` is requested and by
+#: ``curation_process/run_tests_on_prs.py``.
+DEFAULT_FLUX_LIMIT = 100.0
+
 #: Compounds supplied as nitrogen sources rather than as carbon sources. These
 #: get a generous flat bound instead of the carbon-normalised one, so that a
 #: nitrogen source which happens to contain carbon (urea) is not also dosed as
@@ -76,7 +133,17 @@ C_SOURCE_IDS = {
 CONCORDANT = ("true_positive", "true_negative")
 DISCORDANT = ("false_positive", "false_negative")
 #: Rows that carry no information about model quality either way.
-UNSCORED = ("unsure", "no_exchange", "invalid_solve", "excluded")
+#:
+#: Note what is *not* here: a condition whose compound has no exchange reaction
+#: in the model. That used to be held out as ``no_exchange``. It is now scored
+#: as the no-growth prediction it is -- see the module docstring.
+UNSCORED = ("unsure", "invalid_solve", "excluded")
+
+#: Every value ``category`` can take. These partition the table: each row gets
+#: exactly one, so the counts always sum to the number of phenotype rows.
+#: ``test_phenotype_data.py`` enforces that, because a figure caption that says
+#: "54 growth phenotypes" is only defensible if the categories add up.
+CATEGORIES = CONCORDANT + DISCORDANT + UNSCORED
 
 #: Column naming a reason the row is not scored. Empty means "score this row".
 EXCLUSION_COLUMN = "exclude_reason"
@@ -172,12 +239,23 @@ def _uptake_bound(model, met_id: str) -> float:
 def _solve(model) -> tuple[float, bool]:
     """Optimise and return ``(growth_rate, is_valid)``.
 
-    A non-optimal status, a missing objective value, or a negative objective
-    value all mean the number is not a growth rate. Biomass cannot carry
+    An **infeasible** problem is a growth rate of zero, not an invalid result.
+    The model carries a forced lower bound on ATP hydrolysis, so a medium that
+    cannot supply maintenance energy has no feasible solution at all. That is
+    not a solver failure; it is the model saying the organism cannot sustain
+    itself on this medium, which is exactly the prediction the phenotype is
+    being compared against. Reporting it as unscorable instead threw away real
+    no-growth predictions -- most of them, in fact, since a medium whose only
+    carbon source cannot be taken up is infeasible rather than zero-growth.
+
+    Any *other* non-optimal status (unbounded, solver error), a missing
+    objective value, or a negative one really is unusable. Biomass cannot carry
     negative flux, so a negative optimum indicates a solver or bounds problem
     rather than a phenotype.
     """
     solution = model.optimize()
+    if solution.status == "infeasible":
+        return 0.0, True
     if solution.status != "optimal":
         return float("nan"), False
     value = solution.objective_value
@@ -186,6 +264,37 @@ def _solve(model) -> tuple[float, bool]:
     if value < -1e-6:
         return float("nan"), False
     return max(float(value), 0.0), True
+
+
+def _large_flux_reactions(model, flux_limit: float) -> frozenset:
+    """Reaction ids carrying more than ``flux_limit`` in a parsimonious solution.
+
+    Plain FBA is useless for this question. Any thermodynamically infeasible
+    loop in the network can carry unlimited flux without changing the objective,
+    so the loop's magnitude in an FBA solution is whatever the solver happened
+    to land on -- it can be enormous in one solve and zero in the next for an
+    unchanged model. pFBA minimises total flux subject to the same optimum, so a
+    reaction that still carries a huge flux is carrying it because the network
+    forces it to, which is the thing worth reporting.
+
+    An infeasible problem returns the empty set rather than raising. The model
+    carries a non-zero maintenance requirement, so a medium that cannot supply
+    that energy makes the LP infeasible; biologically that is just "no growth",
+    and a condition with no growth has no fluxes to report.
+    """
+    # Imported here for the same reason as the media import below: this module
+    # is imported by plotting code that has no cobra installed.
+    import cobra
+
+    try:
+        solution = cobra.flux_analysis.pfba(model)
+    except (cobra.exceptions.Infeasible, cobra.exceptions.OptimizationError):
+        return frozenset()
+    return frozenset(
+        reaction_id
+        for reaction_id, flux in solution.fluxes.items()
+        if abs(flux) > flux_limit
+    )
 
 
 def _classify(experimental: str, predicted_growth: bool | None) -> str:
@@ -207,25 +316,31 @@ def evaluate_phenotypes(
     model,
     phenotypes: pd.DataFrame | None = None,
     growth_threshold: float = GROWTH_THRESHOLD,
+    flux_limit: float | None = None,
 ) -> pd.DataFrame:
     """Run every phenotype condition and classify the outcome.
+
+    Pass ``flux_limit`` to also record, for every condition that grows, which
+    reactions carry more flux than that. This costs a second (pFBA) solve per
+    growing condition, so it is off by default: the test suite only needs the
+    verdicts, while ``run_tests_on_prs.py`` needs both metrics and must get them
+    from the same simulation to be comparable.
 
     Returns a copy of the phenotype table with these columns added:
 
     ``missing_exchanges``
-        Comma-separated compound ids that have no exchange reaction. A
-        non-empty value means the condition could not be represented.
+        Comma-separated compound ids that have no exchange reaction. The
+        condition is still scored; see the module docstring.
     ``evaluable``
-        False when any required exchange reaction is absent, or when the
-        solver returned something that is not a growth rate.
+        False when the solver returned something that is not a growth rate.
     ``fba_growth_rate``
         The growth rate, or NaN when the row is not evaluable.
     ``predicted``
         "Yes", "No", or None when not evaluable.
     ``category``
         One of true_positive, true_negative, false_positive, false_negative,
-        unsure, no_exchange, invalid_solve, excluded. This is the single field
-        downstream code should switch on.
+        unsure, invalid_solve, excluded. This is the single field downstream
+        code should switch on.
     ``raw_category``
         The verdict the row would have had if it were not excluded. Identical
         to ``category`` for rows that are scored. Kept so that excluding a row
@@ -237,6 +352,16 @@ def evaluate_phenotypes(
     ``near_threshold``
         True when the predicted rate is positive but within
         ``NEAR_THRESHOLD_FACTOR`` of the threshold, so the call is marginal.
+    ``no_uptake_route``
+        True when this row's no-growth prediction rests on a compound having no
+        exchange reaction. A sub-count of the negative predictions, not a
+        category: these rows are scored like any other.
+    ``large_flux_reactions``
+        Only present when ``flux_limit`` is given. A frozenset of reaction ids
+        that carried more than ``flux_limit`` in this condition's parsimonious
+        solution; empty for conditions that did not grow. Take the union across
+        rows to get the model-wide count -- see
+        :func:`count_large_flux_reactions`.
     """
     # Imported here rather than at module scope so that the plotting code can
     # import this module (for the category names and thresholds) without
@@ -264,34 +389,43 @@ def evaluate_phenotypes(
         with model:
             model.medium = media_utils.clean_media(model, medium)
             rate, valid = _solve(model)
+            # Inside the same context manager so the pFBA solve sees exactly
+            # the medium the verdict was based on.
+            if flux_limit is not None and valid and rate > growth_threshold:
+                large_flux = _large_flux_reactions(model, flux_limit)
+            else:
+                large_flux = frozenset()
 
-        if missing:
-            raw_category = "no_exchange"
-            predicted = None
-        elif not valid:
+        if not valid:
             raw_category = "invalid_solve"
             predicted = None
+            predicted_growth = None
         else:
             predicted_growth = rate > growth_threshold
             predicted = "Yes" if predicted_growth else "No"
             raw_category = _classify(row["growth"], predicted_growth)
 
         excluded = bool(row.get(EXCLUSION_COLUMN, ""))
-        records.append(
-            {
-                "missing_exchanges": ", ".join(missing),
-                "evaluable": not missing and valid,
-                "fba_growth_rate": rate if valid else float("nan"),
-                "predicted": predicted,
-                "raw_category": raw_category,
-                "category": "excluded" if excluded else raw_category,
-                "discordant": (not excluded) and raw_category in DISCORDANT,
-                "near_threshold": bool(
-                    valid
-                    and 0 < rate <= NEAR_THRESHOLD_FACTOR * growth_threshold
-                ),
-            }
-        )
+        record = {
+            "missing_exchanges": ", ".join(missing),
+            "evaluable": valid,
+            "fba_growth_rate": rate if valid else float("nan"),
+            "predicted": predicted,
+            "raw_category": raw_category,
+            "category": "excluded" if excluded else raw_category,
+            "discordant": (not excluded) and raw_category in DISCORDANT,
+            "near_threshold": bool(
+                valid and 0 < rate <= NEAR_THRESHOLD_FACTOR * growth_threshold
+            ),
+            # Reportable, not a category: this row IS scored, but the no-growth
+            # call rests on the model having no way to take the compound up.
+            # Note it is False for a row that grows anyway on its other
+            # metabolites -- there the missing exchange did not decide anything.
+            "no_uptake_route": bool(missing) and predicted_growth is False,
+        }
+        if flux_limit is not None:
+            record["large_flux_reactions"] = large_flux
+        records.append(record)
 
     return pd.concat(
         [phenotypes.reset_index(drop=True), pd.DataFrame.from_records(records)],
@@ -317,7 +451,19 @@ def summarise(results: pd.DataFrame) -> dict:
 
     return {
         "n_conditions": len(results),
-        "n_no_exchange": counts.get("no_exchange", 0),
+        # Not part of the partition: a strict subset of the scored rows, all of
+        # them inside true_negative or false_negative. Reported so a caption can
+        # say how many negative predictions come from an absent transporter
+        # rather than from network structure. Restricted to scored rows on
+        # purpose -- an unsure or excluded condition with no uptake route is not
+        # a prediction, so including it would make this not add up against the
+        # confusion matrix.
+        "n_no_uptake_route": int(
+            (
+                results.get("no_uptake_route", pd.Series(False, index=results.index))
+                & results["category"].isin(CONCORDANT + DISCORDANT)
+            ).sum()
+        ),
         "n_invalid_solve": counts.get("invalid_solve", 0),
         "n_unsure": counts.get("unsure", 0),
         "n_excluded": counts.get("excluded", 0),
@@ -326,6 +472,12 @@ def summarise(results: pd.DataFrame) -> dict:
         "true_negative": true_negative,
         "false_positive": false_positive,
         "false_negative": false_negative,
+        # The number plotted as "growth phenotypes matching experimental data".
+        # Defined here rather than recomputed by each caller so that the figure,
+        # the CI report and the time series cannot disagree about what a match
+        # is. It counts only scored rows: an unsure observation, an excluded
+        # one, or an unusable solve is not a match either way.
+        "matches": true_positive + true_negative,
         "sensitivity": true_positive / observed_growth if observed_growth else np.nan,
         "specificity": (
             true_negative / observed_no_growth if observed_no_growth else np.nan
@@ -333,15 +485,54 @@ def summarise(results: pd.DataFrame) -> dict:
     }
 
 
+def count_interpretable(phenotypes: pd.DataFrame | None = None) -> int:
+    """How many conditions could, in principle, be scored against any model.
+
+    A property of the *data*, not of a model: rows with a definite Yes/No
+    observation and no exclusion reason. Deliberately not derived from an
+    evaluation result, because ``n_scored`` there depends on which exchange
+    reactions the model happens to have, and a denominator that grows as the
+    model grows cannot be used to compare two models.
+
+    This is the denominator to use for "fraction of growth phenotypes
+    reproduced" in the manuscript, and the one plotted in figure 2B.
+    """
+    if phenotypes is None:
+        phenotypes = load_phenotypes()
+    definite = phenotypes["growth"].isin(("Yes", "No"))
+    not_excluded = phenotypes[EXCLUSION_COLUMN] == ""
+    return int((definite & not_excluded).sum())
+
+
+def count_large_flux_reactions(results: pd.DataFrame) -> int:
+    """How many distinct reactions carried a large flux in *any* condition.
+
+    Counts the union rather than summing per condition: one loop that fires in
+    every medium is one problem to fix, not sixty.
+
+    Requires ``evaluate_phenotypes(..., flux_limit=...)``.
+    """
+    if "large_flux_reactions" not in results.columns:
+        raise KeyError(
+            "results has no 'large_flux_reactions' column; call "
+            "evaluate_phenotypes(model, flux_limit=...) to collect it"
+        )
+    union: set = set()
+    for reaction_ids in results["large_flux_reactions"]:
+        union.update(reaction_ids)
+    return len(union)
+
+
 def format_summary(summary: dict) -> str:
     """One-paragraph text version of :func:`summarise`, for logs and captions."""
     return (
         f"{summary['n_conditions']} conditions; "
-        f"{summary['n_no_exchange']} not representable (no exchange reaction), "
         f"{summary['n_invalid_solve']} invalid solves, "
         f"{summary['n_unsure']} experimentally unsure, "
         f"{summary['n_excluded']} excluded; "
-        f"{summary['n_scored']} scored. "
+        f"{summary['n_scored']} scored "
+        f"({summary['n_no_uptake_route']} of them predicted no-growth because "
+        f"the model has no uptake route). "
         f"Sensitivity {summary['sensitivity']:.2f} "
         f"({summary['true_positive']}/"
         f"{summary['true_positive'] + summary['false_negative']}), "

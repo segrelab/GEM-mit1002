@@ -48,6 +48,15 @@ permanent property of the formalism rather than a data problem, and those rows
 are worth reporting as a result rather than quietly dropping. Collapsing all
 four into a single "ignore" flag would lose that distinction.
 
+**A missing exchange reaction is not a reason to exclude a row.** If the model
+has no way to take the compound up, that is a prediction of no growth and it is
+scored as one — for most of these compounds the genome was searched and no
+candidate transporter was found, which makes the absence a finding rather than a
+gap. `not_representable` is for something else: a trusted observation that FBA
+cannot express *even with* the right transporters in place, because the
+mechanism is regulatory or kinetic. Reach for it when adding the missing
+reaction would not resolve the disagreement.
+
 ### Excluding a row is not the same as deleting it
 
 Excluded rows stay in the file. The experiment happened and the result is real;

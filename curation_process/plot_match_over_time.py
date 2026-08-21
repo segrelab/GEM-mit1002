@@ -36,15 +36,45 @@ data = data[data["% Match"] != "ERROR"]
 
 # Convert columns to numeric type
 # TODO: Do I need any other columns numerical? Are there any that can't be?
-cols_to_fix = ["Matches", "% Match", "PR Number", "Unbounded Flux Reactions"]
+cols_to_fix = ["Matches", "% Match", "PR Number", "Unbounded Flux Reactions", "Total"]
 data[cols_to_fix] = data[cols_to_fix].apply(pd.to_numeric, errors="coerce")
 
 # Sort the data by PR number and reset the index
 data = data.sort_values("PR Number").reset_index(drop=True)
 
-# Pick one color per series so the line and its axis can be matched by eye
-matches_color = summer_colors["teal"]
-flux_color = summer_colors["pink"]
+# Every row must have been scored the same way, or the line is comparing two
+# different definitions of "match". run_tests_on_prs.py re-runs stale rows
+# automatically, so a mixture here means the file was edited by hand or a run
+# was interrupted part way through.
+if "Scoring Version" in data.columns:
+    versions = sorted(data["Scoring Version"].dropna().unique())
+    if len(versions) > 1:
+        raise ValueError(
+            f"growth_match_summary.csv mixes scoring versions {versions}; the "
+            f"points are not comparable. Re-run run_tests_on_prs.py (it will "
+            f"re-evaluate the stale rows)."
+        )
+
+# The denominator: conditions with a definite Yes/No observation and no
+# exclusion reason. Constant across PRs by construction, which is what makes
+# the two ends of the line comparable.
+n_interpretable = int(data["Total"].dropna().iloc[-1]) if "Total" in data else None
+if n_interpretable is not None and data["Total"].dropna().nunique() > 1:
+    warnings.warn(
+        "the 'Total' column is not constant across PRs, so the match counts "
+        "have different denominators and the line's slope is not meaningful"
+    )
+
+# Pick one color per series so the line and its axis can be matched by eye.
+# Deliberately not the teal/red of the pipeline schematic in panel A: reviewers
+# read the shared colors as a shared meaning, and there isn't one.
+matches_color = summer_colors["green"]
+flux_color = summer_colors["yellow"]
+
+# Distinct markers as well as distinct colors, so the two series stay separable
+# in grayscale and for readers with colour vision deficiency
+matches_marker = "o"
+flux_marker = "s"
 
 # Create a figure with twin y axes
 fig, ax1 = plt.subplots(figsize=(8, 5))
@@ -56,9 +86,12 @@ ax2.set_yscale("symlog", linthresh=1)
 ax1.plot(
     data.index,
     data["Matches"],
-    marker="o",
+    marker=matches_marker,
     markersize=4,
     linestyle="-",
+    # Slightly heavier than the default: the yellow of this palette is light
+    # against white, and a hairline in it disappears at figure scale
+    linewidth=1.8,
     color=matches_color,
 )
 
@@ -66,9 +99,12 @@ ax1.plot(
 ax2.plot(
     data.index,
     data["Unbounded Flux Reactions"],
-    marker="o",
+    marker=flux_marker,
     markersize=4,
     linestyle="-",
+    # Slightly heavier than the default: the yellow of this palette is light
+    # against white, and a hairline in it disappears at figure scale
+    linewidth=1.8,
     color=flux_color,
 )
 
@@ -84,8 +120,15 @@ set_plot_style(ax1)
 # Titles and labels (set on ax1 so set_plot_style's gray text applies)
 ax1.set_title("Model Performance Over Time")
 ax1.set_xlabel("Pull Request Number")
-ax1.set_ylabel("Growth Phenotypes Matching Experimental Data")
-ax1.set_ylim(0, 55)  # See the full range
+if n_interpretable:
+    ax1.set_ylabel(
+        f"Growth Phenotypes Matching Experimental Data (of {n_interpretable})"
+    )
+else:
+    ax1.set_ylabel("Growth Phenotypes Matching Experimental Data")
+# Full range of the metric, so the height of the line reads as a fraction of
+# what could be matched rather than being rescaled to whatever was achieved
+ax1.set_ylim(0, (n_interpretable or 55))
 ax2.set_ylabel("Unique Reactions with Flux > 100 (Log Scale)")
 
 # Thin out the x-tick labels: with ~120 points, labeling every PR is unreadable,
@@ -114,14 +157,19 @@ ax2.yaxis.label.set_color(flux_color)
 pr_to_index = dict(zip(data["PR Number"], data.index))
 
 
-def darken(color, factor=0.7):
-    """Return a darker shade of a color so the star stands out from its line."""
+def darken(color, factor=0.65):
+    """Return a darker shade of a color so the star stands out from its line.
+
+    Same factor for both series. The yellow needs it more than the green does,
+    but a per-series factor would make the two stars differ in a way that reads
+    as meaningful when it isn't.
+    """
     r, g, b = mcolors.to_rgb(color)
     return (r * factor, g * factor, b * factor)
 
 
-# Give the top of the growth axis a little headroom for labels
-ax1.set_ylim(0, 58)
+# Give the top of the growth axis a little headroom for the PR labels
+ax1.set_ylim(0, (n_interpretable or 55) * 1.06)
 # Finalize the layout first so the data->display transforms used below (to put
 # the flux labels into ax1's coordinate system) are correct.
 fig.tight_layout()

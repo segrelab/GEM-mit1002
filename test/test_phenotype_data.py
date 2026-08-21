@@ -11,10 +11,12 @@ import os
 import unittest
 
 from tools.phenotypes import (
+    CATEGORIES,
     EXCLUSION_COLUMN,
     EXCLUSION_REASONS,
     MISMATCH_COLUMNS,
     condition_key,
+    count_interpretable,
     load_expected_mismatches,
     load_phenotypes,
 )
@@ -79,6 +81,48 @@ class TestPhenotypeSchema(unittest.TestCase):
             or not all(m.startswith("cpd") for m in row["met_id"])
         ]
         self.assertFalse(bad, f"rows with missing or malformed met_id: {bad}")
+
+
+class TestInterpretableCount(unittest.TestCase):
+    """The denominator quoted in the manuscript and plotted in figure 2B.
+
+    Checked here, against the file, because it is a property of the data and
+    must not depend on which model it happens to be compared against.
+    """
+
+    def setUp(self):
+        self.phenotypes = load_phenotypes()
+
+    def test_categories_are_distinct(self):
+        self.assertEqual(
+            len(CATEGORIES),
+            len(set(CATEGORIES)),
+            "a category name appears twice, so counts built from CATEGORIES "
+            "would double count those rows",
+        )
+
+    def test_interpretable_excludes_unsure_and_excluded_rows(self):
+        expected = sum(
+            1
+            for _, row in self.phenotypes.iterrows()
+            if row["growth"] in ("Yes", "No") and not row[EXCLUSION_COLUMN]
+        )
+        self.assertEqual(count_interpretable(self.phenotypes), expected)
+
+    def test_interpretable_is_a_strict_subset_when_rows_are_held_out(self):
+        """A sanity check on the direction of the filter.
+
+        If the count ever equalled the row count while the file still contains
+        unsure or excluded rows, the filter has stopped filtering.
+        """
+        held_out = sum(
+            1
+            for _, row in self.phenotypes.iterrows()
+            if row["growth"] not in ("Yes", "No") or row[EXCLUSION_COLUMN]
+        )
+        if not held_out:
+            self.skipTest("no unsure or excluded rows in the table")
+        self.assertLess(count_interpretable(self.phenotypes), len(self.phenotypes))
 
 
 class TestExpectedMismatches(unittest.TestCase):

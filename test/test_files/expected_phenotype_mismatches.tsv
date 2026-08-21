@@ -1,2 +1,4 @@
 minimal_media	c_source	category	notes
-marine_broth_wo_yeast_and_peptone	Proline	false_positive	
+marine_broth_wo_yeast_and_peptone	Cystine, Pyruvate	false_positive	surfaced by SCORING_VERSION 3; previously hidden as no_exchange. The model grows on the pyruvate, so the absent cystine exchange does not make this a no-growth prediction. The real disagreement is that pyruvate alone should not support growth in this condition.
+marine_broth_wo_yeast_and_peptone	Proline	false_positive
+swm	alpha-Mannan	false_negative	surfaced by SCORING_VERSION 3; previously hidden as no_exchange. Genuine reconstruction gap: no alpha-mannan uptake route, and the strain does grow on it.

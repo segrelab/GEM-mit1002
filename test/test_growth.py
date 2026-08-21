@@ -28,8 +28,10 @@ from gem_utilities import media
 
 from tools.media import MEDIA
 from tools.phenotypes import (
+    CATEGORIES,
     EXCLUSION_COLUMN,
     compare_to_baseline,
+    count_interpretable,
     evaluate_phenotypes,
     format_summary,
     load_expected_mismatches,
@@ -153,6 +155,118 @@ class TestExpectedGrowthPhenotypes(unittest.TestCase):
             len(load_phenotypes()),
             "evaluate_phenotypes returned a different number of rows than the "
             "phenotype table contains",
+        )
+
+
+class TestSummaryArithmetic(unittest.TestCase):
+    """The reported counts must add up.
+
+    These exist because the confusion matrices in figure 2 of the manuscript
+    could not be reconciled with the phenotype file by hand. Every number a
+    caption quotes comes from :func:`summarise`, so the invariants that make
+    those numbers mean what they say are checked here rather than trusted.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.results = evaluate_phenotypes(_model())
+        cls.summary = summarise(cls.results)
+
+    def test_every_row_gets_a_known_category(self):
+        unknown = sorted(set(self.results["category"]) - set(CATEGORIES))
+        self.assertFalse(
+            unknown,
+            f"category values not in CATEGORIES: {unknown}. Anything switching "
+            f"on category would silently ignore these rows.",
+        )
+
+    def test_categories_partition_the_table(self):
+        """No row counted twice, none left out."""
+        counted = (
+            self.summary["n_scored"]
+            + self.summary["n_unsure"]
+            + self.summary["n_excluded"]
+            + self.summary["n_invalid_solve"]
+        )
+        self.assertEqual(
+            counted,
+            self.summary["n_conditions"],
+            "the category counts do not sum to the number of conditions, so at "
+            "least one row is double counted or dropped",
+        )
+
+    def test_no_uptake_route_is_a_subset_of_the_negative_predictions(self):
+        """The reported count must be reconcilable with the confusion matrix.
+
+        These rows are scored, so each one sits inside a true negative or a
+        false negative. If the count exceeds TN + FN it is picking up unsure or
+        excluded rows and cannot be quoted alongside the matrix.
+        """
+        self.assertLessEqual(
+            self.summary["n_no_uptake_route"],
+            self.summary["true_negative"] + self.summary["false_negative"],
+        )
+
+    def test_a_missing_exchange_does_not_by_itself_decide_the_verdict(self):
+        """A condition can grow on the compounds it does have.
+
+        ``marine_broth_wo_yeast_and_peptone | Methionine, Pyruvate`` has no
+        methionine exchange but grows on the pyruvate, and it grows
+        experimentally too. Scoring it off the missing exchange would record a
+        false negative for a condition the model gets right, so any row with a
+        missing exchange that still grows must not be flagged as a no-uptake
+        prediction.
+        """
+        grew_anyway = self.results[
+            (self.results["missing_exchanges"] != "")
+            & (self.results["predicted"] == "Yes")
+        ]
+        self.assertFalse(
+            grew_anyway["no_uptake_route"].any(),
+            "a condition that grew was flagged as predicting no-growth from a "
+            "missing uptake route",
+        )
+
+    def test_confusion_matrix_sums_to_the_scored_rows(self):
+        self.assertEqual(
+            self.summary["true_positive"]
+            + self.summary["true_negative"]
+            + self.summary["false_positive"]
+            + self.summary["false_negative"],
+            self.summary["n_scored"],
+        )
+
+    def test_matches_are_the_concordant_cells(self):
+        """"Matches" is TP + TN and nothing else.
+
+        In particular an unsure observation or an excluded condition is not a
+        match. The old time-series code counted excluded conditions, which is
+        one of the reasons the figure's numbers could not be reproduced.
+        """
+        self.assertEqual(
+            self.summary["matches"],
+            self.summary["true_positive"] + self.summary["true_negative"],
+        )
+
+    def test_matches_never_exceed_the_interpretable_denominator(self):
+        self.assertLessEqual(
+            self.summary["matches"],
+            count_interpretable(),
+            "more matches than there are interpretable conditions, so the "
+            "denominator plotted in figure 2B is wrong",
+        )
+
+    def test_excluded_rows_keep_their_underlying_verdict(self):
+        """Excluding a row must not destroy the comparison it represents.
+
+        ``raw_category`` is what the row would have scored; only ``category``
+        is overwritten. Losing the raw verdict would make it impossible to say
+        later whether excluding the row changed the picture.
+        """
+        excluded = self.results[self.results["category"] == "excluded"]
+        self.assertFalse(
+            (excluded["raw_category"] == "excluded").any(),
+            "an excluded row lost its underlying verdict",
         )
 
 
