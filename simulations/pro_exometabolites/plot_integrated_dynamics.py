@@ -62,6 +62,20 @@ DT_H = 2.0
 DARK_PERIODS = [(10, 22), (34, 46)]
 SMOOTHING_WINDOW = 3
 
+# Figure geometry, in inches. FIG_W_IN and PANEL_H_IN describe the *total*
+# footprint of each panel — axis labels and the right-hand legend included — so
+# the figure is FIG_W_IN wide by 2 * PANEL_H_IN tall. The plotting area is
+# whatever is left after the margins, and LEGEND_L_IN (measured from the left
+# edge of the figure) sets where the legend column starts.
+FIG_W_IN = 5.36
+PANEL_H_IN = 1.7
+PANEL_GAP_IN = 0.20
+MARGIN_L_IN = 0.52
+MARGIN_R_IN = 2.10  # right-hand y-axis label plus the legend column
+MARGIN_B_IN = 0.42
+MARGIN_T_IN = 0.08
+LEGEND_L_IN = 3.86
+
 GLU_EX = "EX_cpd00023_e0"
 NH3_EX = "EX_cpd00013_e0"
 
@@ -172,8 +186,20 @@ def main() -> None:
     # Two stacked panels sharing the time axis:
     #   top    — experimental data only (glutamate + Pro cell density)
     #   bottom — simulation outputs (glutamate + ammonium + Amac biomass)
-    fig, (ax_exp, ax_sim) = plt.subplots(
-        2, 1, figsize=(7.2, 7.2), sharex=True, gridspec_kw={"hspace": 0.18}
+    #
+    # The panels are wide and short, so the legends sit outside on the right;
+    # the margins reserve room for them inside the FIG_W_IN total width.
+    fig_w = FIG_W_IN
+    fig_h = 2 * PANEL_H_IN
+    axes_w = fig_w - MARGIN_L_IN - MARGIN_R_IN
+    axes_h = (fig_h - MARGIN_B_IN - MARGIN_T_IN - PANEL_GAP_IN) / 2
+    fig, (ax_exp, ax_sim) = plt.subplots(2, 1, figsize=(fig_w, fig_h), sharex=True)
+    fig.subplots_adjust(
+        left=MARGIN_L_IN / fig_w,
+        right=(MARGIN_L_IN + axes_w) / fig_w,
+        bottom=MARGIN_B_IN / fig_h,
+        top=(fig_h - MARGIN_T_IN) / fig_h,
+        hspace=PANEL_GAP_IN / axes_h,
     )
     ax_exp_r = ax_exp.twinx()  # Pro density (×10⁶ cells/mL)
     ax_sim_r = ax_sim.twinx()  # Amac biomass (μg/L)
@@ -201,21 +227,20 @@ def main() -> None:
         glu_exp_at_times,
         "o-",
         color=c_glu_exp,
-        lw=2,
-        ms=5,
+        lw=1.4,
+        ms=3,
         label="Glutamate (Experimental)",
         zorder=4,
     )
-    ax_exp.set_ylabel("Concentration (nM)", fontsize=11)
-    # Headroom above the data so the upper-left legend never sits on a line
-    ax_exp.set_ylim(0, np.nanmax(glu_exp_at_times[in_win]) * 1.45)
+    ax_exp.set_ylabel("Concentration (nM)", fontsize=7)
+    ax_exp.set_ylim(0, np.nanmax(glu_exp_at_times[in_win]) * 1.12)
 
     ax_exp_r.plot(
         pro["time_h"],
         pro["cell_count_mean"] / 1e6,
         ":",
         color=c_pro,
-        lw=2.2,
+        lw=1.6,
         label="Pro density",
     )
     if "cell_count_sd" in pro.columns:
@@ -227,9 +252,9 @@ def main() -> None:
             alpha=0.10,
         )
     # Set the y-axis limits so that the first day's value take up most of the space (the second day is just a repeat of the first)
-    ax_exp_r.set_ylim(0, 190)
+    ax_exp_r.set_ylim(0, 130)
     ax_exp_r.set_ylabel(
-        "Prochlorococcus density\n(×10⁶ cells mL⁻¹)", color=c_pro, fontsize=10
+        "Prochlorococcus\n(×10⁶ cells mL⁻¹)", color=c_pro, fontsize=7
     )
     ax_exp_r.tick_params(axis="y", labelcolor=c_pro)
 
@@ -240,8 +265,8 @@ def main() -> None:
         glu_sim,
         "s--",
         color=c_glu_sim,
-        lw=2,
-        ms=4,
+        lw=1.4,
+        ms=2.8,
         label="Glutamate (Simulated)",
         zorder=4,
     )
@@ -250,33 +275,34 @@ def main() -> None:
         nh4_cum_nM,
         "^-",
         color=c_nh4,
-        lw=2,
-        ms=4,
+        lw=1.4,
+        ms=2.8,
         label="Ammonium (Simulated)",
         zorder=4,
     )
-    ax_sim.set_ylabel("Concentration (nM)", fontsize=11)
+    ax_sim.set_ylabel("Concentration (nM)", fontsize=7)
     # Subset the y-axis to only show positive concentrations
     # The simulated glutamate can go negative when Pro starts reabsorbing it
     sim_top = max(np.nanmax(glu_sim[in_win]), np.nanmax(nh4_cum_nM[in_win]))
-    ax_sim.set_ylim(0, sim_top * 1.55)
+    ax_sim.set_ylim(0, sim_top * 1.12)
 
-    ax_sim_r.plot(times, X_ugL, "-", color=c_amac, lw=2.6, label="Amac biomass")
+    ax_sim_r.plot(times, X_ugL, "-", color=c_amac, lw=1.8, label="Amac biomass")
     x_lo, x_hi = X_ugL[in_win].min(), X_ugL[in_win].max()
     x_span = x_hi - x_lo
-    ax_sim_r.set_ylim(x_lo - 0.08 * x_span, x_hi + 0.55 * x_span)
-    ax_sim_r.set_ylabel(
-        "A. macleodii biomass\n(μg DW L⁻¹)", color=c_amac, fontsize=10
-    )
+    ax_sim_r.set_ylim(x_lo - 0.08 * x_span, x_hi + 0.12 * x_span)
+    ax_sim_r.set_ylabel("A. macleodii\n(μg DW L⁻¹)", color=c_amac, fontsize=7)
     ax_sim_r.tick_params(axis="y", labelcolor=c_amac)
 
     # Shared x-axis: only label the bottom panel
     # Subset the x-axis (time) to the first diel cycle
-    ax_sim.set_xlabel("Time (h)", fontsize=11)
+    ax_sim.set_xlabel("Time (h)", fontsize=7)
     ax_sim.set_xlim(0, x_max)
     ax_sim.set_xticks(range(0, x_max + 1, 4))
+    for ax in (ax_exp, ax_exp_r, ax_sim, ax_sim_r):
+        ax.tick_params(labelsize=6, length=2, pad=1.5)
 
-    # Per-panel legends, in the headroom cleared above the data
+    # Per-panel legends, in the column reserved at LEGEND_L_IN. Anchoring in
+    # figure coordinates keeps the column aligned between the two panels.
     dark_patch = plt.Rectangle(
         (0, 0), 1, 1, fc=summer_colors["dark_tan"], label="Dark period"
     )
@@ -286,10 +312,16 @@ def main() -> None:
         ax_l.legend(
             handles=hl + hr + [dark_patch],
             labels=ll + lr + ["Dark period"],
-            fontsize=8,
+            fontsize=6,
             loc="upper left",
+            bbox_to_anchor=(LEGEND_L_IN / fig_w, ax_l.get_position().y1),
+            bbox_transform=fig.transFigure,
+            borderaxespad=0,
+            handlelength=1.6,
+            handletextpad=0.5,
+            labelspacing=0.4,
             ncol=1,
-            framealpha=0.85,
+            frameon=False,
         )
 
     # Gray axes/ticks/labels. set_plot_style() drops the right spine, which the
@@ -305,15 +337,11 @@ def main() -> None:
     ax_exp_r.yaxis.label.set_color(c_pro)
     ax_sim_r.yaxis.label.set_color(c_amac)
 
-    fig.suptitle(
-        f"Diel dynamics: glutamate, ammonium, Pro, Amac (f = {F_PLOT:g}, NH₃ removed from medium)",
-        fontsize=11,
-        color="gray",
-    )
-    # tight_layout is skipped: it warns on twinx axes; hspace + bbox_inches handle spacing
     out = FIG_DIR / "fig_integrated_dynamics.png"
-    fig.savefig(out, dpi=150, bbox_inches="tight")
+    # Note: no bbox_inches="tight" — it would re-crop away the fixed figure size
+    fig.savefig(out, dpi=300)
     plt.close(fig)
+    print(f"Figure: {fig_w:.2f} x {fig_h:.2f} in ({PANEL_H_IN:.2f} in per panel)")
     print(f"\nSaved {out}")
 
 
